@@ -30,9 +30,6 @@ services:
       MYSQL_PASSWORD: eod_password
     ports:
       - "3306:3306"
-    volumes:
-      - mysql_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     networks:
       - eod-network
     healthcheck:
@@ -40,9 +37,6 @@ services:
       timeout: 20s
       retries: 10
 
-volumes:
-  mysql_data:
-    driver: local
 
 networks:
   eod-network:
