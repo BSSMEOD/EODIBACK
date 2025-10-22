@@ -38,11 +38,10 @@ public class GiveRecord {
     private LocalDateTime createdAt;
 
     @Builder
-    public GiveRecord(Item item, User giver, User receiver, Boolean status) {
+    public GiveRecord(Item item, User giver, User receiver) {
         this.item = item;
         this.giver = giver;
         this.receiver = receiver;
-        this.status = status != null ? status : false;
         this.createdAt = LocalDateTime.now();
     }
 }
