@@ -21,9 +21,9 @@ public class ItemGiveService {
     private final GiveRecordRepository giveRecordRepository;
 
     // 물품 지급 처리
-    public void giveItemToStudent(Long itemId, Long receiverId, User giver) {
+    public void giveItemToStudent(Long itemId, Long receiverId, User currentUser) {
         // ADMIN 권한 확인 (User 도메인 로직 사용)
-        if (!giver.isAdmin()) {
+        if (!currentUser.isAdmin()) {
             throw new AccessDeniedException("ADMIN 권한이 없습니다.");
         }
 
@@ -41,7 +41,7 @@ public class ItemGiveService {
         // 지급 기록 생성 (감사 용도)
         GiveRecord giveRecord = GiveRecord.builder()
                 .item(item)
-                .giver(giver)
+                .giver(currentUser)
                 .receiver(receiver)
                 .build();
 
