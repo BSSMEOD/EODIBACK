@@ -35,12 +35,7 @@ public class ItemGiveService {
         User receiver = userRepository.findById(receiverId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 학생을 찾을 수 없습니다."));
 
-        // 물품이 이미 지급되었는지 확인
-        if (item.getStatus() == Item.ItemStatus.GIVEN) {
-            throw new IllegalStateException("해당 물품은 이미 지급 처리되었습니다.");
-        }
-
-        // 물품 지급 처리
+        // 물품 지급 처리 (Item 도메인에서 지급 여부 검증 수행)
         item.giveToStudent(receiver);
 
         // 지급 기록 생성 (감사 용도)
