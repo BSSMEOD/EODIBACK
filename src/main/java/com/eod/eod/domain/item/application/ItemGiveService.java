@@ -43,7 +43,6 @@ public class ItemGiveService {
                 .item(item)
                 .giver(giver)
                 .receiver(receiver)
-                .status(true)
                 .build();
 
         giveRecordRepository.save(giveRecord);
