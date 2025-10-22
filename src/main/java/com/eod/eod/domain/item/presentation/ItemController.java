@@ -55,7 +55,7 @@ public class ItemController {
                             examples = @ExampleObject(value = "{\"message\": \"인증에 실패했습니다.\"}")
                     ))
     })
-    @PostMapping("/{itemId}/give")
+    @PostMapping("/{item-id}/give")
     public ResponseEntity<ItemGiveResponse> giveItem(
             @Parameter(description = "지급할 물품 ID", required = true, example = "1")
             @PathVariable Long itemId,
