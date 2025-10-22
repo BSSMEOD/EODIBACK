@@ -22,8 +22,8 @@ public class RewardQueryService {
 
     // 상점 지급 여부 조회
     public RewardEligibleResponse checkRewardEligibility(Long studentId, Long itemId, User currentUser) {
-        // 교사 권한 확인
-        if (currentUser.getRole() != User.Role.TEACHER) {
+        // 교사 권한 확인 (User 도메인 로직 사용)
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("권한이 없는 사용자입니다.");
         }
 
