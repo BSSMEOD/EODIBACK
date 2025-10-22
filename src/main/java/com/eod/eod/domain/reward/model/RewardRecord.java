@@ -1,5 +1,6 @@
-package com.eod.eod.domain.item.model;
+package com.eod.eod.domain.reward.model;
 
+import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.user.model.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -10,38 +11,35 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "give_records")
+@Table(name = "reward_records")
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class GiveRecord {
+public class RewardRecord {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "student_id", nullable = false)
+    private User student;
+
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "item_id", nullable = false)
     private Item item;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "giver_id", nullable = false)
-    private User giver;
+    @JoinColumn(name = "teacher_id", nullable = false)
+    private User teacher;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "receiver_id", nullable = false)
-    private User receiver;
-
-    @Column(name = "status", nullable = false)
-    private Boolean status = false;
-
-    @Column(name = "created_at", nullable = false)
+    @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Builder
-    public GiveRecord(Item item, User giver, User receiver) {
+    public RewardRecord(User student, Item item, User teacher) {
+        this.student = student;
         this.item = item;
-        this.giver = giver;
-        this.receiver = receiver;
+        this.teacher = teacher;
         this.createdAt = LocalDateTime.now();
     }
 }

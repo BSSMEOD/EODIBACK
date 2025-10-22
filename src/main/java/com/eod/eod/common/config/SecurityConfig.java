@@ -25,10 +25,14 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/api-docs/**"
+                                "/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
                         ).permitAll()
                         // 테스트를 위해 임시로 모든 item API 허용
                         .requestMatchers("/items/**").permitAll()
+                        // 테스트를 위해 임시로 모든 reward API 허용
+                        .requestMatchers("/rewards/**").permitAll()
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
                 );
