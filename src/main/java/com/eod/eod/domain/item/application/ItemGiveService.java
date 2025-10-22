@@ -22,25 +22,27 @@ public class ItemGiveService {
 
     // 물품 지급 처리
     public void giveItemToStudent(Long itemId, Long receiverId, User giver) {
-        // ADMIN 권한 확인
-        validateAdminPermission(giver);
-        
+        // ADMIN 권한 확인 (User 도메인 로직 사용)
+        if (!giver.isAdmin()) {
+            throw new AccessDeniedException("ADMIN 권한이 없습니다.");
+        }
+
         // 물품 존재 여부 확인
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 물품을 찾을 수 없습니다."));
-        
+
         // 지급받을 학생 확인
         User receiver = userRepository.findById(receiverId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 학생을 찾을 수 없습니다."));
-        
+
         // 물품이 이미 지급되었는지 확인
         if (item.getStatus() == Item.ItemStatus.GIVEN) {
             throw new IllegalStateException("해당 물품은 이미 지급 처리되었습니다.");
         }
-        
+
         // 물품 지급 처리
         item.giveToStudent(receiver);
-        
+
         // 지급 기록 생성 (감사 용도)
         GiveRecord giveRecord = GiveRecord.builder()
                 .item(item)
@@ -48,14 +50,7 @@ public class ItemGiveService {
                 .receiver(receiver)
                 .status(true)
                 .build();
-        
-        giveRecordRepository.save(giveRecord);
-    }
 
-    // ADMIN 권한 검증
-    private void validateAdminPermission(User user) {
-        if (user.getRole() != User.Role.ADMIN) {
-            throw new AccessDeniedException("ADMIN 권한이 없습니다.");
-        }
+        giveRecordRepository.save(giveRecord);
     }
 }
