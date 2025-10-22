@@ -47,6 +47,11 @@ public class User {
         this.createdAt = LocalDateTime.now();
     }
 
+    // 도메인 로직: ADMIN 권한 여부 확인
+    public boolean isAdmin() {
+        return this.role == Role.ADMIN;
+    }
+
     public enum Role {
         ADMIN, TEACHER, USER
     }
