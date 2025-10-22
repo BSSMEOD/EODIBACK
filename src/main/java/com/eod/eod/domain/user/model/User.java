@@ -52,6 +52,10 @@ public class User {
         return this.role == Role.ADMIN;
     }
 
+    public boolean isTeacher() {
+        return this.role == Role.TEACHER;
+    }
+
     public enum Role {
         ADMIN, TEACHER, USER
     }
