@@ -16,14 +16,11 @@ public class ItemApprovalService {
 
     // 물품 승인/거절 처리
     public Item processApproval(Long itemId, Item.ApprovalStatus approvalStatus, User currentUser) {
-        // Admin 권한 검증 (User 도메인에서 예외 처리)
-        currentUser.validateAdminRole();
-
         // 물품 존재 여부 확인
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 분실물을 찾을 수 없습니다."));
 
-        // 승인/거절 처리 (Item 도메인에서 처리)
+        // 승인/거절 처리 (Item 도메인에서 권한 검증 및 상태 변경)
         if (approvalStatus == Item.ApprovalStatus.APPROVED) {
             item.approve(currentUser);
         } else if (approvalStatus == Item.ApprovalStatus.REJECTED) {

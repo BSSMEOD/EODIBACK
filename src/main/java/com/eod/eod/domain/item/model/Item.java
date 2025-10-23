@@ -88,18 +88,20 @@ public class Item {
     }
 
     // 승인 처리
-    public void approve(User admin) {
+    public void approve(User approver) {
         validateApprovalNotProcessed();
+        validateAdminRole(approver);
         this.approvalStatus = ApprovalStatus.APPROVED;
-        this.approvedBy = admin;
+        this.approvedBy = approver;
         this.approvedAt = LocalDateTime.now();
     }
 
     // 거절 처리
-    public void reject(User admin) {
+    public void reject(User approver) {
         validateApprovalNotProcessed();
+        validateAdminRole(approver);
         this.approvalStatus = ApprovalStatus.REJECTED;
-        this.approvedBy = admin;
+        this.approvedBy = approver;
         this.approvedAt = LocalDateTime.now();
     }
 
@@ -107,6 +109,13 @@ public class Item {
     private void validateApprovalNotProcessed() {
         if (this.approvalStatus != ApprovalStatus.PENDING) {
             throw new IllegalStateException("이미 처리된 승인 요청입니다.");
+        }
+    }
+
+    // Admin 권한 검증
+    private void validateAdminRole(User user) {
+        if (!user.isAdmin()) {
+            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
     }
 
