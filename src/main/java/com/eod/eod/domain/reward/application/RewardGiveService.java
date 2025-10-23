@@ -35,9 +35,9 @@ public class RewardGiveService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("물품을 찾을 수 없습니다."));
 
-        // 중복 지급 확인
-        if (rewardRecordRepository.findByStudentIdAndItemId(studentId, itemId).isPresent()) {
-            throw new IllegalStateException("이미 상점이 지급된 항목입니다.");
+        // 중복 지급 확인 (Item 도메인 로직 사용)
+        if (item.isGiven()) {
+            throw new IllegalStateException("이미 지급된 물품입니다.");
         }
 
         // 상점 지급 기록 생성
