@@ -7,7 +7,6 @@ import com.eod.eod.domain.reward.model.RewardRecord;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,10 +21,8 @@ public class RewardGiveService {
 
     // 상점 지급 처리
     public void giveRewardToStudent(Long studentId, Long itemId, User currentUser) {
-        // 교사 권한 확인 (User 도메인 로직 사용)
-        if (!currentUser.isTeacher()) {
-            throw new AccessDeniedException("상점을 지급할 권한이 없습니다.");
-        }
+        // 교사 권한 검증 (User 도메인에서 예외 처리)
+        currentUser.validateTeacherRole();
 
         // 학생 존재 여부 확인
         User student = userRepository.findById(studentId)

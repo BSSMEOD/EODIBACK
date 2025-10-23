@@ -56,6 +56,13 @@ public class User {
         return this.role == Role.TEACHER;
     }
 
+    // 교사 권한 검증
+    public void validateTeacherRole() {
+        if (!this.isTeacher()) {
+            throw new IllegalStateException("상점을 지급할 권한이 없습니다.");
+        }
+    }
+
     public enum Role {
         ADMIN, TEACHER, USER
     }
