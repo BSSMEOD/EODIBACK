@@ -18,14 +18,8 @@ public class ItemApprovalService {
         // 물품 조회
         Item item = itemFacade.getItemById(itemId);
 
-        // 승인/거절 처리 (Item 도메인에서 권한 검증 및 상태 변경)
-        if (approvalStatus == Item.ApprovalStatus.APPROVED) {
-            item.approve(currentUser);
-        } else if (approvalStatus == Item.ApprovalStatus.REJECTED) {
-            item.reject(currentUser);
-        } else {
-            throw new IllegalArgumentException("잘못된 승인 요청입니다.");
-        }
+        // 승인/거절 처리 (Item 도메인에서 모든 검증 및 상태 변경)
+        item.processApproval(approvalStatus, currentUser);
 
         return item;
     }

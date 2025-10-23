@@ -88,8 +88,25 @@ public class Item {
         this.status = ItemStatus.GIVEN;
     }
 
-    // 승인 처리
-    public void approve(User approver) {
+    // 승인/거절 처리
+    public void processApproval(ApprovalStatus approvalStatus, User approver) {
+        validateApprovalNotProcessed();
+        validateAdminRole(approver);
+
+        if (approvalStatus == ApprovalStatus.APPROVED) {
+            this.approvalStatus = ApprovalStatus.APPROVED;
+        } else if (approvalStatus == ApprovalStatus.REJECTED) {
+            this.approvalStatus = ApprovalStatus.REJECTED;
+        } else {
+            throw new IllegalArgumentException("잘못된 승인 요청입니다.");
+        }
+
+        this.approvedBy = approver;
+        this.approvedAt = LocalDateTime.now();
+    }
+
+    // 승인 처리 (private - 내부 사용)
+    private void approve(User approver) {
         validateApprovalNotProcessed();
         validateAdminRole(approver);
         this.approvalStatus = ApprovalStatus.APPROVED;
@@ -97,8 +114,8 @@ public class Item {
         this.approvedAt = LocalDateTime.now();
     }
 
-    // 거절 처리
-    public void reject(User approver) {
+    // 거절 처리 (private - 내부 사용)
+    private void reject(User approver) {
         validateApprovalNotProcessed();
         validateAdminRole(approver);
         this.approvalStatus = ApprovalStatus.REJECTED;
