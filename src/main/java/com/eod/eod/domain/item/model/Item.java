@@ -52,8 +52,19 @@ public class Item {
     @Column(name = "discarded_at")
     private LocalDateTime discardedAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "approval_status", nullable = false)
+    private ApprovalStatus approvalStatus;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
+
+    @Column(name = "approved_at")
+    private LocalDateTime approvedAt;
+
     @Builder
-    public Item(User student, User admin, Long foundPlaceId, String foundPlaceDetail, 
+    public Item(User student, User admin, Long foundPlaceId, String foundPlaceDetail,
                 String name, String image, ItemStatus status, LocalDateTime foundAt) {
         this.student = student;
         this.admin = admin;
@@ -64,6 +75,7 @@ public class Item {
         this.status = status;
         this.foundAt = foundAt;
         this.createdAt = LocalDateTime.now();
+        this.approvalStatus = ApprovalStatus.PENDING;
     }
 
     // 물품 지급 처리
@@ -75,7 +87,34 @@ public class Item {
         this.status = ItemStatus.GIVEN;
     }
 
+    // 승인 처리
+    public void approve(User admin) {
+        validateApprovalNotProcessed();
+        this.approvalStatus = ApprovalStatus.APPROVED;
+        this.approvedBy = admin;
+        this.approvedAt = LocalDateTime.now();
+    }
+
+    // 거절 처리
+    public void reject(User admin) {
+        validateApprovalNotProcessed();
+        this.approvalStatus = ApprovalStatus.REJECTED;
+        this.approvedBy = admin;
+        this.approvedAt = LocalDateTime.now();
+    }
+
+    // 승인 처리 가능 여부 검증
+    private void validateApprovalNotProcessed() {
+        if (this.approvalStatus != ApprovalStatus.PENDING) {
+            throw new IllegalStateException("이미 처리된 승인 요청입니다.");
+        }
+    }
+
     public enum ItemStatus {
         LOST, TO_BE_DISCARDED, DISCARDED, GIVEN
+    }
+
+    public enum ApprovalStatus {
+        PENDING, APPROVED, REJECTED
     }
 }
