@@ -21,9 +21,6 @@ public class RewardGiveService {
 
     // 상점 지급 처리
     public void giveRewardToStudent(Long studentId, Long itemId, User currentUser) {
-        // 교사 권한 검증 (User 도메인에서 예외 처리)
-        currentUser.validateTeacherRole();
-
         // 학생 존재 여부 확인
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("학생을 찾을 수 없습니다."));
@@ -32,10 +29,7 @@ public class RewardGiveService {
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("물품을 찾을 수 없습니다."));
 
-        // 상점 지급 가능 여부 검증 (Item 도메인에서 예외 처리)
-        item.validateRewardEligibility();
-
-        // 상점 지급 기록 생성
+        // 상점 지급 기록 생성 (RewardRecord 도메인에서 권한 및 검증 처리)
         RewardRecord rewardRecord = RewardRecord.builder()
                 .student(student)
                 .item(item)

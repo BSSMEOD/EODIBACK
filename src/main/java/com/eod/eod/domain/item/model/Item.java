@@ -80,13 +80,6 @@ public class Item {
         return this.status == ItemStatus.GIVEN;
     }
 
-    // 상점 지급 가능 여부 검증
-    public void validateRewardEligibility() {
-        if (this.isGiven()) {
-            throw new IllegalStateException("이미 지급된 물품입니다.");
-        }
-    }
-
     public enum ItemStatus {
         LOST, TO_BE_DISCARDED, DISCARDED, GIVEN
     }

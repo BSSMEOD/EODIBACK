@@ -37,9 +37,25 @@ public class RewardRecord {
 
     @Builder
     public RewardRecord(User student, Item item, User teacher) {
+        validateTeacherRole(teacher);
+        validateItemNotGiven(item);
         this.student = student;
         this.item = item;
         this.teacher = teacher;
         this.createdAt = LocalDateTime.now();
+    }
+
+    // 교사 권한 검증
+    private void validateTeacherRole(User user) {
+        if (!user.isTeacher()) {
+            throw new IllegalStateException("상점을 지급할 권한이 없습니다.");
+        }
+    }
+
+    // 물품이 이미 지급되지 않았는지 검증
+    private void validateItemNotGiven(Item item) {
+        if (item.isGiven()) {
+            throw new IllegalStateException("이미 지급된 물품입니다.");
+        }
     }
 }
