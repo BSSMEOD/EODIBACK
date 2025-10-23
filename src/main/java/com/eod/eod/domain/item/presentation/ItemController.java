@@ -85,8 +85,10 @@ public class ItemController {
                                     {
                                         "item_id": 1,
                                         "approval_status": "APPROVED",
-                                        "approved_by_id": 12,
-                                        "approved_by": "이하은",
+                                        "approver": {
+                                            "id": 12,
+                                            "name": "이하은"
+                                        },
                                         "approved_at": "2025-08-02",
                                         "message": "소유권이 승인되었습니다."
                                     }

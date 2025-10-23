@@ -1,6 +1,7 @@
 package com.eod.eod.domain.item.presentation.dto;
 
 import com.eod.eod.domain.item.model.Item;
+import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -22,13 +23,9 @@ public class ItemApprovalResponse {
     @Schema(description = "최종 처리 상태 (APPROVED 또는 REJECTED)", example = "APPROVED")
     private String approvalStatus;
 
-    @JsonProperty("approved_by_id")
-    @Schema(description = "승인 처리한 관리자 ID", example = "12")
-    private Long approvedById;
-
-    @JsonProperty("approved_by")
-    @Schema(description = "승인 처리한 관리자 이름", example = "이하은")
-    private String approvedBy;
+    @JsonProperty("approver")
+    @Schema(description = "승인 처리한 관리자 정보")
+    private ApproverResponse approver;
 
     @JsonProperty("approved_at")
     @Schema(description = "처리 시각", example = "2025-08-02")
@@ -46,8 +43,7 @@ public class ItemApprovalResponse {
         return ItemApprovalResponse.builder()
                 .itemId(item.getId())
                 .approvalStatus(item.getApprovalStatus().name())
-                .approvedById(item.getApprovedBy().getId())
-                .approvedBy(item.getApprovedBy().getName())
+                .approver(ApproverResponse.from(item.getApprovedBy()))
                 .approvedAt(formatDate(item.getApprovedAt()))
                 .message(message)
                 .build();
@@ -55,5 +51,26 @@ public class ItemApprovalResponse {
 
     private static String formatDate(LocalDateTime dateTime) {
         return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+    }
+
+    @Getter
+    @Builder
+    @Schema(description = "승인 처리자 정보")
+    public static class ApproverResponse {
+
+        @JsonProperty("id")
+        @Schema(description = "관리자 ID", example = "12")
+        private Long id;
+
+        @JsonProperty("name")
+        @Schema(description = "관리자 이름", example = "이하은")
+        private String name;
+
+        public static ApproverResponse from(User user) {
+            return ApproverResponse.builder()
+                    .id(user.getId())
+                    .name(user.getName())
+                    .build();
+        }
     }
 }
