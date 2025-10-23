@@ -79,7 +79,8 @@ public class Item {
     }
 
     // 물품 지급 처리
-    public void giveToStudent(User receiver) {
+    public void giveToStudent(User receiver, User giver) {
+        validateAdminRole(giver);
         if (this.status == ItemStatus.GIVEN) {
             throw new IllegalStateException("해당 물품은 이미 지급 처리되었습니다.");
         }
