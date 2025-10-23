@@ -2,7 +2,6 @@ package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ItemApprovalService;
 import com.eod.eod.domain.item.application.ItemGiveService;
-import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.presentation.dto.ItemApprovalRequest;
 import com.eod.eod.domain.item.presentation.dto.ItemApprovalResponse;
 import com.eod.eod.domain.item.presentation.dto.ItemGiveRequest;
@@ -130,12 +129,12 @@ public class ItemController {
             @AuthenticationPrincipal User currentUser
     ) {
         // 승인/거절 처리 서비스 호출
-        Item item = itemApprovalService.processApproval(
+        ItemApprovalResponse response = itemApprovalService.processApproval(
                 itemId,
                 itemApprovalRequest.toApprovalStatus(),
                 currentUser
         );
 
-        return ResponseEntity.ok(ItemApprovalResponse.from(item));
+        return ResponseEntity.ok(response);
     }
 }
