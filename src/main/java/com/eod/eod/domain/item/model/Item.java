@@ -137,6 +137,11 @@ public class Item {
         }
     }
 
+    // 지급 여부 확인
+    public boolean isGiven() {
+        return this.status == ItemStatus.GIVEN;
+    }
+
     public enum ItemStatus {
         LOST, TO_BE_DISCARDED, DISCARDED, GIVEN
     }

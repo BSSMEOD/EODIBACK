@@ -2,6 +2,7 @@ package com.eod.eod.domain.reward.presentation;
 
 import com.eod.eod.domain.reward.application.RewardGiveService;
 import com.eod.eod.domain.reward.application.RewardQueryService;
+import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
 import com.eod.eod.domain.reward.presentation.dto.RewardEligibleResponse;
 import com.eod.eod.domain.reward.presentation.dto.RewardGiveRequest;
 import com.eod.eod.domain.reward.presentation.dto.RewardGiveResponse;
@@ -64,49 +65,53 @@ public class RewardController {
         return ResponseEntity.ok(RewardGiveResponse.success());
     }
 
-    @Operation(summary = "상점 지급 여부 조회", description = "특정 학생이 특정 물품에 대해 상점을 받았는지 조회합니다. (교사 전용)")
+    @Operation(summary = "상점 지급 이력 조회", description = "특정 사용자의 상점 지급 이력을 조회합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RewardEligibleResponse.class),
-                            examples = {
-                                    @ExampleObject(
-                                            name = "상점을 받은 경우",
-                                            value = "{\"student_id\": 1, \"item_id\": 1, \"id\": 1, \"created_at\": \"2025-07-31T00:00:00\"}"
-                                    ),
-                                    @ExampleObject(
-                                            name = "상점을 받지 않은 경우",
-                                            value = "{\"student_id\": 1, \"item_id\": 1, \"id\": null, \"created_at\": null}"
-                                    )
-                            }
+                            schema = @Schema(implementation = RewardHistoryResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "user_id": 1,
+                                        "rewards": [
+                                            {
+                                                "reward_id": 12,
+                                                "item_id": 5,
+                                                "item_name": "무선 이어폰",
+                                                "given_by": "김선생",
+                                                "given_at": "2025-07-31"
+                                            }
+                                        ]
+                                    }
+                                    """)
                     )),
-            @ApiResponse(responseCode = "401", description = "인증 실패",
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = "{\"message\": \"로그인이 필요합니다.\"}")
                     )),
-            @ApiResponse(responseCode = "403", description = "교사 권한이 아닐 경우",
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"message\": \"권한이 없는 사용자입니다.\"}")
+                            examples = @ExampleObject(value = "{\"message\": \"접근 권한이 없습니다.\"}")
                     )),
-            @ApiResponse(responseCode = "404", description = "존재하지 않는 사용자",
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"message\": \"올바르지 않은 사용자입니다.\"}")
+                            examples = @ExampleObject(value = "{\"message\": \"해당 사용자를 찾을 수 없습니다.\"}")
                     ))
     })
-    @GetMapping("/eligible")
-    public ResponseEntity<RewardEligibleResponse> checkRewardEligibility(
-            @Parameter(description = "학생 ID", required = true, example = "1")
-            @RequestParam("student_id") Long studentId,
-            @Parameter(description = "물품 ID", required = true, example = "1")
-            @RequestParam("item_id") Long itemId,
+    @GetMapping("/history")
+    public ResponseEntity<RewardHistoryResponse> getRewardHistory(
+            @Parameter(description = "조회할 사용자 ID", required = true, example = "1")
+            @RequestParam("user_id") Long userId,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        RewardEligibleResponse response = rewardQueryService.checkRewardEligibility(studentId, itemId, currentUser);
+        // 상점 지급 이력 조회
+        RewardHistoryResponse response = rewardQueryService.getRewardHistory(userId, currentUser);
+
         return ResponseEntity.ok(response);
     }
 }
