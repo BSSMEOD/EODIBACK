@@ -6,6 +6,7 @@ import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,7 +24,7 @@ public class RewardQueryService {
     public RewardHistoryResponse getRewardHistory(Long userId, User currentUser) {
         // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능)
         if (!currentUser.isTeacherOrAdmin()) {
-            throw new IllegalStateException("접근 권한이 없습니다.");
+            throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
         // 조회 대상 사용자 확인
