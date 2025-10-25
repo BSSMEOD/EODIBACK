@@ -67,12 +67,20 @@ public class Item {
     }
 
     // 물품 지급 처리
-    public void giveToStudent(User receiver) {
+    public void giveToStudent(User receiver, User giver) {
+        validateAdminRole(giver);
         if (this.status == ItemStatus.GIVEN) {
             throw new IllegalStateException("해당 물품은 이미 지급 처리되었습니다.");
         }
         this.student = receiver;
         this.status = ItemStatus.GIVEN;
+    }
+
+    // Admin 권한 검증
+    private void validateAdminRole(User user) {
+        if (!user.isAdmin()) {
+            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
     }
 
     // 지급 여부 확인

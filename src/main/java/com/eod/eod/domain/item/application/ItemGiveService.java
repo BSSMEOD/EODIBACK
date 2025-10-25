@@ -7,7 +7,6 @@ import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,11 +21,6 @@ public class ItemGiveService {
 
     // 물품 지급 처리
     public void giveItemToStudent(Long itemId, Long receiverId, User currentUser) {
-        // ADMIN 권한 확인 (User 도메인 로직 사용)
-        if (!currentUser.isAdmin()) {
-            throw new AccessDeniedException("ADMIN 권한이 없습니다.");
-        }
-
         // 물품 존재 여부 확인
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 물품을 찾을 수 없습니다."));
@@ -35,8 +29,8 @@ public class ItemGiveService {
         User receiver = userRepository.findById(receiverId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 학생을 찾을 수 없습니다."));
 
-        // 물품 지급 처리 (Item 도메인에서 지급 여부 검증 수행)
-        item.giveToStudent(receiver);
+        // 물품 지급 처리 (Item 도메인에서 권한 및 지급 여부 검증 수행)
+        item.giveToStudent(receiver, currentUser);
 
         // 지급 기록 생성 (감사 용도)
         GiveRecord giveRecord = GiveRecord.builder()
