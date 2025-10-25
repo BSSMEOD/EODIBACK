@@ -1,13 +1,16 @@
 package com.eod.eod.domain.reward.application;
 
 import com.eod.eod.domain.reward.infrastructure.RewardRecordRepository;
-import com.eod.eod.domain.reward.presentation.dto.RewardEligibleResponse;
+import com.eod.eod.domain.reward.model.RewardRecord;
+import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -17,30 +20,21 @@ public class RewardQueryService {
     private final RewardRecordRepository rewardRecordRepository;
     private final UserRepository userRepository;
 
-    // 상점 지급 여부 조회
-    public RewardEligibleResponse checkRewardEligibility(Long studentId, Long itemId, User currentUser) {
-        // 교사 권한 확인 (User 도메인 로직 사용)
-        if (!currentUser.isTeacher()) {
-            throw new AccessDeniedException("권한이 없는 사용자입니다.");
+    // 상점 지급 이력 조회
+    public RewardHistoryResponse getRewardHistory(Long userId, User currentUser) {
+        // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능)
+        if (!currentUser.isTeacherOrAdmin()) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
-        // 학생 존재 여부 확인
-        userRepository.findById(studentId)
-                .orElseThrow(() -> new IllegalArgumentException("올바르지 않은 사용자입니다."));
+        // 조회 대상 사용자 확인
+        User targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자를 찾을 수 없습니다."));
 
-        // 상점 지급 기록 조회 및 응답 생성
-        return rewardRecordRepository.findByStudentIdAndItemId(studentId, itemId)
-                .map(record -> new RewardEligibleResponse(
-                        studentId,
-                        itemId,
-                        record.getId(),
-                        record.getCreatedAt()
-                ))
-                .orElseGet(() -> new RewardEligibleResponse(
-                        studentId,
-                        itemId,
-                        null,
-                        null
-                ));
+        // 상점 지급 이력 조회
+        List<RewardRecord> records = rewardRecordRepository.findByStudentId(userId);
+
+        // Response 변환
+        return RewardHistoryResponse.from(userId, records);
     }
 }
