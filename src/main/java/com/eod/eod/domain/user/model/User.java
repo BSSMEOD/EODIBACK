@@ -52,11 +52,6 @@ public class User {
         return this.role == Role.ADMIN;
     }
 
-    // 도메인 로직: TEACHER 권한 여부 확인
-    public boolean isTeacher() {
-        return this.role == Role.TEACHER;
-    }
-
     public enum Role {
         ADMIN, TEACHER, USER
     }
