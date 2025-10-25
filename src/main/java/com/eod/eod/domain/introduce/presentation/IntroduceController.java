@@ -40,6 +40,40 @@ public class IntroduceController {
                     )
             ),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "유효성 검증 실패 (요청 바디 오류)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "빈 내용",
+                                            value = "{\"error\":\"VALIDATION_ERROR\",\"message\":\"content는 비어 있을 수 없습니다.\",\"field\":\"content\"}"
+                                    ),
+                                    @ExampleObject(
+                                            name = "길이 초과",
+                                            value = "{\"error\":\"VALIDATION_ERROR\",\"message\":\"content는 1,024자를 초과할 수 없습니다.\",\"field\":\"content\",\"maxLength\":10000}"
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "401",
+                    description = "인증되지 않은 사용자 (토큰 누락 또는 만료)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = {
+                                    @ExampleObject(
+                                            name = "토큰 누락",
+                                            value = "{\"error\":\"UNAUTHORIZED\",\"message\":\"인증 토큰이 필요합니다.\"}"
+                                    ),
+                                    @ExampleObject(
+                                            name = "토큰 만료",
+                                            value = "{\"error\":\"UNAUTHORIZED\",\"message\":\"토큰이 만료되었습니다. 다시 로그인하세요.\"}"
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "403",
                     description = "권한 없음 (ADMIN 권한 필요)",
                     content = @Content(
