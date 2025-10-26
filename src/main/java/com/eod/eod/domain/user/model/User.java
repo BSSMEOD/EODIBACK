@@ -52,6 +52,11 @@ public class User {
         return this.role == Role.ADMIN;
     }
 
+    // 도메인 로직: 본인 확인
+    public boolean isSameUser(User other) {
+        return this.id.equals(other.getId());
+    }
+
     public enum Role {
         ADMIN, TEACHER, USER
     }

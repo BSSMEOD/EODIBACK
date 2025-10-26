@@ -29,8 +29,8 @@ public class ItemClaimService {
         User student = userRepository.findById(studentId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 학생을 찾을 수 없습니다."));
 
-        // 본인 확인 (토큰의 사용자와 요청의 student_id가 일치하는지)
-        if (!currentUser.getId().equals(studentId)) {
+        // 본인 확인 (User 도메인 로직 사용)
+        if (!student.isSameUser(currentUser)) {
             throw new IllegalArgumentException("본인만 소유권을 주장할 수 있습니다.");
         }
 
