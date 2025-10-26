@@ -69,7 +69,6 @@ public class ItemClaimController {
 
         ItemClaimResponse response = itemClaimService.claimItem(
                 itemId,
-                request.getStudentId(),
                 request.getClaimReason(),
                 currentUser
         );
