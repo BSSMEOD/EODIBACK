@@ -1,6 +1,8 @@
 package com.eod.eod.domain.introduce.presentation;
 
+import com.eod.eod.domain.introduce.application.IntroduceQueryService;
 import com.eod.eod.domain.introduce.application.IntroduceService;
+import com.eod.eod.domain.introduce.presentation.dto.IntroduceQueryResponse;
 import com.eod.eod.domain.introduce.presentation.dto.IntroduceUpdateRequest;
 import com.eod.eod.domain.introduce.presentation.dto.IntroduceUpdateResponse;
 import com.eod.eod.domain.user.model.User;
@@ -15,10 +17,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/introduce")
@@ -27,6 +26,33 @@ import org.springframework.web.bind.annotation.RestController;
 public class IntroduceController {
 
     private final IntroduceService introduceService;
+    private final IntroduceQueryService introduceQueryService;
+
+    @Operation(summary = "소개 페이지 조회", description = "모든 사용자가 소개 페이지를 조회할 수 있습니다.")
+    @ApiResponses(value = {
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "소개 페이지 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = IntroduceQueryResponse.class),
+                            examples = @ExampleObject(value = "{\"content\": \"분실물 관리 서비스 '어디'입니다. 사용 방법은 1) 검색으로 분실물을 찾아보고 2) 없다면 등록을 통해 제보를 남겨주세요.\", \"updated_at\": \"2025-10-24T00:00:00Z\"}")
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "소개 페이지를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"error\": \"소개 페이지를 찾을 수 없습니다.\"}")
+                    )
+            )
+    })
+    @GetMapping
+    public ResponseEntity<IntroduceQueryResponse> getIntroduce() {
+        IntroduceQueryResponse response = introduceQueryService.getIntroduce();
+        return ResponseEntity.ok(response);
+    }
 
     @Operation(summary = "소개 페이지 수정", description = "관리자가 소개 페이지 내용을 수정합니다.")
     @ApiResponses(value = {
@@ -37,40 +63,6 @@ public class IntroduceController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = IntroduceUpdateResponse.class),
                             examples = @ExampleObject(value = "{\"message\": \"소개 페이지가 성공적으로 수정되었습니다.\"}")
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "유효성 검증 실패 (요청 바디 오류)",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = {
-                                    @ExampleObject(
-                                            name = "빈 내용",
-                                            value = "{\"error\":\"VALIDATION_ERROR\",\"message\":\"content는 비어 있을 수 없습니다.\",\"field\":\"content\"}"
-                                    ),
-                                    @ExampleObject(
-                                            name = "길이 초과",
-                                            value = "{\"error\":\"VALIDATION_ERROR\",\"message\":\"content는 1,024자를 초과할 수 없습니다.\",\"field\":\"content\",\"maxLength\":10000}"
-                                    )
-                            }
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "인증되지 않은 사용자 (토큰 누락 또는 만료)",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = {
-                                    @ExampleObject(
-                                            name = "토큰 누락",
-                                            value = "{\"error\":\"UNAUTHORIZED\",\"message\":\"인증 토큰이 필요합니다.\"}"
-                                    ),
-                                    @ExampleObject(
-                                            name = "토큰 만료",
-                                            value = "{\"error\":\"UNAUTHORIZED\",\"message\":\"토큰이 만료되었습니다. 다시 로그인하세요.\"}"
-                                    )
-                            }
                     )
             ),
             @ApiResponse(
