@@ -52,12 +52,9 @@ public class User {
         return this.role == Role.ADMIN;
     }
 
-    public boolean isTeacher() {
-        return this.role == Role.TEACHER;
-    }
-
-    public boolean isTeacherOrAdmin() {
-        return this.role == Role.TEACHER || this.role == Role.ADMIN;
+    // 도메인 로직: 본인 확인
+    public boolean isSameUser(User other) {
+        return this.id.equals(other.getId());
     }
 
     public enum Role {
