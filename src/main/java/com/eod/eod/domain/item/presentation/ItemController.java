@@ -1,6 +1,9 @@
 package com.eod.eod.domain.item.presentation;
 
+import com.eod.eod.domain.item.application.ItemApprovalService;
 import com.eod.eod.domain.item.application.ItemGiveService;
+import com.eod.eod.domain.item.presentation.dto.ItemApprovalRequest;
+import com.eod.eod.domain.item.presentation.dto.ItemApprovalResponse;
 import com.eod.eod.domain.item.presentation.dto.ItemGiveRequest;
 import com.eod.eod.domain.item.presentation.dto.ItemGiveResponse;
 import com.eod.eod.domain.user.model.User;
@@ -25,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 public class ItemController {
 
     private final ItemGiveService itemGiveService;
+    private final ItemApprovalService itemApprovalService;
 
     @Operation(summary = "물품 지급", description = "학생에게 특정 물품을 지급합니다.")
     @ApiResponses(value = {
@@ -68,5 +72,69 @@ public class ItemController {
         itemGiveService.giveItemToStudent(itemId, itemGiveRequest.getStudentId(), currentUser);
 
         return ResponseEntity.ok(ItemGiveResponse.success());
+    }
+
+    @Operation(summary = "물품 승인/거절", description = "분실물 소유권을 승인하거나 거절합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "승인/거절 처리 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ItemApprovalResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "item_id": 1,
+                                        "approval_status": "APPROVED",
+                                        "approver": {
+                                            "id": 12,
+                                            "name": "이하은"
+                                        },
+                                        "approved_at": "2025-08-02",
+                                        "message": "소유권이 승인되었습니다."
+                                    }
+                                    """)
+                    )),
+            @ApiResponse(responseCode = "400", description = "잘못된 승인 요청",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"잘못된 승인 요청입니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "존재하지 않는 분실물",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"해당 분실물을 찾을 수 없습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "409", description = "이미 처리된 승인 요청",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"이미 처리된 승인 요청입니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"이메일 혹은 비밀번호가 일치하지 않습니다.\"}")
+                    ))
+    })
+    @PatchMapping("/{item-id}/approve")
+    public ResponseEntity<ItemApprovalResponse> approveItem(
+            @Parameter(description = "승인/거절할 물품 ID", required = true, example = "1")
+            @PathVariable("item-id") Long itemId,
+            @Parameter(description = "물품 승인 요청 정보", required = true)
+            @Valid @RequestBody ItemApprovalRequest itemApprovalRequest,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        // 승인/거절 처리 서비스 호출
+        ItemApprovalResponse response = itemApprovalService.processApproval(
+                itemId,
+                itemApprovalRequest.toApprovalStatus(),
+                currentUser
+        );
+
+        return ResponseEntity.ok(response);
     }
 }
