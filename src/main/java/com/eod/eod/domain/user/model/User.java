@@ -21,6 +21,12 @@ public class User {
     @Column(name = "student_code")
     private Integer studentCode;
 
+    @Column(name = "oauth_provider", nullable = false, length = 20)
+    private String oauthProvider;
+
+    @Column(name = "oauth_id", nullable = false, length = 100)
+    private String oauthId;
+
     @Column(name = "name", nullable = false, length = 30)
     private String name;
 
@@ -38,8 +44,10 @@ public class User {
     private LocalDateTime createdAt;
 
     @Builder
-    public User(Integer studentCode, String name, String email, Role role, String introduce) {
+    public User(Integer studentCode, String oauthProvider, String oauthId, String name, String email, Role role, String introduce) {
         this.studentCode = studentCode;
+        this.oauthProvider = oauthProvider;
+        this.oauthId = oauthId;
         this.name = name;
         this.email = email;
         this.role = role;
@@ -52,9 +60,16 @@ public class User {
         return this.role == Role.ADMIN;
     }
 
+    public boolean isTeacher() {
+        return this.role == Role.TEACHER;
+    }
     // 도메인 로직: 본인 확인
     public boolean isSameUser(User other) {
         return this.id.equals(other.getId());
+    }
+
+    public boolean isTeacherOrAdmin() {
+        return this.role.equals(Role.ADMIN) || this.role.equals(Role.TEACHER);
     }
 
     public enum Role {
