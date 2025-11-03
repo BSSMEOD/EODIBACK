@@ -3,9 +3,11 @@ package com.eod.eod.common.config;
 import com.eod.eod.common.jwt.JwtAuthenticationFilter;
 import com.eod.eod.domain.auth.application.CustomOAuth2UserService;
 import com.eod.eod.domain.auth.application.OAuth2SuccessHandler;
+import com.eod.eod.domain.auth.application.OAuth2FailureHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -22,7 +24,7 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
-    private final com.eod.eod.domain.auth.application.OAuth2FailureHandler oAuth2FailureHandler;
+    private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
@@ -38,9 +40,9 @@ public class SecurityConfig {
                         // X-Frame-Options: Clickjacking 방어
                         .frameOptions(frame -> frame.deny())
                         // X-Content-Type-Options: MIME 타입 스니핑 방지
-                        .contentTypeOptions(contentType -> contentType.disable())
+                        .contentTypeOptions(Customizer.withDefaults())
                         // X-XSS-Protection: XSS 필터 활성화
-                        .xssProtection(xss -> xss.disable())
+                        .xssProtection(Customizer.withDefaults())
                         // Content-Security-Policy: XSS 방어
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; " +
