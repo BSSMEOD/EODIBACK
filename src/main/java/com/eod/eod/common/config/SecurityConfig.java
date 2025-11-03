@@ -1,5 +1,9 @@
 package com.eod.eod.common.config;
 
+import com.eod.eod.common.jwt.JwtAuthenticationFilter;
+import com.eod.eod.domain.auth.application.CustomOAuth2UserService;
+import com.eod.eod.domain.auth.application.OAuth2SuccessHandler;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -7,17 +11,45 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    private final OAuth2SuccessHandler oAuth2SuccessHandler;
+    private final com.eod.eod.domain.auth.application.OAuth2FailureHandler oAuth2FailureHandler;
+    private final CorsConfigurationSource corsConfigurationSource;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(AbstractHttpConfigurer::disable)
+                .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session -> session
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
+                // 보안 헤더 설정
+                .headers(headers -> headers
+                        // X-Frame-Options: Clickjacking 방어
+                        .frameOptions(frame -> frame.deny())
+                        // X-Content-Type-Options: MIME 타입 스니핑 방지
+                        .contentTypeOptions(contentType -> contentType.disable())
+                        // X-XSS-Protection: XSS 필터 활성화
+                        .xssProtection(xss -> xss.disable())
+                        // Content-Security-Policy: XSS 방어
+                        .contentSecurityPolicy(csp -> csp
+                                .policyDirectives("default-src 'self'; " +
+                                        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                                        "style-src 'self' 'unsafe-inline'; " +
+                                        "img-src 'self' data: https:; " +
+                                        "font-src 'self' data:; " +
+                                        "connect-src 'self' https://accounts.google.com")
+                        )
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Swagger 경로 허용
@@ -29,13 +61,29 @@ public class SecurityConfig {
                                 "/swagger-resources/**",
                                 "/webjars/**"
                         ).permitAll()
+                        // OAuth2 로그인 경로 허용
+                        .requestMatchers("/login/**", "/oauth2/**", "/auth/oauth/**").permitAll()
+                        // Auth API 허용
+                        .requestMatchers("/auth/**").permitAll()
+                        // 테스트 페이지 허용
+                        .requestMatchers("/test/**").permitAll()
                         // 테스트를 위해 임시로 모든 item API 허용
                         .requestMatchers("/items/**").permitAll()
                         // 테스트를 위해 임시로 모든 reward API 허용
                         .requestMatchers("/rewards/**").permitAll()
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
-                );
+                )
+                // OAuth2 로그인 설정
+                .oauth2Login(oauth2 -> oauth2
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(customOAuth2UserService)
+                        )
+                        .successHandler(oAuth2SuccessHandler)
+                        .failureHandler(oAuth2FailureHandler)
+                )
+                // JWT 필터 추가
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
