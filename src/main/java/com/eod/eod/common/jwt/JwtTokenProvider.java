@@ -22,6 +22,15 @@ public class JwtTokenProvider {
         return Keys.hmacShaKeyFor(jwtProperties.getSecret().getBytes(StandardCharsets.UTF_8));
     }
 
+    // JWT Claims 파싱
+    private Claims parseClaims(String token) {
+        return Jwts.parserBuilder()
+                .setSigningKey(getSigningKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
+    }
+
     // Access Token 생성
     public String createAccessToken(Long userId, String email) {
         Date now = new Date();
@@ -53,22 +62,14 @@ public class JwtTokenProvider {
 
     // 토큰에서 사용자 ID 추출
     public Long getUserIdFromToken(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
+        Claims claims = parseClaims(token);
         return Long.parseLong(claims.getSubject());
     }
 
     // 토큰 유효성 검증
     public boolean validateToken(String token) {
         try {
-            Jwts.parser()
-                    .verifyWith(getSigningKey())
-                    .build()
-                    .parseSignedClaims(token);
+            parseClaims(token);
             return true;
         } catch (SecurityException | MalformedJwtException e) {
             log.error("잘못된 JWT 서명입니다.", e);
@@ -84,12 +85,7 @@ public class JwtTokenProvider {
 
     // 토큰 타입 확인
     public String getTokenType(String token) {
-        Claims claims = Jwts.parser()
-                .verifyWith(getSigningKey())
-                .build()
-                .parseSignedClaims(token)
-                .getPayload();
-
+        Claims claims = parseClaims(token);
         return claims.get("type", String.class);
     }
 }
