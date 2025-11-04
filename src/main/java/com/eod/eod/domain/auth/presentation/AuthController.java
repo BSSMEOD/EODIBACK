@@ -23,12 +23,13 @@ public class AuthController {
 
     private final AuthService authService;
     private final TokenService tokenService;
+    private final CookieUtil cookieUtil;
 
     @PostMapping("/refresh")
     @Operation(summary = "Access Token 및 Refresh Token 갱신", description = "Cookie의 Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급받습니다.")
     public ResponseEntity<TokenResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         // Cookie에서 Refresh Token 추출
-        String refreshToken = CookieUtil.getCookie(request, "refreshToken")
+        String refreshToken = cookieUtil.getCookie(request, "refreshToken")
                 .map(Cookie::getValue)
                 .orElseThrow(() -> new IllegalArgumentException("Refresh Token이 없습니다."));
 
@@ -36,8 +37,13 @@ public class AuthController {
         AuthService.RefreshTokenResult result = authService.refreshAccessToken(refreshToken);
 
         // 새로운 Refresh Token을 Cookie에 저장
-        CookieUtil.addSecureCookie(response, "refreshToken", result.getRefreshToken(), 
-                tokenService.getRefreshTokenExpirationSeconds());
+        cookieUtil.addTokenCookie(
+                response,
+                "refreshToken",
+                result.getRefreshToken(),
+                tokenService.getRefreshTokenExpirationMillis(),
+                CookieUtil.SameSitePolicy.NONE
+        );
 
         // Response DTO 생성
         TokenResponse tokenResponse = TokenResponse.of(result.getAccessToken(), "Bearer");
@@ -56,7 +62,7 @@ public class AuthController {
         authService.logout(user.getId());
 
         // Cookie에서 Refresh Token 삭제
-        CookieUtil.deleteCookie(request, response, "refreshToken");
+        cookieUtil.deleteCookie(response, "refreshToken", CookieUtil.SameSitePolicy.NONE);
 
         return ResponseEntity.ok().build();
     }
