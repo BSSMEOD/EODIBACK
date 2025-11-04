@@ -24,17 +24,18 @@ public class JwtTokenProvider {
 
     // JWT Claims 파싱
     private Claims parseClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getSigningKey())
+        return Jwts.parser()
+                .verifyWith(getSigningKey())
                 .build()
-                .parseClaimsJws(token)
-                .getBody();
+                .parseSignedClaims(token)
+                .getPayload();
     }
 
     // Access Token 생성
     public String createAccessToken(Long userId, String email) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtProperties.getAccessTokenExpiration());
+        long accessTokenTtlMillis = jwtProperties.getAccessTokenExpiration().toMillis();
+        Date expiryDate = new Date(now.getTime() + accessTokenTtlMillis);
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
@@ -49,7 +50,8 @@ public class JwtTokenProvider {
     // Refresh Token 생성
     public String createRefreshToken(Long userId) {
         Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + jwtProperties.getRefreshTokenExpiration());
+        long refreshTokenTtlMillis = jwtProperties.getRefreshTokenExpiration().toMillis();
+        Date expiryDate = new Date(now.getTime() + refreshTokenTtlMillis);
 
         return Jwts.builder()
                 .subject(String.valueOf(userId))
