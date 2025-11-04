@@ -14,6 +14,8 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -39,19 +41,34 @@ public class SecurityConfig {
                 .headers(headers -> headers
                         // X-Frame-Options: Clickjacking 방어
                         .frameOptions(frame -> frame.deny())
-                        // X-Content-Type-Options: MIME 타입 스니핑 방지
+                        // X-Content-Type-Options: MIME 타입 스니핑 방지 (nosniff)
                         .contentTypeOptions(Customizer.withDefaults())
-                        // X-XSS-Protection: XSS 필터 활성화
-                        .xssProtection(Customizer.withDefaults())
-                        // Content-Security-Policy: XSS 방어
+                        // Content-Security-Policy: 외부 리소스 출처 제한
                         .contentSecurityPolicy(csp -> csp
                                 .policyDirectives("default-src 'self'; " +
-                                        "script-src 'self' 'unsafe-inline' 'unsafe-eval'; " +
+                                        "script-src 'self'; " +
                                         "style-src 'self' 'unsafe-inline'; " +
                                         "img-src 'self' data: https:; " +
                                         "font-src 'self' data:; " +
-                                        "connect-src 'self' https://accounts.google.com")
+                                        "connect-src 'self' https://accounts.google.com; " +
+                                        "frame-ancestors 'none'; " +
+                                        "base-uri 'self'; " +
+                                        "form-action 'self'")
                         )
+                        // Referrer-Policy: 민감 정보 전파 차단
+                        .referrerPolicy(referrer -> referrer
+                                .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)
+                        )
+                        // Strict-Transport-Security: HTTPS 강제 (1년 유지)
+                        .httpStrictTransportSecurity(hsts -> hsts
+                                .includeSubDomains(true)
+                                .maxAgeInSeconds(31536000)
+                        )
+                        // Permissions-Policy: 민감한 브라우저 기능 제한
+                        .addHeaderWriter(new StaticHeadersWriter(
+                                "Permissions-Policy",
+                                "camera=(), microphone=(), geolocation=(), payment=()"
+                        ))
                 )
                 .authorizeHttpRequests(auth -> auth
                         // Swagger 경로 허용
