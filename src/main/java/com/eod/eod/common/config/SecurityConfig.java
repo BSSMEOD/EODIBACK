@@ -90,6 +90,9 @@ public class SecurityConfig {
                         .requestMatchers("/items/**").permitAll()
                         // 테스트를 위해 임시로 모든 reward API 허용
                         .requestMatchers("/rewards/**").permitAll()
+                        // Place-Controller는 모두 허용
+                        .requestMatchers("/places/**").permitAll()
+
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
