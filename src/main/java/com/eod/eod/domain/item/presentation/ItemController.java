@@ -2,10 +2,8 @@ package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ItemApprovalService;
 import com.eod.eod.domain.item.application.ItemGiveService;
-import com.eod.eod.domain.item.presentation.dto.ItemApprovalRequest;
-import com.eod.eod.domain.item.presentation.dto.ItemApprovalResponse;
-import com.eod.eod.domain.item.presentation.dto.ItemGiveRequest;
-import com.eod.eod.domain.item.presentation.dto.ItemGiveResponse;
+import com.eod.eod.domain.item.application.ItemRegistrationService;
+import com.eod.eod.domain.item.presentation.dto.*;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,18 +15,64 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.validation.annotation.Validated;
 
 @Tag(name = "Item", description = "물품 관리 API")
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
+@Validated
 public class ItemController {
 
     private final ItemGiveService itemGiveService;
     private final ItemApprovalService itemApprovalService;
+    private final ItemRegistrationService itemRegistrationService;
+
+    @Operation(summary = "분실물 등록", description = "Multipart Form 데이터로 분실물을 등록하고 이미지 파일은 외부 서버에 저장합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "분실물 등록 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ItemCreateResponse.class),
+                            examples = @ExampleObject(value = "{\"item_id\":104,\"message\":\"분실물이 성공적으로 등록되었습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "400", description = "필수 값 누락 또는 잘못된 입력",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\":\"필수 항목이 누락되었습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "404", description = "등록되지 않은 장소",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\":\"등록되지 않은 장소입니다.\"}")
+                    ))
+    })
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemCreateResponse> registerItem(
+            @Parameter(description = "분실물 등록 폼", required = true)
+            @Valid @ModelAttribute ItemRegistrationForm form,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        Long itemId = itemRegistrationService.registerItem(
+                form.getName(),
+                form.getFoundDate(),
+                form.getPlaceId(),
+                form.getPlaceDetail(),
+                form.getImage(),
+                currentUser
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ItemCreateResponse.success(itemId));
+    }
 
     @Operation(summary = "물품 지급", description = "학생에게 특정 물품을 지급합니다.")
     @ApiResponses(value = {

@@ -8,6 +8,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 @Entity
 @Table(name = "items")
@@ -63,6 +64,9 @@ public class Item {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
+    private static final long MAX_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
+    private static final Set<String> ALLOWED_IMAGE_CONTENT_TYPES = Set.of("image/jpeg", "image/png");
+
     @Builder
     public Item(User student, User admin, Long foundPlaceId, String foundPlaceDetail,
                 String name, String image, ItemStatus status, LocalDateTime foundAt) {
@@ -76,6 +80,25 @@ public class Item {
         this.foundAt = foundAt;
         this.createdAt = LocalDateTime.now();
         this.approvalStatus = ApprovalStatus.PENDING;
+    }
+
+    public static Item registerLostItem(User admin, Long foundPlaceId, String foundPlaceDetail,
+                                        String name, String imageUrl, LocalDateTime foundAt) {
+        requireAdmin(admin);
+        validateFoundAt(foundAt);
+        String sanitizedName = sanitizeName(name);
+        String sanitizedDetail = sanitizeDetail(foundPlaceDetail);
+
+        return Item.builder()
+                .student(admin)
+                .admin(admin)
+                .foundPlaceId(requirePlaceId(foundPlaceId))
+                .foundPlaceDetail(sanitizedDetail)
+                .name(sanitizedName)
+                .image(imageUrl == null ? "" : imageUrl)
+                .status(ItemStatus.LOST)
+                .foundAt(foundAt)
+                .build();
     }
 
     // 물품 지급 처리
@@ -134,6 +157,64 @@ public class Item {
     private void validateAdminRole(User user) {
         if (!user.isAdmin()) {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
+    }
+
+    private static void requireAdmin(User user) {
+        if (user == null || !user.isAdmin()) {
+            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
+    }
+
+    private static void validateFoundAt(LocalDateTime foundAt) {
+        if (foundAt == null) {
+            throw new IllegalArgumentException("습득 일자는 필수입니다.");
+        }
+        if (foundAt.isAfter(LocalDateTime.now())) {
+            throw new IllegalStateException("과거 날짜만 등록할 수 있습니다.");
+        }
+    }
+
+    private static String sanitizeName(String name) {
+        String trimmed = requireText(name, "물품 이름은 필수입니다.");
+        if (trimmed.length() > 100) {
+            throw new IllegalArgumentException("물품 이름은 100자를 초과할 수 없습니다.");
+        }
+        return trimmed;
+    }
+
+    private static String sanitizeDetail(String placeDetail) {
+        String trimmed = requireText(placeDetail, "장소 설명은 필수입니다.");
+        if (trimmed.length() > 255) {
+            throw new IllegalArgumentException("장소 설명은 255자를 초과할 수 없습니다.");
+        }
+        return trimmed;
+    }
+
+    private static Long requirePlaceId(Long placeId) {
+        if (placeId == null) {
+            throw new IllegalArgumentException("장소 ID는 필수입니다.");
+        }
+        return placeId;
+    }
+
+    private static String requireText(String value, String message) {
+        if (value == null) {
+            throw new IllegalArgumentException(message);
+        }
+        String trimmed = value.trim();
+        if (trimmed.isEmpty()) {
+            throw new IllegalArgumentException(message);
+        }
+        return trimmed;
+    }
+
+    public static void validateImage(long size, String contentType) {
+        if (size > MAX_IMAGE_SIZE_BYTES) {
+            throw new IllegalStateException("이미지는 최대 5MB까지 업로드할 수 있습니다.");
+        }
+        if (contentType == null || !ALLOWED_IMAGE_CONTENT_TYPES.contains(contentType)) {
+            throw new IllegalStateException("이미지는 JPEG 또는 PNG 형식만 허용됩니다.");
         }
     }
 
