@@ -66,10 +66,4 @@ public class AuthController {
 
         return ResponseEntity.ok().build();
     }
-
-    @GetMapping("/me")
-    @Operation(summary = "현재 사용자 정보 조회", description = "인증된 사용자의 정보를 조회합니다.")
-    public ResponseEntity<User> getCurrentUser(@AuthenticationPrincipal User user) {
-        return ResponseEntity.ok(user);
-    }
 }
