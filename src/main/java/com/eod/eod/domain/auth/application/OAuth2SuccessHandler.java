@@ -26,6 +26,7 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final UserRepository userRepository;
     private final AuthService authService;
     private final TokenService tokenService;
+    private final CookieUtil cookieUtil;
     private final ObjectMapper objectMapper;
 
     @Override
@@ -49,8 +50,13 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
         AuthService.TokenPair tokenPair = authService.issueTokensForOAuth2Login(user);
 
         // Refresh Token을 HttpOnly Cookie에 저장 (XSS 방어)
-        CookieUtil.addSecureCookie(response, "refreshToken", tokenPair.getRefreshToken(), 
-                tokenService.getRefreshTokenExpirationSeconds());
+        cookieUtil.addTokenCookie(
+                response,
+                "refreshToken",
+                tokenPair.getRefreshToken(),
+                tokenService.getRefreshTokenExpirationMillis(),
+                CookieUtil.SameSitePolicy.NONE
+        );
 
         // JSON 응답 생성 (Refresh Token은 Cookie로만 전달, Body에는 포함하지 않음)
         OAuth2LoginResponse loginResponse = OAuth2LoginResponse.builder()
