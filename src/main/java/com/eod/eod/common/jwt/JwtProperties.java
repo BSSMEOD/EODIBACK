@@ -3,7 +3,11 @@ package com.eod.eod.common.jwt;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.convert.DurationUnit;
 import org.springframework.stereotype.Component;
+
+import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 @Component
 @ConfigurationProperties(prefix = "jwt")
@@ -11,6 +15,10 @@ import org.springframework.stereotype.Component;
 @Setter
 public class JwtProperties {
     private String secret;
-    private Long accessTokenExpiration;
-    private Long refreshTokenExpiration;
+
+    @DurationUnit(ChronoUnit.MILLIS)
+    private Duration accessTokenExpiration;
+
+    @DurationUnit(ChronoUnit.MILLIS)
+    private Duration refreshTokenExpiration;
 }
