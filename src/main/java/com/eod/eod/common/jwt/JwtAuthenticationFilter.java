@@ -1,0 +1,78 @@
+package com.eod.eod.common.jwt;
+
+import com.eod.eod.domain.user.infrastructure.UserRepository;
+import com.eod.eod.domain.user.model.User;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import org.springframework.web.filter.OncePerRequestFilter;
+
+import java.io.IOException;
+import java.util.List;
+
+@Component
+@RequiredArgsConstructor
+@Slf4j
+public class JwtAuthenticationFilter extends OncePerRequestFilter {
+
+    private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
+
+    @Override
+    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
+            throws ServletException, IOException {
+
+        try {
+            // Request에서 JWT 토큰 추출
+            String token = getJwtFromRequest(request);
+
+            // 토큰 검증
+            if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
+                // Access Token인지 확인
+                if ("access".equals(jwtTokenProvider.getTokenType(token))) {
+                    Long userId = jwtTokenProvider.getUserIdFromToken(token);
+
+                    // 사용자 조회
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+                    // Spring Security 인증 객체 생성
+                    List<SimpleGrantedAuthority> authorities = List.of(
+                            new SimpleGrantedAuthority("ROLE_" + user.getRole().name())
+                    );
+
+                    UsernamePasswordAuthenticationToken authentication =
+                            new UsernamePasswordAuthenticationToken(user, null, authorities);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                    // SecurityContext에 인증 정보 설정
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                    log.debug("JWT 인증 성공 - userId: {}, role: {}", userId, user.getRole());
+                }
+            }
+        } catch (Exception e) {
+            log.error("JWT 인증 실패", e);
+        }
+
+        filterChain.doFilter(request, response);
+    }
+
+    // Request Header에서 JWT 토큰 추출
+    private String getJwtFromRequest(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        return null;
+    }
+}
