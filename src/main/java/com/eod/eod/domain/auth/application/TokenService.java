@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -20,7 +21,8 @@ public class TokenService {
     private final JwtTokenProvider jwtTokenProvider;
     private final RefreshTokenRepository refreshTokenRepository;
     
-    private static final int REFRESH_TOKEN_EXPIRATION_SECONDS = 604800; // 7일
+    // Refresh Token 만료 시간 (단위: ms)
+    private static final long REFRESH_TOKEN_EXPIRATION_MILLIS = Duration.ofDays(7).toMillis();
 
     // Access Token 생성
     public String createAccessToken(Long userId, String email) {
@@ -59,7 +61,8 @@ public class TokenService {
     // Refresh Token 저장 또는 업데이트
     @Transactional
     public void saveOrUpdateRefreshToken(User user, String token) {
-        LocalDateTime expiresAt = LocalDateTime.now().plusSeconds(REFRESH_TOKEN_EXPIRATION_SECONDS);
+        LocalDateTime expiresAt = LocalDateTime.now()
+                .plus(Duration.ofMillis(REFRESH_TOKEN_EXPIRATION_MILLIS));
 
         Optional<RefreshToken> existingTokenOpt = refreshTokenRepository.findByUser(user);
 
@@ -90,8 +93,8 @@ public class TokenService {
         refreshTokenRepository.delete(refreshToken);
     }
     
-    // Refresh Token 만료 시간(초) 반환
-    public int getRefreshTokenExpirationSeconds() {
-        return REFRESH_TOKEN_EXPIRATION_SECONDS;
+    // Refresh Token 만료 시간(단위: ms)
+    public long getRefreshTokenExpirationMillis() {
+        return REFRESH_TOKEN_EXPIRATION_MILLIS;
     }
 }
