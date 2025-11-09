@@ -4,6 +4,7 @@ import com.eod.eod.domain.item.application.ItemApprovalService;
 import com.eod.eod.domain.item.application.ItemDetailService;
 import com.eod.eod.domain.item.application.ItemGiveService;
 import com.eod.eod.domain.item.application.ItemRegistrationService;
+import com.eod.eod.domain.item.application.ItemSearchService;
 import com.eod.eod.domain.item.presentation.dto.*;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,6 +36,7 @@ public class ItemController {
     private final ItemGiveService itemGiveService;
     private final ItemApprovalService itemApprovalService;
     private final ItemRegistrationService itemRegistrationService;
+    private final ItemSearchService itemSearchService;
     private final ItemDetailService itemDetailService;
 
     @Operation(summary = "분실물 등록", description = "Multipart Form 데이터로 분실물을 등록하고 이미지 파일은 외부 서버에 저장합니다.")
@@ -181,6 +184,54 @@ public class ItemController {
                 currentUser
         );
 
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "분실물 검색", description = "장소 ID와 상태로 분실물을 검색합니다. 페이징을 지원합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "검색 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ItemSearchResponse.class),
+                            examples = @ExampleObject(value = """
+                                    {
+                                        "content": [
+                                            {
+                                                "id": 101,
+                                                "name": "무선 이어폰",
+                                                "found_date": "2025-07-01",
+                                                "found_place": "SRC",
+                                                "place_detail": "3층 남자기숙사 중앙홀",
+                                                "thumbnail_url": ""
+                                            }
+                                        ],
+                                        "page": 1,
+                                        "size": 10,
+                                        "total_elements": 132,
+                                        "total_pages": 14,
+                                        "is_last": false
+                                    }
+                                    """)
+                    )),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태 값)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"유효하지 않은 상태 값입니다: INVALID\"}")
+                    ))
+    })
+    @GetMapping("/search")
+    public ResponseEntity<ItemSearchResponse> searchItems(
+            @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
+            @RequestParam(defaultValue = "1") int page,
+            @Parameter(description = "페이지 크기", example = "10")
+            @RequestParam(defaultValue = "10") int size,
+            @Parameter(description = "장소 ID (선택 사항)", example = "2")
+            @RequestParam(name = "place_id", required = false) Long placeId,
+            @Parameter(description = "물품 상태 (LOST, TO_BE_DISCARDED, DISCARDED, GIVEN) - 필수", example = "LOST", required = true)
+            @NotBlank(message = "물품 상태는 필수입니다.")
+            @RequestParam String status
+    ) {
+        ItemSearchResponse response = itemSearchService.searchItems(placeId, status, page, size);
         return ResponseEntity.ok(response);
     }
 
