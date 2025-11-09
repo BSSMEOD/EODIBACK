@@ -14,6 +14,13 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    // 잘못된 파라미터 요청 (400)
+    @ExceptionHandler(InvalidParameterException.class)
+    public ResponseEntity<ErrorResponse> handleInvalidParameterException(InvalidParameterException invalidParameterException) {
+        ErrorResponse errorResponse = new ErrorResponse(invalidParameterException.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponse);
+    }
+
     // 물품을 찾을 수 없는 경우 (404)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException illegalArgumentException) {
