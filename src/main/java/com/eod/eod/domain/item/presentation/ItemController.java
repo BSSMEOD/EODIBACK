@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ItemApprovalService;
+import com.eod.eod.domain.item.application.ItemDeleteService;
+import com.eod.eod.domain.item.application.ItemDetailService;
 import com.eod.eod.domain.item.application.ItemDetailService;
 import com.eod.eod.domain.item.application.ItemGiveService;
 import com.eod.eod.domain.item.application.ItemRegistrationService;
@@ -37,6 +39,7 @@ public class ItemController {
     private final ItemApprovalService itemApprovalService;
     private final ItemRegistrationService itemRegistrationService;
     private final ItemDetailService itemDetailService;
+    private final ItemDeleteService itemDeleteService;
     private final ItemSearchService itemSearchService;
 
     @Operation(summary = "분실물 등록", description = "Multipart Form 데이터로 분실물을 등록하고 이미지 파일은 외부 서버에 저장합니다.")
@@ -265,5 +268,40 @@ public class ItemController {
     ) {
         ItemDetailResponse response = itemDetailService.getItemDetail(id);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "물품 삭제", description = "특정 물품을 삭제합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "삭제 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ItemDeleteResponse.class),
+                            examples = @ExampleObject(value = "{\"message\": \"분실물이 성공적으로 삭제되었습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "물품을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"해당 물품을 찾을 수 없습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"인증에 실패했습니다.\"}")
+                    ))
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<ItemDeleteResponse> deleteItem(
+            @Parameter(description = "삭제할 물품 ID", required = true, example = "1")
+            @PathVariable Long id,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        itemDeleteService.deleteItem(id, currentUser);
+        return ResponseEntity.ok(ItemDeleteResponse.success());
     }
 }
