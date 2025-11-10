@@ -187,7 +187,6 @@ public class ItemController {
         return ResponseEntity.ok(response);
     }
 
-
     @Operation(summary = "분실물 검색", description = "장소 ID와 상태로 분실물을 검색합니다. 페이징을 지원합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "검색 성공",
