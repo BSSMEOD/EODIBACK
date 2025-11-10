@@ -38,7 +38,6 @@ public class ItemController {
     private final ItemRegistrationService itemRegistrationService;
     private final ItemDetailService itemDetailService;
     private final ItemSearchService itemSearchService;
-    private final ItemDetailService itemDetailService;
 
     @Operation(summary = "분실물 등록", description = "Multipart Form 데이터로 분실물을 등록하고 이미지 파일은 외부 서버에 저장합니다.")
     @ApiResponses(value = {
@@ -112,7 +111,7 @@ public class ItemController {
     @PostMapping("/{item-id}/give")
     public ResponseEntity<ItemGiveResponse> giveItem(
             @Parameter(description = "지급할 물품 ID", required = true, example = "1")
-            @PathVariable Long itemId,
+            @PathVariable("item-id") Long itemId,
             @Parameter(description = "물품 지급 요청 정보", required = true)
             @Valid @RequestBody ItemGiveRequest itemGiveRequest,
             @Parameter(hidden = true)
@@ -188,37 +187,6 @@ public class ItemController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "물품 상세 조회", description = "특정 물품의 상세 정보를 조회합니다.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공",
-                    content = @Content(
-                            mediaType = "application/json",
-                            schema = @Schema(implementation = ItemDetailResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "id": 1,
-                                        "name": "무테 긱시크 안경",
-                                        "image_url": "",
-                                        "found_at": "2025-06-19 12:20",
-                                        "found_place": "기타",
-                                        "found_place_detail": "운동장"
-                                    }
-                                    """)
-                    )),
-            @ApiResponse(responseCode = "404", description = "물품 또는 장소를 찾을 수 없음",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"message\": \"해당 물품을 찾을 수 없습니다.\"}")
-                    ))
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<ItemDetailResponse> getItemDetail(
-            @Parameter(description = "조회할 물품 ID", required = true, example = "1")
-            @PathVariable Long id
-    ) {
-        ItemDetailResponse response = itemDetailService.getItemDetail(id);
-        return ResponseEntity.ok(response);
-    }
 
     @Operation(summary = "분실물 검색", description = "장소 ID와 상태로 분실물을 검색합니다. 페이징을 지원합니다.")
     @ApiResponses(value = {
