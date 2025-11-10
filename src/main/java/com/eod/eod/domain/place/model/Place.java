@@ -2,9 +2,11 @@ package com.eod.eod.domain.place.model;
 
 import com.eod.eod.domain.place.presentation.dto.PlaceResponseDto;
 import jakarta.persistence.*;
+import lombok.Getter;
 
 @Entity
 @Table(name = "places")
+@Getter
 public class Place {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     Long id;
