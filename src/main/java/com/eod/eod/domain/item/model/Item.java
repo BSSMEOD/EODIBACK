@@ -223,6 +223,42 @@ public class Item {
         return this.status == ItemStatus.GIVEN;
     }
 
+    /**
+     * 폐기 기간 연장
+     * @param extensionDays 연장할 일수
+     */
+    public void extendDisposalDate(int extensionDays) {
+        if (extensionDays <= 0) {
+            throw new IllegalArgumentException("연장 일수는 양수여야 합니다.");
+        }
+        this.discardedAt = LocalDateTime.now().plusDays(extensionDays);
+    }
+
+    /**
+     * 물품을 폐기 예정 상태로 변경 (습득일로부터 6개월 후 폐기 예정)
+     */
+    public void markAsToBeDiscarded() {
+        if (this.status != ItemStatus.LOST) {
+            throw new IllegalStateException("분실물 상태의 물품만 폐기 예정으로 변경할 수 있습니다.");
+        }
+        this.status = ItemStatus.TO_BE_DISCARDED;
+        // 습득일로부터 6개월 후를 폐기 예정일로 설정
+        this.discardedAt = this.foundAt.plusMonths(6);
+    }
+
+    /**
+     * 물품을 폐기 상태로 변경
+     */
+    public void discard() {
+        if (this.status != ItemStatus.TO_BE_DISCARDED) {
+            throw new IllegalStateException("폐기 예정 상태의 물품만 폐기할 수 있습니다.");
+        }
+        this.status = ItemStatus.DISCARDED;
+        if (this.discardedAt == null) {
+            this.discardedAt = LocalDateTime.now();
+        }
+    }
+
     public enum ItemStatus {
         LOST, TO_BE_DISCARDED, DISCARDED, GIVEN
     }

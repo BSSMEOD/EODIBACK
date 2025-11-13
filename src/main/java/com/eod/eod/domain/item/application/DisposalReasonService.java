@@ -1,0 +1,77 @@
+package com.eod.eod.domain.item.application;
+
+import com.eod.eod.domain.item.infrastructure.DisposalReasonRepository;
+import com.eod.eod.domain.item.model.DisposalReason;
+import com.eod.eod.domain.item.model.Item;
+import com.eod.eod.domain.user.model.User;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDateTime;
+
+@Service
+@RequiredArgsConstructor
+@Transactional
+public class DisposalReasonService {
+
+    private final ItemFacade itemFacade;
+    private final DisposalReasonRepository disposalReasonRepository;
+
+    /**
+     * 폐기 보류 사유 제출
+     */
+    public void submitDisposalReason(Long itemId, String reason, Integer extensionDays, User currentUser) {
+        // 물품 조회
+        Item item = itemFacade.getItemById(itemId);
+
+        // 폐기 보류 사유 생성 (도메인에서 선생님 권한 및 물품 상태 검증)
+        DisposalReason disposalReason = DisposalReason.create(item, currentUser, reason, extensionDays);
+
+        // 저장
+        disposalReasonRepository.save(disposalReason);
+    }
+
+    /**
+     * 폐기 보류 사유 조회
+     */
+    @Transactional(readOnly = true)
+    public DisposalReason getDisposalReason(Long itemId) {
+        // 물품 조회
+        Item item = itemFacade.getItemById(itemId);
+
+        // 최신 폐기 보류 사유 조회
+        return disposalReasonRepository.findTopByItemOrderByCreatedAtDesc(item)
+                .orElseThrow(() -> new IllegalArgumentException("해당 물품의 폐기 보류 사유를 찾을 수 없습니다."));
+    }
+
+    /**
+     * 폐기 기간 연장
+     */
+    public void extendDisposalPeriod(Long itemId, Long reasonId, User currentUser) {
+        // 물품 조회
+        Item item = itemFacade.getItemById(itemId);
+
+        // 보류 사유 조회 및 검증
+        DisposalReason disposalReason = disposalReasonRepository.findById(reasonId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 보류 사유를 찾을 수 없습니다."));
+
+        // 보류 사유가 해당 물품의 것인지 확인
+        if (!disposalReason.getItem().equals(item)) {
+            throw new IllegalArgumentException("해당 보류 사유는 이 물품의 것이 아닙니다.");
+        }
+
+        // 관리자 권한 확인
+        if (!currentUser.isAdmin()) {
+            throw new IllegalStateException("관리자 권한이 필요합니다.");
+        }
+
+        // 물품 상태 확인
+        if (item.getStatus() != Item.ItemStatus.TO_BE_DISCARDED) {
+            throw new IllegalStateException("폐기 예정 상태의 물품만 기간을 연장할 수 있습니다.");
+        }
+
+        // 폐기 기간 연장 (보류 사유에 저장된 일수만큼 연장)
+        item.extendDisposalDate(disposalReason.getExtensionDays());
+    }
+}
