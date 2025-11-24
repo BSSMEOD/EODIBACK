@@ -37,4 +37,7 @@ public class ItemSummaryResponse {
     @JsonProperty("thumbnail_url")
     @Schema(description = "썸네일 이미지 URL", example = "")
     private String thumbnailUrl;
+
+    @Schema(description = "물품 상태", example = "LOST", allowableValues = {"LOST", "TO_BE_DISCARDED", "DISCARDED", "GIVEN"})
+    private String status;
 }
