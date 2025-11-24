@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.presentation;
 
+import com.eod.eod.domain.item.application.DisposalCountService;
 import com.eod.eod.domain.item.application.DisposalReasonService;
 import com.eod.eod.domain.item.application.ItemApprovalService;
 import com.eod.eod.domain.item.application.ItemDeleteService;
@@ -42,6 +43,7 @@ public class ItemController {
     private final ItemDeleteService itemDeleteService;
     private final ItemSearchService itemSearchService;
     private final DisposalReasonService disposalReasonService;
+    private final DisposalCountService disposalCountService;
 
     @Operation(summary = "분실물 등록", description = "Multipart Form 데이터로 분실물을 등록하고 이미지 파일은 외부 서버에 저장합니다.")
     @ApiResponses(value = {
@@ -413,5 +415,38 @@ public class ItemController {
         disposalReasonService.extendDisposalPeriod(itemId, request.getReasonId(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(DisposalExtensionResponse.of("페기 보류 되었습니다."));
+    }
+
+    @Operation(summary = "폐기 예정 물품 개수 조회", description = "현재 등록된 폐기 예정 물품의 총 건수를 반환합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = DisposalCountResponse.class),
+                            examples = @ExampleObject(value = "{\"count\": 12}")
+                    )),
+            @ApiResponse(responseCode = "401", description = "인증 실패 또는 ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"서버 내부 오류가 발생했습니다.\"}")
+                    ))
+    })
+    @GetMapping("/disposal/count")
+    public ResponseEntity<DisposalCountResponse> getDisposalCount(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        // ADMIN 권한 확인
+        if (!currentUser.isAdmin()) {
+            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
+
+        long count = disposalCountService.getDisposalCount();
+        return ResponseEntity.ok(DisposalCountResponse.of(count));
     }
 }
