@@ -1,10 +1,13 @@
 package com.eod.eod.domain.item.presentation;
 
+import com.eod.eod.domain.item.application.ClaimCountService;
 import com.eod.eod.domain.item.application.ItemClaimService;
+import com.eod.eod.domain.item.presentation.dto.ClaimCountResponse;
 import com.eod.eod.domain.item.presentation.dto.ItemClaimRequest;
 import com.eod.eod.domain.item.presentation.dto.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -24,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class ItemClaimController {
 
     private final ItemClaimService itemClaimService;
+    private final ClaimCountService claimCountService;
 
     @Operation(summary = "소유권 주장", description = "사용자가 분실물에 대한 소유권을 주장합니다.")
     @ApiResponses(value = {
@@ -74,5 +78,38 @@ public class ItemClaimController {
         );
 
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "회수 신청 건수 조회", description = "현재 등록된 회수 신청 건수를 반환합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ClaimCountResponse.class),
+                            examples = @ExampleObject(value = "{\"count\": 8}")
+                    )),
+            @ApiResponse(responseCode = "401", description = "인증 실패 또는 ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"서버 내부 오류가 발생했습니다.\"}")
+                    ))
+    })
+    @GetMapping("/claims/count")
+    public ResponseEntity<ClaimCountResponse> getClaimCount(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        // ADMIN 권한 확인
+        if (!currentUser.isAdmin()) {
+            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
+
+        long count = claimCountService.getClaimCount();
+        return ResponseEntity.ok(ClaimCountResponse.of(count));
     }
 }
