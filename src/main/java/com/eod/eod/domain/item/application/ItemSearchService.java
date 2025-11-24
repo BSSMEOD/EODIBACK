@@ -86,6 +86,7 @@ public class ItemSearchService {
                 .foundPlace(placeMap.getOrDefault(item.getFoundPlaceId(), ""))
                 .placeDetail(item.getFoundPlaceDetail())
                 .thumbnailUrl(item.getImage())
+                .status(item.getStatus().name())
                 .build();
     }
 }
