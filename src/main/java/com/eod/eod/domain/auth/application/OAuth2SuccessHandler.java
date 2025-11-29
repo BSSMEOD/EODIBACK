@@ -1,16 +1,14 @@
 package com.eod.eod.domain.auth.application;
 
 import com.eod.eod.common.util.CookieUtil;
-import com.eod.eod.domain.auth.presentation.dto.OAuth2LoginResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
@@ -27,7 +25,12 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
     private final AuthService authService;
     private final TokenService tokenService;
     private final CookieUtil cookieUtil;
-    private final ObjectMapper objectMapper;
+
+    @Value("${frontend.base-url}")
+    private String frontendBaseUrl;
+
+    @Value("${frontend.oauth-callback-path}")
+    private String frontendCallbackPath;
 
     @Override
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
@@ -58,25 +61,17 @@ public class OAuth2SuccessHandler extends SimpleUrlAuthenticationSuccessHandler 
                 CookieUtil.SameSitePolicy.NONE
         );
 
-        // JSON 응답 생성 (Refresh Token은 Cookie로만 전달, Body에는 포함하지 않음)
-        OAuth2LoginResponse loginResponse = OAuth2LoginResponse.builder()
-                .accessToken(tokenPair.getAccessToken())
-                .tokenType("bearer")
-                .user(OAuth2LoginResponse.UserInfo.builder()
-                        .userId(user.getId())
-                        .email(user.getEmail())
-                        .name(user.getName())
-                        .build())
-                .message("로그인 성공")
-                .build();
+        // 프론트엔드 URL로 리다이렉트 (Access Token을 Fragment에 포함)
+        String redirectUrl = String.format(
+                "%s%s#token=%s",
+                frontendBaseUrl,
+                frontendCallbackPath,
+                tokenPair.getAccessToken()
+        );
 
-        // JSON 응답 반환
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpServletResponse.SC_OK);
-        response.getWriter().write(objectMapper.writeValueAsString(loginResponse));
+        log.info("OAuth2 로그인 성공 - userId: {}, 프론트엔드로 리다이렉트: {}", user.getId(), frontendBaseUrl + frontendCallbackPath);
 
-        log.info("OAuth2 로그인 성공 - userId: {}, JSON 응답 완료", user.getId());
+        response.sendRedirect(redirectUrl);
     }
 
     private String extractProvider(HttpServletRequest request) {
