@@ -97,8 +97,8 @@ jobs:
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
           # Docker Compose로 배포
-          docker-compose -f docker-compose.prod.yml pull
-          docker-compose -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml up -d
           
           # 사용하지 않는 이미지 정리
           docker image prune -af
@@ -114,10 +114,10 @@ jobs:
           cd ~/eod-deploy
           echo "========================================="
           echo "컨테이너 실행 상태:"
-          docker-compose -f docker-compose.prod.yml ps
+          docker compose -f docker-compose.prod.yml ps
           echo "========================================="
           echo "애플리케이션 로그 (최근 20줄):"
-          docker-compose -f docker-compose.prod.yml logs --tail=20 app
+          docker compose -f docker-compose.prod.yml logs --tail=20 app
           
     - name: 배포 완료 알림
       if: success()
