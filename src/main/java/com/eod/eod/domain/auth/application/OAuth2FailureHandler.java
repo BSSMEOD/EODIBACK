@@ -1,26 +1,27 @@
 package com.eod.eod.domain.auth.application;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler {
 
-    private final ObjectMapper objectMapper;
+    @Value("${frontend.base-url}")
+    private String frontendBaseUrl;
+
+    @Value("${frontend.oauth-callback-path}")
+    private String frontendCallbackPath;
 
     @Override
     public void onAuthenticationFailure(HttpServletRequest request, HttpServletResponse response,
@@ -28,13 +29,16 @@ public class OAuth2FailureHandler extends SimpleUrlAuthenticationFailureHandler 
 
         log.error("OAuth2 인증 실패: {}", exception.getMessage());
 
-        Map<String, Object> errorResponse = new HashMap<>();
-        errorResponse.put("error", "OAuth2 Authentication Failed");
-        errorResponse.put("message", "유효하지 않은 OAuth 사용자입니다.");
+        // 프론트엔드로 리다이렉트 (에러 정보를 Fragment에 포함)
+        String redirectUrl = String.format(
+                "%s%s#error=oauth_failed&message=%s",
+                frontendBaseUrl,
+                frontendCallbackPath,
+                java.net.URLEncoder.encode("OAuth 인증에 실패했습니다.", "UTF-8")
+        );
 
-        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
-        response.setCharacterEncoding("UTF-8");
-        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-        response.getWriter().write(objectMapper.writeValueAsString(errorResponse));
+        log.info("OAuth2 인증 실패 - 프론트엔드로 리다이렉트: {}", frontendBaseUrl + frontendCallbackPath);
+
+        response.sendRedirect(redirectUrl);
     }
 }

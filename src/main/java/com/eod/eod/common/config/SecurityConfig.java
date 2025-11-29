@@ -1,9 +1,5 @@
 package com.eod.eod.common.config;
 
-import com.eod.eod.common.jwt.JwtAuthenticationFilter;
-import com.eod.eod.domain.auth.application.CustomOAuth2UserService;
-import com.eod.eod.domain.auth.application.OAuth2SuccessHandler;
-import com.eod.eod.domain.auth.application.OAuth2FailureHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,6 +13,10 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfigurationSource;
+import com.eod.eod.common.jwt.JwtAuthenticationFilter;
+import com.eod.eod.domain.auth.application.CustomOAuth2UserService;
+import com.eod.eod.domain.auth.application.OAuth2SuccessHandler;
+import com.eod.eod.domain.auth.application.OAuth2FailureHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -94,7 +94,7 @@ public class SecurityConfig {
                         .requestMatchers("/places/**").permitAll()
 
                         // 나머지 요청은 인증 필요
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2

@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main", "master", "develop" ]
+  pull_request:
+    branches: [ "main", "master", "develop" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: eod
+          MYSQL_USER: eod
+          MYSQL_PASSWORD: eod
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+    - name: 코드 체크아웃
+      uses: actions/checkout@v4
+
+    - name: Java 17 설정
+      uses: actions/setup-java@v4
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+        cache: 'gradle'
+
+    - name: Gradle 실행 권한 부여
+      run: chmod +x ./gradlew
+
+    - name: Gradle 캐시 설정
+      uses: actions/cache@v4
+      with:
+        path: |
+          ~/.gradle/caches
+          ~/.gradle/wrapper
+        key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+        restore-keys: |
+          ${{ runner.os }}-gradle-
+
+    - name: 프로젝트 빌드
+      run: ./gradlew clean build --no-daemon
+      env:
+        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/eod
+        SPRING_DATASOURCE_USERNAME: eod
+        SPRING_DATASOURCE_PASSWORD: eod
+
+    - name: 테스트 실행
+      run: ./gradlew test --no-daemon
+      env:
+        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/eod
+        SPRING_DATASOURCE_USERNAME: eod
+        SPRING_DATASOURCE_PASSWORD: eod
+
+    - name: 테스트 결과 업로드
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results
+        path: |
+          build/test-results/**/*.xml
+          build/reports/tests/
+
+    - name: 빌드 아티팩트 업로드
+      if: success()
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-jar
+        path: build/libs/*.jar
+        retention-days: 7
