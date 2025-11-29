@@ -94,7 +94,7 @@ docker-compose -f docker-compose.prod.yml ps
 echo ""
 echo -e "${GREEN}MySQL 헬스체크 중...${NC}"
 for i in {1..30}; do
-    if docker-compose -f docker-compose.prod.yml exec -T mysql mysqladmin ping -h localhost --silent; then
+    if docker compose -f docker-compose.prod.yml exec -T mysql mysqladmin ping -h localhost --silent; then
         echo -e "${GREEN}✅ MySQL 준비 완료${NC}"
         break
     fi
