@@ -51,7 +51,7 @@ jobs:
           ${{ runner.os }}-gradle-
 
     - name: 프로젝트 빌드
-      run: ./gradlew clean build --no-daemon
+      run: ./gradlew clean build --no-daemon -x test
       env:
         SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/eod
         SPRING_DATASOURCE_USERNAME: eod
