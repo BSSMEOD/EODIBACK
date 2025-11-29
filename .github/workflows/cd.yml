@@ -111,7 +111,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT || 22 }}
         script: |
-          cd ~/eod-deploy
+          cd ~/eod
           echo "========================================="
           echo "컨테이너 실행 상태:"
           docker compose -f docker-compose.prod.yml ps
