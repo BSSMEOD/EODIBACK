@@ -96,10 +96,18 @@ jobs:
           # GitHub Container Registry 로그인
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
           
+          # 환경 변수 확인 (디버깅)
+          echo "GITHUB_REPOSITORY: ${{ github.repository }}"
+
           # Docker Compose로 배포
           docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml down
           docker compose -f docker-compose.prod.yml up -d
-          
+
+          # 컨테이너 시작 대기
+          echo "컨테이너 시작 대기 중..."
+          sleep 10
+
           # 사용하지 않는 이미지 정리
           docker image prune -af
           
@@ -113,11 +121,23 @@ jobs:
         script: |
           cd ~/eod
           echo "========================================="
-          echo "컨테이너 실행 상태:"
+          echo "📋 환경 변수 확인 (민감 정보 마스킹):"
+          cat .env | sed 's/PASSWORD=.*/PASSWORD=***/g'
+          echo "========================================="
+          echo "🐳 컨테이너 실행 상태:"
           docker compose -f docker-compose.prod.yml ps
           echo "========================================="
-          echo "애플리케이션 로그 (최근 20줄):"
-          docker compose -f docker-compose.prod.yml logs --tail=20 app
+          echo "📊 Docker 이미지 확인:"
+          docker images | grep eod
+          echo "========================================="
+          echo "📝 MySQL 로그 (최근 20줄):"
+          docker compose -f docker-compose.prod.yml logs --tail=20 mysql
+          echo "========================================="
+          echo "📝 애플리케이션 로그 (최근 50줄):"
+          docker compose -f docker-compose.prod.yml logs --tail=50 app
+          echo "========================================="
+          echo "🔍 포트 사용 확인:"
+          netstat -tuln | grep -E ':(8080|3306)'
           
     - name: 배포 완료 알림
       if: success()
