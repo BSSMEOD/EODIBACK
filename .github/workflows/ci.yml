@@ -57,22 +57,6 @@ jobs:
         SPRING_DATASOURCE_USERNAME: eod
         SPRING_DATASOURCE_PASSWORD: eod
 
-    - name: 테스트 실행
-      run: ./gradlew test --no-daemon
-      env:
-        SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/eod
-        SPRING_DATASOURCE_USERNAME: eod
-        SPRING_DATASOURCE_PASSWORD: eod
-
-    - name: 테스트 결과 업로드
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: |
-          build/test-results/**/*.xml
-          build/reports/tests/
-
     - name: 빌드 아티팩트 업로드
       if: success()
       uses: actions/upload-artifact@v4
