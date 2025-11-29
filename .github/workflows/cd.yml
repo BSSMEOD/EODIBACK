@@ -52,6 +52,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
+        platforms: linux/amd64,linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha
@@ -146,7 +147,7 @@ jobs:
           docker compose -f docker-compose.prod.yml logs --tail=50 app
           echo "========================================="
           echo "🔍 포트 사용 확인:"
-          netstat -tuln | grep -E ':(8080|3306)'
+          netstat -tuln | grep -E ':(8000|3306)'
           
     - name: 배포 완료 알림
       if: success()
