@@ -105,6 +105,14 @@ jobs:
           MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
           MYSQL_USER=${{ secrets.DB_USERNAME }}
           MYSQL_PASSWORD=${{ secrets.DB_PASSWORD }}
+          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          EXTERNAL_SERVER_BASE_URL=${{ secrets.EXTERNAL_SERVER_BASE_URL }}
+          EXTERNAL_SERVER_LOGIN_ENDPOINT=${{ secrets.EXTERNAL_SERVER_LOGIN_ENDPOINT }}
+          EXTERNAL_SERVER_IMAGE_UPLOAD_ENDPOINT=${{ secrets.EXTERNAL_SERVER_IMAGE_UPLOAD_ENDPOINT }}
+          EXTERNAL_SERVER_DEFAULT_UID=${{ secrets.EXTERNAL_SERVER_DEFAULT_UID }}
+          EXTERNAL_SERVER_DEFAULT_PASSWORD=${{ secrets.EXTERNAL_SERVER_DEFAULT_PASSWORD }}
           EOF
           
           # GitHub Container Registry 로그인
