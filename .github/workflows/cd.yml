@@ -52,11 +52,15 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        platforms: linux/amd64,linux/arm64
+        platforms: linux/amd64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
+        cache-from: |
+          type=gha,scope=eod-build
+          type=registry,ref=${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}:cache
+        cache-to: |
+          type=gha,scope=eod-build,mode=max
+          type=registry,ref=${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}:cache,mode=max
 
     - name: 이미지 다이제스트 출력
       run: echo ${{ steps.meta.outputs.digest }}
