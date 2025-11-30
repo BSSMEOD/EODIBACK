@@ -35,7 +35,7 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .cors(cors -> cors.configurationSource(corsConfigurationSource))
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
                 )
                 // 보안 헤더 설정
                 .headers(headers -> headers
@@ -43,18 +43,6 @@ public class SecurityConfig {
                         .frameOptions(frame -> frame.deny())
                         // X-Content-Type-Options: MIME 타입 스니핑 방지 (nosniff)
                         .contentTypeOptions(Customizer.withDefaults())
-                        // Content-Security-Policy: 외부 리소스 출처 제한
-                        .contentSecurityPolicy(csp -> csp
-                                .policyDirectives("default-src 'self'; " +
-                                        "script-src 'self'; " +
-                                        "style-src 'self' 'unsafe-inline'; " +
-                                        "img-src 'self' data: https:; " +
-                                        "font-src 'self' data:; " +
-                                        "connect-src 'self' https://accounts.google.com; " +
-                                        "frame-ancestors 'none'; " +
-                                        "base-uri 'self'; " +
-                                        "form-action 'self'")
-                        )
                         // Referrer-Policy: 민감 정보 전파 차단
                         .referrerPolicy(referrer -> referrer
                                 .policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.NO_REFERRER)
