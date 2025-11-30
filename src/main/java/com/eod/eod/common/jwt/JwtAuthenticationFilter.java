@@ -75,4 +75,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
         return null;
     }
+
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        // OAuth2 초기 진입 등 인증이 필요 없는 경로에서는 JWT 검증을 건너뛴다.
+        String path = request.getRequestURI();
+        return path.startsWith("/oauth2/")
+                || path.startsWith("/login/")
+                || path.startsWith("/auth/oauth/")
+                || path.startsWith("/auth/"); // refresh, logout 등은 자체 로직에서 처리
+    }
 }
