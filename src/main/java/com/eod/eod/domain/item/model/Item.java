@@ -156,7 +156,7 @@ public class Item {
     // Admin 권한 검증
     private void validateAdminRole(User user) {
         if (!user.isAdmin()) {
-            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+            throw new org.springframework.security.access.AccessDeniedException("ADMIN 권한이 없습니다.");
         }
     }
 
