@@ -16,7 +16,8 @@ public class CorsConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         // 허용할 Origin (프론트엔드 주소)
-        configuration.setAllowedOrigins(List.of("*"));
+        // allowCredentials(true)와 함께 사용하려면 allowedOriginPatterns를 사용해야 함
+        configuration.setAllowedOriginPatterns(List.of("*"));
 
         // 허용할 HTTP 메서드
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
