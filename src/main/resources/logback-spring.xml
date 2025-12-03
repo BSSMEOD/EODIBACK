@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration scan="true">
 
-    <!-- 공통 패턴: 시간 / 레벨 / 스레드 / 로거 / 메시지 -->
-    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger - %msg%n"/>
-    <property name="LOG_DIR" value="logs"/>
+    <!-- 로그 파일을 저장할 절대 경로 (컨테이너 내부) -->
+    <property name="LOG_DIR" value="${LOG_DIR:-logs}"/>
 
-    <!-- Spring Boot 색상 변환기 등록 -->
+    <!-- 공통 패턴 -->
+    <property name="LOG_PATTERN" value="%d{yyyy-MM-dd HH:mm:ss.SSS} %-5level [%thread] %logger - %msg%n"/>
+
+    <!-- Spring Boot 색상 변환기 -->
     <conversionRule conversionWord="clr" class="org.springframework.boot.logging.logback.ColorConverter"/>
     <conversionRule conversionWord="wex" class="org.springframework.boot.logging.logback.WhitespaceThrowableProxyConverter"/>
     <conversionRule conversionWord="wEx" class="org.springframework.boot.logging.logback.ExtendedWhitespaceThrowableProxyConverter"/>
 
-    <!-- 콘솔 출력 (색상 포함) -->
+    <!-- 콘솔 출력 -->
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%clr(%d{HH:mm:ss.SSS}){faint} %clr(%-5level) %clr([%thread]){faint} %clr(%logger){cyan} - %msg%n</pattern>
@@ -25,6 +27,7 @@
             <pattern>${LOG_PATTERN}</pattern>
             <charset>UTF-8</charset>
         </encoder>
+
         <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
             <fileNamePattern>${LOG_DIR}/application-%d{yyyy-MM-dd}.%i.log.gz</fileNamePattern>
             <maxFileSize>50MB</maxFileSize>
@@ -33,13 +36,12 @@
         </rollingPolicy>
     </appender>
 
-    <!-- 루트 로거 설정 -->
+    <!-- 루트 로거 -->
     <root level="INFO">
         <appender-ref ref="CONSOLE"/>
         <appender-ref ref="FILE"/>
     </root>
 
     <logger name="com.eod.eod" level="DEBUG"/>
-
 
 </configuration>
