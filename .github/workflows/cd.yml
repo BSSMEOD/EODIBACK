@@ -114,6 +114,7 @@ jobs:
           EXTERNAL_SERVER_DEFAULT_UID=${{ secrets.EXTERNAL_SERVER_DEFAULT_UID }}
           EXTERNAL_SERVER_DEFAULT_PASSWORD=${{ secrets.EXTERNAL_SERVER_DEFAULT_PASSWORD }}
           BASE_URL=${{ secrets.BASE_URL }}
+          FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}
           EOF
           
           # GitHub Container Registry 로그인
