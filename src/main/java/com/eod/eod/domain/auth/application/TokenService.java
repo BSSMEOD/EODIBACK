@@ -25,8 +25,8 @@ public class TokenService {
     private static final long REFRESH_TOKEN_EXPIRATION_MILLIS = Duration.ofDays(7).toMillis();
 
     // Access Token 생성
-    public String createAccessToken(Long userId, String email) {
-        return jwtTokenProvider.createAccessToken(userId, email);
+    public String createAccessToken(Long userId, String email, String role) {
+        return jwtTokenProvider.createAccessToken(userId, email, role);
     }
 
     // Refresh Token 생성

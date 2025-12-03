@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 class ItemGiveServiceTest {
 
     @Mock
-    private ItemRepository itemRepository;
+    private ItemFacade itemFacade;
 
     @Mock
     private UserRepository userRepository;
@@ -63,14 +63,14 @@ class ItemGiveServiceTest {
                 .foundAt(java.time.LocalDateTime.now())
                 .build();
 
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(itemFacade.getItemById(itemId)).thenReturn(item);
         when(userRepository.findById(receiverId)).thenReturn(Optional.of(receiverUser));
 
         // when
         itemGiveService.giveItemToStudent(itemId, receiverId, adminUser);
 
         // then
-        verify(itemRepository).findById(itemId);
+        verify(itemFacade).getItemById(itemId);
         verify(userRepository).findById(receiverId);
         verify(giveRecordRepository).save(any(GiveRecord.class));
     }
@@ -81,19 +81,45 @@ class ItemGiveServiceTest {
         Long itemId = 1L;
         Long receiverId = 2L;
 
+        User adminUser = User.builder()
+                .name("Admin User")
+                .email("admin@test.com")
+                .role(User.Role.ADMIN)
+                .build();
+
         User nonAdminUser = User.builder()
                 .name("Non Admin User")
                 .email("user@test.com")
                 .role(User.Role.USER)
                 .build();
 
+        User receiverUser = User.builder()
+                .name("Receiver User")
+                .email("receiver@test.com")
+                .role(User.Role.USER)
+                .build();
+
+        Item item = Item.builder()
+                .student(receiverUser)
+                .admin(adminUser)
+                .foundPlaceId(1L)
+                .foundPlaceDetail("Test place")
+                .name("Test item")
+                .image("test.jpg")
+                .status(Item.ItemStatus.LOST)
+                .foundAt(java.time.LocalDateTime.now())
+                .build();
+
+        when(itemFacade.getItemById(itemId)).thenReturn(item);
+        when(userRepository.findById(receiverId)).thenReturn(Optional.of(receiverUser));
+
         // when & then
         assertThatThrownBy(() -> itemGiveService.giveItemToStudent(itemId, receiverId, nonAdminUser))
                 .isInstanceOf(AccessDeniedException.class)
                 .hasMessage("ADMIN 권한이 없습니다.");
 
-        verify(itemRepository, never()).findById(any());
-        verify(userRepository, never()).findById(any());
+        verify(itemFacade).getItemById(itemId);
+        verify(userRepository).findById(receiverId);
         verify(giveRecordRepository, never()).save(any());
     }
 
@@ -109,14 +135,14 @@ class ItemGiveServiceTest {
                 .role(User.Role.ADMIN)
                 .build();
 
-        when(itemRepository.findById(itemId)).thenReturn(Optional.empty());
+        when(itemFacade.getItemById(itemId)).thenThrow(new IllegalArgumentException("해당 물품을 찾을 수 없습니다."));
 
         // when & then
         assertThatThrownBy(() -> itemGiveService.giveItemToStudent(itemId, receiverId, adminUser))
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("해당 물품을 찾을 수 없습니다.");
 
-        verify(itemRepository).findById(itemId);
+        verify(itemFacade).getItemById(itemId);
         verify(userRepository, never()).findById(any());
         verify(giveRecordRepository, never()).save(any());
     }
@@ -144,7 +170,7 @@ class ItemGiveServiceTest {
                 .foundAt(java.time.LocalDateTime.now())
                 .build();
 
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(itemFacade.getItemById(itemId)).thenReturn(item);
         when(userRepository.findById(receiverId)).thenReturn(Optional.empty());
 
         // when & then
@@ -152,7 +178,7 @@ class ItemGiveServiceTest {
                 .isInstanceOf(IllegalArgumentException.class)
                 .hasMessage("해당 학생을 찾을 수 없습니다.");
 
-        verify(itemRepository).findById(itemId);
+        verify(itemFacade).getItemById(itemId);
         verify(userRepository).findById(receiverId);
         verify(giveRecordRepository, never()).save(any());
     }
@@ -186,7 +212,7 @@ class ItemGiveServiceTest {
                 .foundAt(java.time.LocalDateTime.now())
                 .build();
 
-        when(itemRepository.findById(itemId)).thenReturn(Optional.of(item));
+        when(itemFacade.getItemById(itemId)).thenReturn(item);
         when(userRepository.findById(receiverId)).thenReturn(Optional.of(receiverUser));
 
         // when & then
@@ -194,7 +220,7 @@ class ItemGiveServiceTest {
                 .isInstanceOf(IllegalStateException.class)
                 .hasMessage("해당 물품은 이미 지급 처리되었습니다.");
 
-        verify(itemRepository).findById(itemId);
+        verify(itemFacade).getItemById(itemId);
         verify(userRepository).findById(receiverId);
         verify(giveRecordRepository, never()).save(any());
     }

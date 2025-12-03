@@ -32,7 +32,7 @@ public class JwtTokenProvider {
     }
 
     // Access Token 생성
-    public String createAccessToken(Long userId, String email) {
+    public String createAccessToken(Long userId, String email, String role) {
         Date now = new Date();
         long accessTokenTtlMillis = jwtProperties.getAccessTokenExpiration().toMillis();
         Date expiryDate = new Date(now.getTime() + accessTokenTtlMillis);
@@ -40,6 +40,7 @@ public class JwtTokenProvider {
         return Jwts.builder()
                 .subject(String.valueOf(userId))
                 .claim("email", email)
+                .claim("role", role)
                 .claim("type", "access")
                 .issuedAt(now)
                 .expiration(expiryDate)
@@ -89,5 +90,11 @@ public class JwtTokenProvider {
     public String getTokenType(String token) {
         Claims claims = parseClaims(token);
         return claims.get("type", String.class);
+    }
+
+    // 토큰에서 Role 추출
+    public String getRoleFromToken(String token) {
+        Claims claims = parseClaims(token);
+        return claims.get("role", String.class);
     }
 }
