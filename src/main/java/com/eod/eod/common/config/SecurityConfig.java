@@ -18,6 +18,7 @@ import com.eod.eod.common.jwt.JwtAuthenticationFilter;
 import com.eod.eod.domain.auth.application.CustomOAuth2UserService;
 import com.eod.eod.domain.auth.application.OAuth2SuccessHandler;
 import com.eod.eod.domain.auth.application.OAuth2FailureHandler;
+import com.eod.eod.common.exception.CustomAccessDeniedHandler;
 
 @Configuration
 @EnableWebSecurity
@@ -29,6 +30,7 @@ public class SecurityConfig {
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CorsConfigurationSource corsConfigurationSource;
+    private final CustomAccessDeniedHandler customAccessDeniedHandler;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -93,6 +95,9 @@ public class SecurityConfig {
 
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
