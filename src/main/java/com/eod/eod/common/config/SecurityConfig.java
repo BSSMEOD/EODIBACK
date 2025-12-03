@@ -3,6 +3,7 @@ package com.eod.eod.common.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -70,19 +71,28 @@ public class SecurityConfig {
                         ).permitAll()
                         // OAuth2 로그인 경로 허용
                         .requestMatchers("/login/**", "/oauth2/**", "/auth/oauth/**").permitAll()
-                        // Auth API 허용
+                        // 로그아웃은 인증된 사용자만 가능
+                        .requestMatchers(HttpMethod.POST, "/auth/logout").hasAnyRole("USER", "TEACHER", "ADMIN")
+                        // 그 외 Auth API 허용 (로그인, 토큰 재발급 등)
                         .requestMatchers("/auth/**").permitAll()
                         // 테스트 페이지 허용
                         .requestMatchers("/test/**").permitAll()
-                        // 테스트를 위해 임시로 모든 item API 허용
-                        .requestMatchers("/items/**").permitAll()
-                        // 테스트를 위해 임시로 모든 reward API 허용
-                        .requestMatchers("/rewards/**").permitAll()
+                        // 공개 물품 조회 API 허용
+                        .requestMatchers(HttpMethod.GET, "/items/search").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/items/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/items/*/disposal-reason").permitAll()
+                        // 나머지 물품 API는 인증 필요 (학생/선생님/관리자 공통)
+                        .requestMatchers("/items/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+                        // 상점 API는 교사 또는 관리자만 접근
+                        .requestMatchers("/rewards/**").hasAnyRole("TEACHER", "ADMIN")
                         // Place-Controller는 모두 허용
                         .requestMatchers("/places/**").permitAll()
+                        // 소개 페이지 조회는 공개, 수정은 관리자만
+                        .requestMatchers(HttpMethod.PATCH, "/introduce").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/introduce").permitAll()
 
                         // 나머지 요청은 인증 필요
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
                 // OAuth2 로그인 설정
                 .oauth2Login(oauth2 -> oauth2
