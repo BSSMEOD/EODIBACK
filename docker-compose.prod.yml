@@ -2,6 +2,8 @@ services:
   app:
     image: ghcr.io/${GITHUB_REPOSITORY}:latest
     container_name: eod-app
+    volumes:
+      - /eod/logs:/logs
     restart: always
     ports:
       - "8000:8080"
