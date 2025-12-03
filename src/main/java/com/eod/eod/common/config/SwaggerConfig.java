@@ -5,6 +5,7 @@ import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.info.Info;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
+import io.swagger.v3.oas.models.servers.Server;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -20,6 +21,12 @@ public class SwaggerConfig {
                         .title("EOD API")
                         .description("EOD 프로젝트 API 문서")
                         .version("1.0.0"))
+                .addServersItem(new Server()
+                        .url("https://www.jojaemin.com")
+                        .description("Production Server"))
+                .addServersItem(new Server()
+                        .url("http://localhost:8080")
+                        .description("Local Development Server"))
                 .addSecurityItem(new SecurityRequirement().addList(securitySchemeName))
                 .components(new Components()
                         .addSecuritySchemes(securitySchemeName,
