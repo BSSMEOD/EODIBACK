@@ -21,6 +21,7 @@ services:
       - EXTERNAL_SERVER_DEFAULT_PASSWORD=${EXTERNAL_SERVER_DEFAULT_PASSWORD}
       - BASE_URL=${BASE_URL}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
+      - LOG_DIR=${LOG_DIR}
     depends_on:
       mysql:
         condition: service_healthy
