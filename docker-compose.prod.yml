@@ -51,7 +51,8 @@ services:
 
 volumes:
   mysql-data:
-    driver: local
+    external: true
+    name: eod_mysql-data
 
 networks:
   eod-network:
