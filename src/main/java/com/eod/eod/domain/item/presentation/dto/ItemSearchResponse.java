@@ -12,7 +12,28 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-@Schema(description = "분실물 검색 응답")
+@Schema(
+    description = "분실물 검색 응답",
+    example = """
+        {
+            "content": [
+                {
+                    "id": 101,
+                    "name": "무선 이어폰",
+                    "found_date": "2025-07-01",
+                    "found_place": "SRC",
+                    "place_detail": "3층 남자기숙사 중앙홀",
+                    "thumbnail_url": ""
+                }
+            ],
+            "page": 1,
+            "size": 10,
+            "total_elements": 132,
+            "total_pages": 14,
+            "is_last": false
+        }
+        """
+)
 public class ItemSearchResponse {
 
     @Schema(description = "분실물 목록")
