@@ -4,6 +4,7 @@ import com.eod.eod.domain.reward.application.RewardGiveService;
 import com.eod.eod.domain.reward.application.RewardQueryService;
 import com.eod.eod.domain.reward.presentation.dto.RewardGiveHistoryResponse;
 import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.RewardHistoryRequest;
 import com.eod.eod.domain.reward.presentation.dto.RewardEligibleResponse;
 import com.eod.eod.domain.reward.presentation.dto.RewardGiveRequest;
 import com.eod.eod.domain.reward.presentation.dto.RewardGiveResponse;
@@ -39,8 +40,7 @@ public class RewardController {
             @ApiResponse(responseCode = "200", description = "상점 지급 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RewardGiveResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"상점이 성공적으로 지급되었습니다.\"}")
+                            schema = @Schema(implementation = RewardGiveResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "이미 상점이 지급된 경우",
                     content = @Content(
@@ -73,6 +73,11 @@ public class RewardController {
                description = "1) 사용자별 조회: ?user_id=1\n2) 날짜/학년/반별 조회: ?date=2025-08-05&grade=3&class=2")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RewardHistoryResponse.class)
+                    )),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(
                             mediaType = "application/json",
@@ -90,18 +95,16 @@ public class RewardController {
                     ))
     })
     @GetMapping("/history")
-    public ResponseEntity<?> getHistory(
-            @Parameter(description = "조회할 사용자 ID (user_id 단독 사용)", example = "1")
-            @RequestParam(value = "user_id", required = false) Long userId,
-            @Parameter(description = "조회 날짜 (date+grade+class 함께 사용)", example = "2025-08-05")
-            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @Parameter(description = "학년 (date+grade+class 함께 사용)", example = "3")
-            @RequestParam(value = "grade", required = false) Integer grade,
-            @Parameter(description = "반 (date+grade+class 함께 사용)", example = "2")
-            @RequestParam(value = "class", required = false) Integer classNumber,
+    public ResponseEntity<RewardHistoryResponse> getRewardHistory(
+            @Parameter(description = "상점 지급 이력 조회 요청 파라미터")
+            @Valid @ModelAttribute RewardHistoryRequest request,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
+        // 상점 지급 이력 조회
+        RewardHistoryResponse response = rewardQueryService.getRewardHistory(request.getUserId(), currentUser);
+
+        return ResponseEntity.ok(response);
         // 파라미터 조합에 따라 분기
         if (userId != null) {
             // 사용자별 조회
