@@ -6,7 +6,10 @@ import lombok.RequiredArgsConstructor;
 
 @Getter
 @RequiredArgsConstructor
-@Schema(description = "물품 지급 응답")
+@Schema(
+    description = "물품 지급 응답",
+    example = "{\"message\": \"물품 지급이 완료되었습니다.\"}"
+)
 public class ItemGiveResponse {
 
     @Schema(description = "응답 메시지", example = "물품 지급이 완료되었습니다.")
