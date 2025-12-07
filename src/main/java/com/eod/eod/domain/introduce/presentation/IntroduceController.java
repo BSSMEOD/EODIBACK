@@ -35,8 +35,7 @@ public class IntroduceController {
                     description = "소개 페이지 조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = IntroduceQueryResponse.class),
-                            examples = @ExampleObject(value = "{\"content\": \"분실물 관리 서비스 '어디'입니다. 사용 방법은 1) 검색으로 분실물을 찾아보고 2) 없다면 등록을 통해 제보를 남겨주세요.\", \"updated_at\": \"2025-10-24T00:00:00Z\"}")
+                            schema = @Schema(implementation = IntroduceQueryResponse.class)
                     )
             ),
             @ApiResponse(
@@ -61,8 +60,7 @@ public class IntroduceController {
                     description = "소개 페이지 수정 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = IntroduceUpdateResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"소개 페이지가 성공적으로 수정되었습니다.\"}")
+                            schema = @Schema(implementation = IntroduceUpdateResponse.class)
                     )
             ),
             @ApiResponse(
