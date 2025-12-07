@@ -6,7 +6,10 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@Schema(description = "폐기 예정 물품 개수 응답")
+@Schema(
+    description = "폐기 예정 물품 개수 응답",
+    example = "{\"count\": 12}"
+)
 public class DisposalCountResponse {
 
     @Schema(description = "폐기 예정 물품 개수", example = "12")
