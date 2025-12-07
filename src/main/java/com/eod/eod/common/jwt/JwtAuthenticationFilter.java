@@ -1,5 +1,7 @@
 package com.eod.eod.common.jwt;
 
+import com.eod.eod.domain.user.infrastructure.UserRepository;
+import com.eod.eod.domain.user.model.User;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +25,7 @@ import java.util.List;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserRepository userRepository;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -39,23 +42,31 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     Long userId = jwtTokenProvider.getUserIdFromToken(token);
                     String role = jwtTokenProvider.getRoleFromToken(token);
 
-                    // Spring Security 인증 객체 생성 (DB 조회 없이 토큰 정보만 사용)
+                    // DB에서 User 엔티티 조회
+                    User user = userRepository.findById(userId)
+                            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+                    // Spring Security 인증 객체 생성
                     List<SimpleGrantedAuthority> authorities = List.of(
                             new SimpleGrantedAuthority("ROLE_" + role)
                     );
 
+                    // Principal을 User 객체로 설정 (중요!)
                     UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(userId, null, authorities);
+                            new UsernamePasswordAuthenticationToken(user, null, authorities);
                     authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
                     // SecurityContext에 인증 정보 설정
                     SecurityContextHolder.getContext().setAuthentication(authentication);
 
-                    log.debug("JWT 인증 성공 - userId: {}, role: {}", userId, role);
+                    log.debug("JWT 인증 성공 - userId: {}, userName: {}, role: {}",
+                              user.getId(), user.getName(), role);
                 }
             }
         } catch (Exception e) {
-            log.error("JWT 인증 실패", e);
+            log.error("JWT 인증 실패: {}", e.getMessage());
+            // 인증 실패 시 SecurityContext 비우기
+            SecurityContextHolder.clearContext();
         }
 
         filterChain.doFilter(request, response);

@@ -79,12 +79,31 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // 테스트 페이지 허용
                         .requestMatchers("/test/**").permitAll()
+
+                        // ===== Items API 세분화 =====
                         // 공개 물품 조회 API 허용
                         .requestMatchers(HttpMethod.GET, "/items/search").permitAll()
                         .requestMatchers(HttpMethod.GET, "/items/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/items/*/disposal-reason").permitAll()
-                        // 나머지 물품 API는 인증 필요 (학생/선생님/관리자 공통)
+
+                        // Claim 관련 API - 학생(USER)만 가능
+                        .requestMatchers(HttpMethod.POST, "/items/*/claim").hasRole("USER")
+                        .requestMatchers(HttpMethod.GET, "/items/claims/count").hasRole("ADMIN")
+
+                        // 물품 등록/수정/삭제는 관리자만
+                        .requestMatchers(HttpMethod.POST, "/items").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/items/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/items/*").hasRole("ADMIN")
+
+                        // 물품 지급은 관리자만
+                        .requestMatchers(HttpMethod.POST, "/items/*/give").hasRole("ADMIN")
+
+                        // 승인/거절은 관리자만
+                        .requestMatchers(HttpMethod.PATCH, "/items/*/approval").hasRole("ADMIN")
+
+                        // 나머지 items API는 인증된 사용자 (학생/선생님/관리자 공통)
                         .requestMatchers("/items/**").hasAnyRole("USER", "TEACHER", "ADMIN")
+
                         // 상점 API는 교사 또는 관리자만 접근
                         .requestMatchers("/rewards/**").hasAnyRole("TEACHER", "ADMIN")
                         // Place-Controller는 모두 허용
