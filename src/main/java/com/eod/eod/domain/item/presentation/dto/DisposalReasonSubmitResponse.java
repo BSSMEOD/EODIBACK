@@ -6,7 +6,10 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@Schema(description = "폐기 보류 사유 제출 응답")
+@Schema(
+    description = "폐기 보류 사유 제출 응답",
+    example = "{\"message\": \"보류 사유가 성공적으로 제출되었습니다.\"}"
+)
 public class DisposalReasonSubmitResponse {
 
     @Schema(description = "응답 메시지", example = "보류 사유가 성공적으로 제출되었습니다.")
