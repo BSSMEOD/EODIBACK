@@ -25,6 +25,7 @@ bin/
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
+.gradle-home/
 
 ### NetBeans ###
 /nbproject/private/
@@ -42,3 +43,4 @@ out/
 CLAUDE.md
 .serena/
 *.log
+/logs/
