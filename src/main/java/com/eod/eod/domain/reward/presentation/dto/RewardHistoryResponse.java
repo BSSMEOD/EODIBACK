@@ -13,7 +13,23 @@ import java.util.stream.Collectors;
 
 @Getter
 @Builder
-@Schema(description = "상점 지급 이력 응답")
+@Schema(
+    description = "상점 지급 이력 응답",
+    example = """
+        {
+            "user_id": 1,
+            "rewards": [
+                {
+                    "reward_id": 12,
+                    "item_id": 5,
+                    "item_name": "무선 이어폰",
+                    "given_by": "김선생",
+                    "given_at": "2025-07-31"
+                }
+            ]
+        }
+        """
+)
 public class RewardHistoryResponse {
 
     @JsonProperty("userId")
