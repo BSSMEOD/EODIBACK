@@ -8,7 +8,18 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@Schema(description = "폐기 보류 사유 조회 응답")
+@Schema(
+    description = "폐기 보류 사유 조회 응답",
+    example = """
+        {
+            "item_id": 1,
+            "image": "www.notion.so",
+            "teacher_name": "육은찬",
+            "reason": "학생이 찾을 가능성이 있어 보류합니다.",
+            "extension_days": 5
+        }
+        """
+)
 public class DisposalReasonResponse {
 
     @JsonProperty("itemId")
