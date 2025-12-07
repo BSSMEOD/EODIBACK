@@ -19,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -50,8 +49,7 @@ public class ItemController {
             @ApiResponse(responseCode = "201", description = "분실물 등록 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ItemCreateResponse.class),
-                            examples = @ExampleObject(value = "{\"item_id\":104,\"message\":\"분실물이 성공적으로 등록되었습니다.\"}")
+                            schema = @Schema(implementation = ItemCreateResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "필수 값 누락 또는 잘못된 입력",
                     content = @Content(
@@ -90,8 +88,7 @@ public class ItemController {
             @ApiResponse(responseCode = "200", description = "물품 지급 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ItemGiveResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"물품 지급이 완료되었습니다.\"}")
+                            schema = @Schema(implementation = ItemGiveResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패 또는 이미 지급된 경우)",
                     content = @Content(
@@ -134,19 +131,7 @@ public class ItemController {
             @ApiResponse(responseCode = "200", description = "승인/거절 처리 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ItemApprovalResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "item_id": 1,
-                                        "approval_status": "APPROVED",
-                                        "approver": {
-                                            "id": 12,
-                                            "name": "이하은"
-                                        },
-                                        "approved_at": "2025-08-02",
-                                        "message": "소유권이 승인되었습니다."
-                                    }
-                                    """)
+                            schema = @Schema(implementation = ItemApprovalResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "잘못된 승인 요청",
                     content = @Content(
@@ -198,26 +183,7 @@ public class ItemController {
             @ApiResponse(responseCode = "200", description = "검색 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ItemSearchResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "content": [
-                                            {
-                                                "id": 101,
-                                                "name": "무선 이어폰",
-                                                "foundDate": "2025-07-01",
-                                                "foundPlace": "SRC",
-                                                "placeDetail": "3층 남자기숙사 중앙홀",
-                                                "imageUrl": ""
-                                            }
-                                        ],
-                                        "page": 1,
-                                        "size": 10,
-                                        "totalElements": 132,
-                                        "totalPages": 14,
-                                        "isLast": false
-                                    }
-                                    """)
+                            schema = @Schema(implementation = ItemSearchResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태 값)",
                     content = @Content(
@@ -227,17 +193,15 @@ public class ItemController {
     })
     @GetMapping("/search")
     public ResponseEntity<ItemSearchResponse> searchItems(
-            @Parameter(description = "페이지 번호 (1부터 시작)", example = "1")
-            @RequestParam(defaultValue = "1") int page,
-            @Parameter(description = "페이지 크기", example = "10")
-            @RequestParam(defaultValue = "10") int size,
-            @Parameter(description = "장소 ID (선택 사항)", example = "2")
-            @RequestParam(name = "place_id", required = false) Long placeId,
-            @Parameter(description = "물품 상태 (LOST, TO_BE_DISCARDED, DISCARDED, GIVEN) - 필수", example = "LOST", required = true)
-            @NotBlank(message = "물품 상태는 필수입니다.")
-            @RequestParam String status
+            @Parameter(description = "분실물 검색 요청 파라미터")
+            @Valid @ModelAttribute ItemSearchRequest request
     ) {
-        ItemSearchResponse response = itemSearchService.searchItems(placeId, status, page, size);
+        ItemSearchResponse response = itemSearchService.searchItems(
+                request.getPlaceId(),
+                request.getStatus(),
+                request.getPage(),
+                request.getSize()
+        );
         return ResponseEntity.ok(response);
     }
 
@@ -246,17 +210,7 @@ public class ItemController {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ItemDetailResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "id": 1,
-                                        "name": "무테 긱시크 안경",
-                                        "image_url": "",
-                                        "found_at": "2025-06-19 12:20",
-                                        "found_place": "기타",
-                                        "found_place_detail": "운동장"
-                                    }
-                                    """)
+                            schema = @Schema(implementation = ItemDetailResponse.class)
                     )),
             @ApiResponse(responseCode = "404", description = "물품 또는 장소를 찾을 수 없음",
                     content = @Content(
@@ -278,8 +232,7 @@ public class ItemController {
             @ApiResponse(responseCode = "200", description = "삭제 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ItemDeleteResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"분실물이 성공적으로 삭제되었습니다.\"}")
+                            schema = @Schema(implementation = ItemDeleteResponse.class)
                     )),
             @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
                     content = @Content(
@@ -313,8 +266,7 @@ public class ItemController {
             @ApiResponse(responseCode = "201", description = "보류 사유 제출 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DisposalReasonSubmitResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"보류 사유가 성공적으로 제출되었습니다.\"}")
+                            schema = @Schema(implementation = DisposalReasonSubmitResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패 또는 잘못된 물품 상태)",
                     content = @Content(
@@ -351,16 +303,7 @@ public class ItemController {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DisposalReasonResponse.class),
-                            examples = @ExampleObject(value = """
-                                    {
-                                        "item_id": 1,
-                                        "image": "www.notion.so",
-                                        "teacher_name": "육은찬",
-                                        "reason": "학생이 찾을 가능성이 있어 보류합니다.",
-                                        "extension_days": 5
-                                    }
-                                    """)
+                            schema = @Schema(implementation = DisposalReasonResponse.class)
                     )),
             @ApiResponse(responseCode = "404", description = "물품 또는 보류 사유를 찾을 수 없음",
                     content = @Content(
@@ -384,8 +327,7 @@ public class ItemController {
             @ApiResponse(responseCode = "201", description = "폐기 기간 연장 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DisposalExtensionResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"페기 보류 되었습니다.\"}")
+                            schema = @Schema(implementation = DisposalExtensionResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 보류 사유 ID 또는 잘못된 물품 상태)",
                     content = @Content(
@@ -422,8 +364,7 @@ public class ItemController {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = DisposalCountResponse.class),
-                            examples = @ExampleObject(value = "{\"count\": 12}")
+                            schema = @Schema(implementation = DisposalCountResponse.class)
                     )),
             @ApiResponse(responseCode = "401", description = "인증 실패 또는 ADMIN 권한 없음",
                     content = @Content(
