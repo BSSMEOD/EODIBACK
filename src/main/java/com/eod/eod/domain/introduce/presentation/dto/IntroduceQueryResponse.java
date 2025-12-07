@@ -10,7 +10,10 @@ import java.time.format.DateTimeFormatter;
 
 @Getter
 @Builder
-@Schema(description = "소개 페이지 조회 응답")
+@Schema(
+    description = "소개 페이지 조회 응답",
+    example = "{\"content\": \"분실물 관리 서비스 '어디'입니다. 사용 방법은 1) 검색으로 분실물을 찾아보고 2) 없다면 등록을 통해 제보를 남겨주세요.\", \"updated_at\": \"2025-10-24T00:00:00Z\"}"
+)
 public class IntroduceQueryResponse {
 
     @JsonProperty("content")
