@@ -12,7 +12,21 @@ import java.time.format.DateTimeFormatter;
 
 @Getter
 @Builder
-@Schema(description = "물품 승인 응답")
+@Schema(
+    description = "물품 승인 응답",
+    example = """
+        {
+            "item_id": 1,
+            "approval_status": "APPROVED",
+            "approver": {
+                "id": 12,
+                "name": "이하은"
+            },
+            "approved_at": "2025-08-02",
+            "message": "소유권이 승인되었습니다."
+        }
+        """
+)
 public class ItemApprovalResponse {
 
     @JsonProperty("itemId")
