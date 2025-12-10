@@ -24,9 +24,8 @@ public class ItemSearchRequest {
     @Schema(description = "장소 ID (선택 사항)", example = "2")
     private Long placeId;
 
-    @NotBlank(message = "물품 상태는 필수입니다.")
-    @Schema(description = "물품 상태 (LOST, TO_BE_DISCARDED, DISCARDED, GIVEN)",
+    @Schema(description = "물품 상태 (LOST, TO_BE_DISCARDED, DISCARDED, GIVEN) - 선택 사항",
             example = "LOST",
-            requiredMode = Schema.RequiredMode.REQUIRED)
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String status;
 }

@@ -31,11 +31,11 @@ public class ItemSearchService {
         // 페이징 설정 (최신순 정렬)
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "foundAt"));
 
-        // 상태 변환
+        // 상태 변환 (선택 사항)
         Item.ItemStatus itemStatus = parseStatus(status);
 
-        // 검색 조건에 따라 쿼리 실행
-        Page<Item> itemPage = executeSearch(placeId, itemStatus, pageable);
+        // QueryDSL을 사용한 동적 쿼리 실행
+        Page<Item> itemPage = itemRepository.searchItems(placeId, itemStatus, pageable);
 
         // Place 정보를 미리 조회하여 Map에 캐싱 (N+1 문제 방지)
         Map<Long, String> placeMap = buildPlaceMap(itemPage.getContent());
@@ -47,18 +47,13 @@ public class ItemSearchService {
     }
 
     private Item.ItemStatus parseStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return null;
+        }
         try {
             return Item.ItemStatus.valueOf(status.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new InvalidParameterException("유효하지 않은 상태 값입니다: " + status);
-        }
-    }
-
-    private Page<Item> executeSearch(Long placeId, Item.ItemStatus status, Pageable pageable) {
-        if (placeId != null) {
-            return itemRepository.findByFoundPlaceIdAndStatus(placeId, status, pageable);
-        } else {
-            return itemRepository.findByStatus(status, pageable);
         }
     }
 
