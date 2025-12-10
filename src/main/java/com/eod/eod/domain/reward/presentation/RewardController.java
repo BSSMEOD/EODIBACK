@@ -72,11 +72,15 @@ public class RewardController {
     @Operation(summary = "상점 지급 이력 조회",
                description = "1) 사용자별 조회: ?user_id=1\n2) 날짜/학년/반별 조회: ?date=2025-08-05&grade=3&class=2")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
-            @ApiResponse(responseCode = "200", description = "조회 성공",
+            @ApiResponse(responseCode = "200", description = "사용자별 조회 성공",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = RewardHistoryResponse.class)
+                    )),
+            @ApiResponse(responseCode = "200", description = "날짜/학년/반별 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RewardGiveHistoryResponse.class)
                     )),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(
@@ -95,27 +99,34 @@ public class RewardController {
                     ))
     })
     @GetMapping("/history")
-    public ResponseEntity<RewardHistoryResponse> getRewardHistory(
-            @Parameter(description = "상점 지급 이력 조회 요청 파라미터")
-            @Valid @ModelAttribute RewardHistoryRequest request,
+    public ResponseEntity<?> getRewardHistory(
+            @Parameter(description = "조회할 사용자 ID (user_id 단독 사용)", example = "1")
+            @RequestParam(value = "user_id", required = false) Long userId,
+            @Parameter(description = "조회 날짜 (date+grade+class 함께 사용)", example = "2025-08-05")
+            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+            @Parameter(description = "학년 (date+grade+class 함께 사용)", example = "3")
+            @RequestParam(value = "grade", required = false) Integer grade,
+            @Parameter(description = "반 (date+grade+class 함께 사용)", example = "2")
+            @RequestParam(value = "class", required = false) Integer classNumber,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        // 상점 지급 이력 조회
-        RewardHistoryResponse response = rewardQueryService.getRewardHistory(request.getUserId(), currentUser);
+        RewardHistoryRequest request = RewardHistoryRequest.builder()
+                .userId(userId)
+                .date(date)
+                .grade(grade)
+                .classNumber(classNumber)
+                .build();
 
-        return ResponseEntity.ok(response);
-        // 파라미터 조합에 따라 분기
-        if (userId != null) {
-            // 사용자별 조회
-            RewardHistoryResponse response = rewardQueryService.getRewardHistory(userId, currentUser);
+        request.validate();
+
+        if (request.isUserQuery()) {
+            RewardHistoryResponse response = rewardQueryService.getRewardHistory(request.getUserId(), currentUser);
             return ResponseEntity.ok(response);
-        } else if (date != null && grade != null && classNumber != null) {
-            // 날짜/학년/반별 조회
-            RewardGiveHistoryResponse response = rewardQueryService.getGiveHistoryByDateAndClass(date, grade, classNumber, currentUser);
-            return ResponseEntity.ok(response);
-        } else {
-            throw new IllegalArgumentException("user_id 또는 (date, grade, class) 조합이 필요합니다.");
         }
+
+        RewardGiveHistoryResponse response = rewardQueryService.getGiveHistoryByDateAndClass(
+                request.getDate(), request.getGrade(), request.getClassNumber(), currentUser);
+        return ResponseEntity.ok(response);
     }
 }
