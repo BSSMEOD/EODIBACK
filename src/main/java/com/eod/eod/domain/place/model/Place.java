@@ -1,6 +1,6 @@
 package com.eod.eod.domain.place.model;
 
-import com.eod.eod.domain.place.presentation.dto.PlaceResponseDto;
+import com.eod.eod.domain.place.presentation.dto.response.PlaceResponseDto;
 import jakarta.persistence.*;
 import lombok.Getter;
 

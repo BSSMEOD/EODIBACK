@@ -2,11 +2,12 @@ package com.eod.eod.domain.reward.presentation;
 
 import com.eod.eod.domain.reward.application.RewardGiveService;
 import com.eod.eod.domain.reward.application.RewardQueryService;
-import com.eod.eod.domain.reward.presentation.dto.RewardGiveHistoryResponse;
-import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
-import com.eod.eod.domain.reward.presentation.dto.RewardEligibleResponse;
-import com.eod.eod.domain.reward.presentation.dto.RewardGiveRequest;
-import com.eod.eod.domain.reward.presentation.dto.RewardGiveResponse;
+import com.eod.eod.domain.reward.presentation.dto.request.RewardGiveRequest;
+import com.eod.eod.domain.reward.presentation.dto.request.RewardHistoryRequest;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardEligibleResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,12 +19,9 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDate;
 
 @Tag(name = "Reward", description = "상점 관리 API")
 @RestController
@@ -39,8 +37,7 @@ public class RewardController {
             @ApiResponse(responseCode = "200", description = "상점 지급 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RewardGiveResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"상점이 성공적으로 지급되었습니다.\"}")
+                            schema = @Schema(implementation = RewardGiveResponse.class)
                     )),
             @ApiResponse(responseCode = "400", description = "이미 상점이 지급된 경우",
                     content = @Content(
@@ -72,7 +69,16 @@ public class RewardController {
     @Operation(summary = "상점 지급 이력 조회",
                description = "1) 사용자별 조회: ?user_id=1\n2) 날짜/학년/반별 조회: ?date=2025-08-05&grade=3&class=2")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "200", description = "사용자별 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RewardHistoryResponse.class)
+                    )),
+            @ApiResponse(responseCode = "200", description = "날짜/학년/반별 조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = RewardGiveHistoryResponse.class)
+                    )),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(
                             mediaType = "application/json",
@@ -90,29 +96,13 @@ public class RewardController {
                     ))
     })
     @GetMapping("/history")
-    public ResponseEntity<?> getHistory(
-            @Parameter(description = "조회할 사용자 ID (user_id 단독 사용)", example = "1")
-            @RequestParam(value = "user_id", required = false) Long userId,
-            @Parameter(description = "조회 날짜 (date+grade+class 함께 사용)", example = "2025-08-05")
-            @RequestParam(value = "date", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-            @Parameter(description = "학년 (date+grade+class 함께 사용)", example = "3")
-            @RequestParam(value = "grade", required = false) Integer grade,
-            @Parameter(description = "반 (date+grade+class 함께 사용)", example = "2")
-            @RequestParam(value = "class", required = false) Integer classNumber,
+    public ResponseEntity<?> getRewardHistory(
+            @Parameter(description = "상점 지급 이력 조회 요청 파라미터")
+            @Valid RewardHistoryRequest request,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        // 파라미터 조합에 따라 분기
-        if (userId != null) {
-            // 사용자별 조회
-            RewardHistoryResponse response = rewardQueryService.getRewardHistory(userId, currentUser);
-            return ResponseEntity.ok(response);
-        } else if (date != null && grade != null && classNumber != null) {
-            // 날짜/학년/반별 조회
-            RewardGiveHistoryResponse response = rewardQueryService.getGiveHistoryByDateAndClass(date, grade, classNumber, currentUser);
-            return ResponseEntity.ok(response);
-        } else {
-            throw new IllegalArgumentException("user_id 또는 (date, grade, class) 조합이 필요합니다.");
-        }
+         Object response = rewardQueryService.getRewardHistory(request, currentUser);
+        return ResponseEntity.ok(response);
     }
 }

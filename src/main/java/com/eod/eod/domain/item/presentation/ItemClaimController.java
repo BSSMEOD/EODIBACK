@@ -2,9 +2,9 @@ package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ClaimCountService;
 import com.eod.eod.domain.item.application.ItemClaimService;
-import com.eod.eod.domain.item.presentation.dto.ClaimCountResponse;
-import com.eod.eod.domain.item.presentation.dto.ItemClaimRequest;
-import com.eod.eod.domain.item.presentation.dto.ItemClaimResponse;
+import com.eod.eod.domain.item.presentation.dto.request.ItemClaimRequest;
+import com.eod.eod.domain.item.presentation.dto.response.ClaimCountResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -36,8 +36,7 @@ public class ItemClaimController {
                     description = "소유권 주장 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ItemClaimResponse.class),
-                            examples = @ExampleObject(value = "{\"message\": \"소유권 주장이 정상적으로 등록되었습니다.\"}")
+                            schema = @Schema(implementation = ItemClaimResponse.class)
                     )
             ),
             @ApiResponse(
@@ -85,8 +84,7 @@ public class ItemClaimController {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = ClaimCountResponse.class),
-                            examples = @ExampleObject(value = "{\"count\": 8}")
+                            schema = @Schema(implementation = ClaimCountResponse.class)
                     )),
             @ApiResponse(responseCode = "401", description = "인증 실패 또는 ADMIN 권한 없음",
                     content = @Content(

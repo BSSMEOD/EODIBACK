@@ -8,7 +8,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import java.time.LocalDateTime;
 import java.util.List;
 
-public interface ItemRepository extends JpaRepository<Item, Long> {
+public interface ItemRepository extends JpaRepository<Item, Long>, ItemRepositoryCustom {
 
     // 장소 ID와 상태로 검색
     Page<Item> findByFoundPlaceIdAndStatus(Long foundPlaceId, Item.ItemStatus status, Pageable pageable);

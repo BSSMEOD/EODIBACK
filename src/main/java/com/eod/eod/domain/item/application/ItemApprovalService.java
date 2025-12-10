@@ -1,7 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.domain.item.model.Item;
-import com.eod.eod.domain.item.presentation.dto.ItemApprovalResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ItemApprovalResponse;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

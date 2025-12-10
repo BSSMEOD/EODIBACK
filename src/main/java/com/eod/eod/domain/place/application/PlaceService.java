@@ -1,7 +1,7 @@
 package com.eod.eod.domain.place.application;
 
 import com.eod.eod.domain.place.model.Place;
-import com.eod.eod.domain.place.presentation.dto.PlaceResponseDto;
+import com.eod.eod.domain.place.presentation.dto.response.PlaceResponseDto;
 
 import java.util.List;
 
