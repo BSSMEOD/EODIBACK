@@ -28,7 +28,7 @@ public class RewardQueryService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public RewardHistoryResponse getRewardHistory(RewardHistoryRequest request, User currentUser) {
+    public Object getRewardHistory(RewardHistoryRequest request, User currentUser) {
         request.validate();
 
         if (request.isUserQuery()) {
