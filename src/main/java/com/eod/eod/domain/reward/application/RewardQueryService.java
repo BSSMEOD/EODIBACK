@@ -3,6 +3,7 @@ package com.eod.eod.domain.reward.application;
 import com.eod.eod.domain.reward.infrastructure.RewardRecordRepository;
 import com.eod.eod.domain.reward.model.RewardRecord;
 import com.eod.eod.domain.reward.presentation.dto.RewardGiveHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.RewardHistoryRequest;
 import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
@@ -26,6 +27,21 @@ public class RewardQueryService {
     private final UserRepository userRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
+    public Object getRewardHistory(RewardHistoryRequest request, User currentUser) {
+        request.validate();
+
+        if (request.isUserQuery()) {
+            return getRewardHistory(request.getUserId(), currentUser);
+        }
+
+        return getGiveHistoryByDateAndClass(
+                request.getDate(),
+                request.getGrade(),
+                request.getClassNumber(),
+                currentUser
+        );
+    }
 
     // 상점 지급 이력 조회
     public RewardHistoryResponse getRewardHistory(Long userId, User currentUser) {
