@@ -205,17 +205,17 @@ public class ItemController {
                                             {
                                                 "id": 101,
                                                 "name": "무선 이어폰",
-                                                "found_date": "2025-07-01",
-                                                "found_place": "SRC",
-                                                "place_detail": "3층 남자기숙사 중앙홀",
-                                                "thumbnail_url": ""
+                                                "foundDate": "2025-07-01",
+                                                "foundPlace": "SRC",
+                                                "placeDetail": "3층 남자기숙사 중앙홀",
+                                                "imageUrl": ""
                                             }
                                         ],
                                         "page": 1,
                                         "size": 10,
-                                        "total_elements": 132,
-                                        "total_pages": 14,
-                                        "is_last": false
+                                        "totalElements": 132,
+                                        "totalPages": 14,
+                                        "isLast": false
                                     }
                                     """)
                     )),
