@@ -1,4 +1,4 @@
-package com.eod.eod.domain.item.presentation.dto;
+package com.eod.eod.domain.item.presentation.dto.request;
 
 import com.eod.eod.domain.item.model.Item;
 import com.fasterxml.jackson.annotation.JsonProperty;

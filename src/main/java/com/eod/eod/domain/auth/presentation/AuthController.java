@@ -3,7 +3,7 @@ package com.eod.eod.domain.auth.presentation;
 import com.eod.eod.common.util.CookieUtil;
 import com.eod.eod.domain.auth.application.AuthService;
 import com.eod.eod.domain.auth.application.TokenService;
-import com.eod.eod.domain.auth.presentation.dto.TokenResponse;
+import com.eod.eod.domain.auth.presentation.dto.response.TokenResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

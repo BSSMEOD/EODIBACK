@@ -1,4 +1,4 @@
-package com.eod.eod.domain.introduce.presentation.dto;
+package com.eod.eod.domain.introduce.presentation.dto.response;
 
 import com.eod.eod.domain.introduce.model.Introduce;
 import com.fasterxml.jackson.annotation.JsonProperty;

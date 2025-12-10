@@ -2,7 +2,7 @@ package com.eod.eod.domain.item.application;
 
 import com.eod.eod.domain.item.infrastructure.ItemRepository;
 import com.eod.eod.domain.item.model.Item;
-import com.eod.eod.domain.item.presentation.dto.ItemDetailResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ItemDetailResponse;
 import com.eod.eod.domain.place.infrastructure.PlaceRepository;
 import com.eod.eod.domain.place.model.Place;
 import lombok.RequiredArgsConstructor;

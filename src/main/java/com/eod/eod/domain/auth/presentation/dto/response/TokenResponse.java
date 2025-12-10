@@ -1,4 +1,4 @@
-package com.eod.eod.domain.auth.presentation.dto;
+package com.eod.eod.domain.auth.presentation.dto.response;
 
 import lombok.Getter;
 

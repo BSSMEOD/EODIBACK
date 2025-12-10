@@ -2,9 +2,9 @@ package com.eod.eod.domain.introduce.presentation;
 
 import com.eod.eod.domain.introduce.application.IntroduceQueryService;
 import com.eod.eod.domain.introduce.application.IntroduceService;
-import com.eod.eod.domain.introduce.presentation.dto.IntroduceQueryResponse;
-import com.eod.eod.domain.introduce.presentation.dto.IntroduceUpdateRequest;
-import com.eod.eod.domain.introduce.presentation.dto.IntroduceUpdateResponse;
+import com.eod.eod.domain.introduce.presentation.dto.request.IntroduceUpdateRequest;
+import com.eod.eod.domain.introduce.presentation.dto.response.IntroduceQueryResponse;
+import com.eod.eod.domain.introduce.presentation.dto.response.IntroduceUpdateResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;

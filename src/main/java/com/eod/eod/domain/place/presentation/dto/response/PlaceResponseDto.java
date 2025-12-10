@@ -1,4 +1,4 @@
-package com.eod.eod.domain.place.presentation.dto;
+package com.eod.eod.domain.place.presentation.dto.response;
 
 import lombok.Data;
 

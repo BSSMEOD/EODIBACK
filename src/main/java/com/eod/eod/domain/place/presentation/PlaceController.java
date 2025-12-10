@@ -3,7 +3,7 @@ package com.eod.eod.domain.place.presentation;
 
 import com.eod.eod.domain.place.application.PlaceServiceImpl;
 import com.eod.eod.domain.place.model.Place;
-import com.eod.eod.domain.place.presentation.dto.PlaceResponseDto;
+import com.eod.eod.domain.place.presentation.dto.response.PlaceResponseDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

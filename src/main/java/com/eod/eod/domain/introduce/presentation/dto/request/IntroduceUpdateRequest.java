@@ -1,4 +1,4 @@
-package com.eod.eod.domain.introduce.presentation.dto;
+package com.eod.eod.domain.introduce.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;

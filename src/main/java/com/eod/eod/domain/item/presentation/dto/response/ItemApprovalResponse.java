@@ -1,4 +1,4 @@
-package com.eod.eod.domain.item.presentation.dto;
+package com.eod.eod.domain.item.presentation.dto.response;
 
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.user.model.User;

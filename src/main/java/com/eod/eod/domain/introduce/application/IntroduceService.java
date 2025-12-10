@@ -2,7 +2,7 @@ package com.eod.eod.domain.introduce.application;
 
 import com.eod.eod.domain.introduce.infrastructure.IntroduceRepository;
 import com.eod.eod.domain.introduce.model.Introduce;
-import com.eod.eod.domain.introduce.presentation.dto.IntroduceUpdateResponse;
+import com.eod.eod.domain.introduce.presentation.dto.response.IntroduceUpdateResponse;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

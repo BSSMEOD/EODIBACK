@@ -2,9 +2,9 @@ package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ClaimCountService;
 import com.eod.eod.domain.item.application.ItemClaimService;
-import com.eod.eod.domain.item.presentation.dto.ClaimCountResponse;
-import com.eod.eod.domain.item.presentation.dto.ItemClaimRequest;
-import com.eod.eod.domain.item.presentation.dto.ItemClaimResponse;
+import com.eod.eod.domain.item.presentation.dto.request.ItemClaimRequest;
+import com.eod.eod.domain.item.presentation.dto.response.ClaimCountResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
