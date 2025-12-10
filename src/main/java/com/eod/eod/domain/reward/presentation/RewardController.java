@@ -2,12 +2,12 @@ package com.eod.eod.domain.reward.presentation;
 
 import com.eod.eod.domain.reward.application.RewardGiveService;
 import com.eod.eod.domain.reward.application.RewardQueryService;
-import com.eod.eod.domain.reward.presentation.dto.RewardGiveHistoryResponse;
-import com.eod.eod.domain.reward.presentation.dto.RewardEligibleResponse;
-import com.eod.eod.domain.reward.presentation.dto.RewardGiveRequest;
-import com.eod.eod.domain.reward.presentation.dto.RewardGiveResponse;
-import com.eod.eod.domain.reward.presentation.dto.RewardHistoryRequest;
-import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.request.RewardGiveRequest;
+import com.eod.eod.domain.reward.presentation.dto.request.RewardHistoryRequest;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardEligibleResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -98,11 +98,11 @@ public class RewardController {
     @GetMapping("/history")
     public ResponseEntity<?> getRewardHistory(
             @Parameter(description = "상점 지급 이력 조회 요청 파라미터")
-            @Valid @ModelAttribute RewardHistoryRequest request,
+            @Valid RewardHistoryRequest request,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        Object response = rewardQueryService.getRewardHistory(request, currentUser);
+         response = rewardQueryService.getRewardHistory(request, currentUser);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,4 +1,4 @@
-package com.eod.eod.domain.reward.presentation.dto;
+package com.eod.eod.domain.reward.presentation.dto.response;
 
 import com.eod.eod.domain.reward.model.RewardRecord;
 import com.fasterxml.jackson.annotation.JsonProperty;

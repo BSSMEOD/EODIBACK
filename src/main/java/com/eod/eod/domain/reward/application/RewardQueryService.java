@@ -2,9 +2,9 @@ package com.eod.eod.domain.reward.application;
 
 import com.eod.eod.domain.reward.infrastructure.RewardRecordRepository;
 import com.eod.eod.domain.reward.model.RewardRecord;
-import com.eod.eod.domain.reward.presentation.dto.RewardGiveHistoryResponse;
-import com.eod.eod.domain.reward.presentation.dto.RewardHistoryRequest;
-import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.request.RewardHistoryRequest;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +28,7 @@ public class RewardQueryService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public Object getRewardHistory(RewardHistoryRequest request, User currentUser) {
+    public RewardHistoryResponse getRewardHistory(RewardHistoryRequest request, User currentUser) {
         request.validate();
 
         if (request.isUserQuery()) {

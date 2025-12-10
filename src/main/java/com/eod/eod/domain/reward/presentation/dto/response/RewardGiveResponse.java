@@ -1,4 +1,4 @@
-package com.eod.eod.domain.reward.presentation.dto;
+package com.eod.eod.domain.reward.presentation.dto.response;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
