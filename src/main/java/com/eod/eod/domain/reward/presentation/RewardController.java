@@ -102,7 +102,7 @@ public class RewardController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-         response = rewardQueryService.getRewardHistory(request, currentUser);
+         Object response = rewardQueryService.getRewardHistory(request, currentUser);
         return ResponseEntity.ok(response);
     }
 }
