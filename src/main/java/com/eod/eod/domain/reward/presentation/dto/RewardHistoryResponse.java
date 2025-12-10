@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Schema(description = "상점 지급 이력 응답")
 public class RewardHistoryResponse {
 
-    @JsonProperty("user_id")
+    @JsonProperty("userId")
     @Schema(description = "이력을 조회한 사용자 ID", example = "1")
     private Long userId;
 
@@ -40,23 +40,23 @@ public class RewardHistoryResponse {
     @Schema(description = "상점 지급 상세 정보")
     public static class RewardInfo {
 
-        @JsonProperty("reward_id")
+        @JsonProperty("rewardId")
         @Schema(description = "상점 지급 기록 ID", example = "12")
         private Long rewardId;
 
-        @JsonProperty("item_id")
+        @JsonProperty("itemId")
         @Schema(description = "지급과 연결된 물품 ID", example = "5")
         private Long itemId;
 
-        @JsonProperty("item_name")
+        @JsonProperty("itemName")
         @Schema(description = "지급 물품 이름", example = "무선 이어폰")
         private String itemName;
 
-        @JsonProperty("given_by")
+        @JsonProperty("givenBy")
         @Schema(description = "상점을 지급한 교사 이름", example = "김선생")
         private String givenBy;
 
-        @JsonProperty("given_at")
+        @JsonProperty("givenAt")
         @Schema(description = "상점 지급 날짜", example = "2025-07-31")
         private String givenAt;
 

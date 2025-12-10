@@ -15,11 +15,11 @@ import java.time.format.DateTimeFormatter;
 @Schema(description = "물품 승인 응답")
 public class ItemApprovalResponse {
 
-    @JsonProperty("item_id")
+    @JsonProperty("itemId")
     @Schema(description = "승인/거절된 분실물 ID", example = "1")
     private Long itemId;
 
-    @JsonProperty("approval_status")
+    @JsonProperty("approvalStatus")
     @Schema(description = "최종 처리 상태 (APPROVED 또는 REJECTED)", example = "APPROVED")
     private String approvalStatus;
 
@@ -27,7 +27,7 @@ public class ItemApprovalResponse {
     @Schema(description = "승인 처리한 관리자 정보")
     private ApproverResponse approver;
 
-    @JsonProperty("approved_at")
+    @JsonProperty("approvedAt")
     @Schema(description = "처리 시각", example = "2025-08-02")
     private String approvedAt;
 

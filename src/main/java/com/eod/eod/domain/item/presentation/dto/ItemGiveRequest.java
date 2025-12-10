@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class ItemGiveRequest {
 
     @NotNull(message = "학생 ID는 필수입니다.")
-    @JsonProperty("student_id")
+    @JsonProperty("studentId")
     @Schema(description = "지급 받을 학생 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long studentId;
 }

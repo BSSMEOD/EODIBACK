@@ -12,7 +12,7 @@ import lombok.NoArgsConstructor;
 public class DisposalExtensionRequest {
 
     @NotNull(message = "보류 사유 ID는 필수입니다.")
-    @JsonProperty("reason_id")
+    @JsonProperty("reasonId")
     @Schema(description = "보류 사유 ID", example = "1", requiredMode = Schema.RequiredMode.REQUIRED)
     private Long reasonId;
 }

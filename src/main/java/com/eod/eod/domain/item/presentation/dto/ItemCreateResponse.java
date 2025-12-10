@@ -10,7 +10,7 @@ import lombok.Getter;
 @Schema(description = "분실물 등록 응답")
 public class ItemCreateResponse {
 
-    @JsonProperty("item_id")
+    @JsonProperty("itemId")
     @Schema(description = "등록된 물품 ID", example = "104")
     private Long itemId;
 

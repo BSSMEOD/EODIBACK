@@ -24,15 +24,15 @@ public class ItemSearchResponse {
     @Schema(description = "페이지 크기", example = "10")
     private int size;
 
-    @JsonProperty("total_elements")
+    @JsonProperty("totalElements")
     @Schema(description = "전체 요소 개수", example = "132")
     private long totalElements;
 
-    @JsonProperty("total_pages")
+    @JsonProperty("totalPages")
     @Schema(description = "전체 페이지 수", example = "14")
     private int totalPages;
 
-    @JsonProperty("is_last")
+    @JsonProperty("isLast")
     @Schema(description = "마지막 페이지 여부", example = "false")
     private boolean isLast;
 
