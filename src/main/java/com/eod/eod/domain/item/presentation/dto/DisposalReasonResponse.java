@@ -11,21 +11,21 @@ import lombok.Getter;
 @Schema(description = "폐기 보류 사유 조회 응답")
 public class DisposalReasonResponse {
 
-    @JsonProperty("item_id")
+    @JsonProperty("itemId")
     @Schema(description = "물품 ID", example = "1")
     private Long itemId;
 
     @Schema(description = "물품 이미지 URL", example = "www.notion.so")
     private String image;
 
-    @JsonProperty("teacher_name")
+    @JsonProperty("teacherName")
     @Schema(description = "선생님 이름", example = "육은찬")
     private String teacherName;
 
     @Schema(description = "보류 사유", example = "학생이 찾을 가능성이 있어 보류합니다.")
     private String reason;
 
-    @JsonProperty("extension_days")
+    @JsonProperty("extensionDays")
     @Schema(description = "폐기 기간 연장 일수", example = "5")
     private Integer extensionDays;
 

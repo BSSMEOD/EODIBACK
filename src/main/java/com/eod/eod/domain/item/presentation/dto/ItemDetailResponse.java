@@ -15,16 +15,16 @@ public class ItemDetailResponse {
 
     private String name;
 
-    @JsonProperty("image_url")
+    @JsonProperty("imageUrl")
     private String imageUrl;
 
-    @JsonProperty("found_at")
+    @JsonProperty("foundAt")
     @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime foundAt;
 
-    @JsonProperty("found_place")
+    @JsonProperty("foundPlace")
     private String foundPlace;
 
-    @JsonProperty("found_place_detail")
+    @JsonProperty("foundPlaceDetail")
     private String foundPlaceDetail;
 }
