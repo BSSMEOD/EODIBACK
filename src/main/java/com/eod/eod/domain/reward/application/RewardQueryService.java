@@ -2,6 +2,7 @@ package com.eod.eod.domain.reward.application;
 
 import com.eod.eod.domain.reward.infrastructure.RewardRecordRepository;
 import com.eod.eod.domain.reward.model.RewardRecord;
+import com.eod.eod.domain.reward.presentation.dto.RewardGiveHistoryResponse;
 import com.eod.eod.domain.reward.presentation.dto.RewardHistoryResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
@@ -10,7 +11,11 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -19,6 +24,8 @@ public class RewardQueryService {
 
     private final RewardRecordRepository rewardRecordRepository;
     private final UserRepository userRepository;
+
+    private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     // 상점 지급 이력 조회
     public RewardHistoryResponse getRewardHistory(Long userId, User currentUser) {
@@ -36,5 +43,38 @@ public class RewardQueryService {
 
         // Response 변환
         return RewardHistoryResponse.from(userId, records);
+    }
+
+    // 날짜, 학년, 반별 지급 내역 조회
+    public RewardGiveHistoryResponse getGiveHistoryByDateAndClass(LocalDate date, Integer grade, Integer classNumber, User currentUser) {
+        // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능)
+        if (!currentUser.isTeacherOrAdmin()) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        // 날짜를 LocalDateTime으로 변환
+        LocalDateTime dateTime = date.atStartOfDay();
+
+        // 지급 이력 조회
+        List<RewardRecord> records = rewardRecordRepository.findByDateAndGradeAndClass(dateTime, grade, classNumber);
+
+        // 이력이 없는 경우
+        if (records.isEmpty()) {
+            throw new IllegalArgumentException("지급 이력이 없습니다.");
+        }
+
+        // Response 변환
+        List<RewardGiveHistoryResponse.RewardGiveHistoryItem> histories = records.stream()
+                .map(record -> RewardGiveHistoryResponse.RewardGiveHistoryItem.builder()
+                        .receivedAt(record.getCreatedAt().toLocalDate().format(DATE_FORMATTER))
+                        .studentName(record.getStudent().getName())
+                        .itemName(record.getItem().getName())
+                        .givenAt(record.getCreatedAt().toLocalDate().format(DATE_FORMATTER))
+                        .build())
+                .collect(Collectors.toList());
+
+        return RewardGiveHistoryResponse.builder()
+                .histories(histories)
+                .build();
     }
 }
