@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class ClaimRequestDto {
+public class ClaimRequestResponse {
 
     private Long requestId;
     private Long itemId;
@@ -21,8 +21,8 @@ public class ClaimRequestDto {
     private LocalDateTime requestedAt;
     private String status;
 
-    public static ClaimRequestDto from(ItemClaim claim) {
-        return ClaimRequestDto.builder()
+    public static ClaimRequestResponse from(ItemClaim claim) {
+        return ClaimRequestResponse.builder()
                 .requestId(claim.getId())
                 .itemId(claim.getItem().getId())
                 .itemName(claim.getItem().getName())
