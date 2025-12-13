@@ -15,11 +15,11 @@ public class ClaimRequestsResponse {
     private int page;
     private int size;
     private long total;
-    private List<ClaimRequestDto> requests;
+    private List<ClaimRequestResponse> requests;
 
     public static ClaimRequestsResponse from(Page<ItemClaim> claimPage, int pageNumber) {
-        List<ClaimRequestDto> requests = claimPage.getContent().stream()
-                .map(ClaimRequestDto::from)
+        List<ClaimRequestResponse> requests = claimPage.getContent().stream()
+                .map(ClaimRequestResponse::from)
                 .collect(Collectors.toList());
 
         return ClaimRequestsResponse.builder()
