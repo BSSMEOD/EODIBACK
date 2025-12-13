@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.infrastructure;
 
 import com.eod.eod.domain.item.model.ItemClaim;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, ItemClaimRepositoryCustom {
@@ -10,4 +12,7 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
 
     // 특정 상태의 회수 신청 개수 조회
     long countByStatus(ItemClaim.ClaimStatus status);
+
+    // 특정 상태의 회수 요청 목록 조회 (페이지네이션)
+    Page<ItemClaim> findByStatus(ItemClaim.ClaimStatus status, Pageable pageable);
 }
