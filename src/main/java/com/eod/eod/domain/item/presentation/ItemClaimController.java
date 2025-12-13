@@ -1,9 +1,11 @@
 package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ClaimCountService;
+import com.eod.eod.domain.item.application.ClaimItemListService;
 import com.eod.eod.domain.item.application.ItemClaimService;
 import com.eod.eod.domain.item.presentation.dto.request.ItemClaimRequest;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimCountResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +30,7 @@ public class ItemClaimController {
 
     private final ItemClaimService itemClaimService;
     private final ClaimCountService claimCountService;
+    private final ClaimItemListService claimItemListService;
 
     @Operation(summary = "소유권 주장", description = "사용자가 분실물에 대한 소유권을 주장합니다.")
     @ApiResponses(value = {
@@ -102,12 +105,47 @@ public class ItemClaimController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        // ADMIN 권한 확인
         if (!currentUser.isAdmin()) {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
 
         long count = claimCountService.getClaimCount();
         return ResponseEntity.ok(ClaimCountResponse.of(count));
+    }
+
+    @Operation(summary = "회수 신청이 있는 분실물 목록 조회", description = "PENDING 상태의 회수 신청이 있는 분실물 목록을 조회합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ClaimItemListResponse.class)
+                    )),
+            @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "회수 신청 요청이 존재하지 않음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"회수 신청 요청이 존재하지 않습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "500", description = "서버 내부 오류",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"서버 내부 오류가 발생했습니다.\"}")
+                    ))
+    })
+    @GetMapping("/claims")
+    public ResponseEntity<ClaimItemListResponse> getItemsWithClaims(
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        if (!currentUser.isAdmin()) {
+            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
+
+        ClaimItemListResponse response = claimItemListService.getItemsWithClaims();
+        return ResponseEntity.ok(response);
     }
 }
