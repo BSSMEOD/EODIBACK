@@ -5,6 +5,9 @@ import com.eod.eod.domain.item.model.Item;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 @Component
 @RequiredArgsConstructor
 public class ItemFacade {
@@ -15,5 +18,25 @@ public class ItemFacade {
     public Item getItemById(Long itemId) {
         return itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 물품을 찾을 수 없습니다."));
+    }
+
+    public Item save(Item item) {
+        return itemRepository.save(item);
+    }
+
+    public void delete(Item item) {
+        itemRepository.delete(item);
+    }
+
+    public long countByStatus(Item.ItemStatus status) {
+        return itemRepository.countByStatus(status);
+    }
+
+    public List<Item> findByStatusAndFoundAtBefore(Item.ItemStatus status, LocalDateTime threshold) {
+        return itemRepository.findByStatusAndFoundAtBefore(status, threshold);
+    }
+
+    public List<Item> findByStatusAndDiscardedAtBefore(Item.ItemStatus status, LocalDateTime threshold) {
+        return itemRepository.findByStatusAndDiscardedAtBefore(status, threshold);
     }
 }
