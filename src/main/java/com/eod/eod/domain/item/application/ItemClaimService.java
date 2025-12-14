@@ -1,7 +1,6 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
-import com.eod.eod.domain.item.infrastructure.ItemRepository;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
@@ -15,13 +14,12 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ItemClaimService {
 
-    private final ItemRepository itemRepository;
+    private final ItemFacade itemFacade;
     private final ItemClaimRepository itemClaimRepository;
 
     public ItemClaimResponse claimItem(Long itemId, String claimReason, User currentUser) {
         // 아이템 존재 여부 확인
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 분실물을 찾을 수 없습니다."));
+        Item item = itemFacade.getItemById(itemId);
 
         // 중복 주장 확인
         if (itemClaimRepository.existsByItemIdAndClaimantId(itemId, currentUser.getId())) {
