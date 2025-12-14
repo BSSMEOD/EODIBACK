@@ -16,7 +16,6 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 @Setter
-@Schema(description = "상점 지급 이력 조회 요청")
 public class RewardHistoryRequest {
 
     @Schema(description = "조회할 사용자 ID (user_id 단독 사용)", example = "1", requiredMode = Schema.RequiredMode.NOT_REQUIRED)

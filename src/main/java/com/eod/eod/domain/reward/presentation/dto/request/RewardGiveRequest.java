@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "상점 지급 요청")
 public class RewardGiveRequest {
 
     @NotNull(message = "학생 ID는 필수입니다.")

@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "소개 페이지 수정 요청")
 public class IntroduceUpdateRequest {
 
     @NotBlank(message = "소개 내용은 필수입니다.")

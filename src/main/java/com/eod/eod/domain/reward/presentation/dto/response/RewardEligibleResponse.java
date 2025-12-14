@@ -9,7 +9,6 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-@Schema(description = "상점 지급 여부 조회 응답")
 public class RewardEligibleResponse {
 
     @JsonProperty("studentId")

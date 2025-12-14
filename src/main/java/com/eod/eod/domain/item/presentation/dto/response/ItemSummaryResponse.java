@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @AllArgsConstructor
-@Schema(description = "분실물 요약 정보")
 public class ItemSummaryResponse {
 
     @Schema(description = "물품 ID", example = "101")
