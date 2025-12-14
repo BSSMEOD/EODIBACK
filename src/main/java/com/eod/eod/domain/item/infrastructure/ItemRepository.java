@@ -9,13 +9,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public interface ItemRepository extends JpaRepository<Item, Long>, ItemRepositoryCustom {
-
-    // 장소 ID와 상태로 검색
-    Page<Item> findByFoundPlaceIdAndStatus(Long foundPlaceId, Item.ItemStatus status, Pageable pageable);
-
-    // 상태로만 검색
-    Page<Item> findByStatus(Item.ItemStatus status, Pageable pageable);
-
     // 폐기 예정일이 지난 물품 조회 (자동 폐기용)
     List<Item> findByStatusAndDiscardedAtBefore(Item.ItemStatus status, LocalDateTime dateTime);
 

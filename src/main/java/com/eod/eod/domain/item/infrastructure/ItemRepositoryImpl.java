@@ -12,6 +12,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 public class ItemRepositoryImpl implements ItemRepositoryCustom {
@@ -19,15 +20,20 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    public Page<Item> searchItems(Long placeId, Item.ItemStatus status, Pageable pageable) {
+    public Page<Item> searchItems(List<Long> placeIds, Item.ItemStatus status, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QItem item = QItem.item;
 
         // 동적 쿼리 조건 생성
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (placeId != null) {
-            builder.and(item.foundPlaceId.eq(placeId));
+        if (placeIds != null) {
+            List<Long> filteredPlaceIds = placeIds.stream()
+                    .filter(Objects::nonNull)
+                    .toList();
+            if (!filteredPlaceIds.isEmpty()) {
+                builder.and(item.foundPlaceId.in(filteredPlaceIds));
+            }
         }
 
         if (status != null) {
