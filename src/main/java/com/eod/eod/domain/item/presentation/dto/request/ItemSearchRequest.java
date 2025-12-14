@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Data
@@ -29,4 +30,21 @@ public class ItemSearchRequest {
             example = "LOST",
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String status;
+
+    @JsonProperty("found_at_from")
+    @Schema(description = "습득일 시작 날짜 (선택 사항)", example = "2024-01-01",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private LocalDate foundAtFrom;
+
+    @JsonProperty("found_at_to")
+    @Schema(description = "습득일 종료 날짜 (선택 사항)", example = "2024-12-31",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private LocalDate foundAtTo;
+
+    @com.eod.eod.common.validation.ItemCategoryValue(allowBlank = true,
+            message = "유효하지 않은 카테고리 값입니다.")
+    @Schema(description = "물품 카테고리 (교복, 체육복, 단체복, 사복, 무선 이어폰, 전자기기, 안경, 기타) - 선택 사항",
+            example = "교복",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String category;
 }

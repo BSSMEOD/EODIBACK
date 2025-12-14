@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.presentation.dto.response;
 
+import com.eod.eod.domain.item.model.Item;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -18,6 +19,9 @@ public class ItemDetailResponse {
     @Schema(description = "물품 이름", example = "무테 긱시크 안경")
     private String name;
 
+    @Schema(description = "신고자 이름", example = "홍길동")
+    private String reporterName;
+
     @JsonProperty("imageUrl")
     @Schema(description = "물품 이미지 URL", example = "")
     private String imageUrl;
@@ -34,4 +38,7 @@ public class ItemDetailResponse {
     @JsonProperty("foundPlaceDetail")
     @Schema(description = "습득 장소 상세", example = "운동장")
     private String foundPlaceDetail;
+
+    @Schema(description = "물품 카테고리", example = "전자기기")
+    private Item.ItemCategory category;
 }
