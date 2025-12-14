@@ -1,19 +1,12 @@
 package com.eod.eod.domain.item.presentation;
 
-import com.eod.eod.domain.item.application.ClaimCountService;
-import com.eod.eod.domain.item.application.ClaimItemListService;
-import com.eod.eod.domain.item.application.ClaimRequestService;
-import com.eod.eod.domain.item.application.ClaimItemListService;
+import com.eod.eod.common.validation.EnumValue;
+import com.eod.eod.domain.item.application.ItemClaimQueryService;
 import com.eod.eod.domain.item.application.ItemClaimService;
+import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.request.ItemClaimRequest;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimCountResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
-import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
-import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
-import com.eod.eod.domain.item.application.ClaimRequestService;
-import com.eod.eod.domain.item.application.ItemClaimService;
-import com.eod.eod.domain.item.presentation.dto.request.ItemClaimRequest;
-import com.eod.eod.domain.item.presentation.dto.response.ClaimCountResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
@@ -30,17 +23,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.validation.annotation.Validated;
 
 @RestController
 @RequestMapping("/items")
 @RequiredArgsConstructor
 @Tag(name = "Item Claim", description = "분실물 소유권 주장 API")
+@Validated
 public class ItemClaimController {
 
     private final ItemClaimService itemClaimService;
-    private final ClaimCountService claimCountService;
-    private final ClaimItemListService claimItemListService;
-    private final ClaimRequestService claimRequestService;
+    private final ItemClaimQueryService itemClaimQueryService;
 
     @Operation(summary = "소유권 주장", description = "사용자가 분실물에 대한 소유권을 주장합니다.")
     @ApiResponses(value = {
@@ -119,7 +112,7 @@ public class ItemClaimController {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
 
-        long count = claimCountService.getClaimCount();
+        long count = itemClaimQueryService.countPendingClaims();
         return ResponseEntity.ok(ClaimCountResponse.of(count));
     }
 
@@ -155,6 +148,8 @@ public class ItemClaimController {
             @Parameter(description = "페이지당 항목 수 (기본값: 10)")
             @RequestParam(defaultValue = "10") Integer size,
             @Parameter(description = "회수 요청 상태 (PENDING, APPROVED, REJECTED, 기본값: PENDING)")
+            @EnumValue(enumClass = ItemClaim.ClaimStatus.class, allowBlank = true,
+                    message = "유효하지 않은 회수 상태 값입니다.")
             @RequestParam(required = false) String status,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
@@ -163,7 +158,7 @@ public class ItemClaimController {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
 
-        ClaimRequestsResponse response = claimRequestService.getClaimRequests(page, size, status);
+        ClaimRequestsResponse response = itemClaimQueryService.getClaimRequests(page, size, status);
         return ResponseEntity.ok(response);
     }
 
@@ -200,7 +195,7 @@ public class ItemClaimController {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
 
-        ClaimItemListResponse response = claimItemListService.getItemsWithClaims();
+        ClaimItemListResponse response = itemClaimQueryService.getPendingClaimItems();
         return ResponseEntity.ok(response);
     }
 }
