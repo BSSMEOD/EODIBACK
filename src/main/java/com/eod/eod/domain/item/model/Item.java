@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.model;
 
 import com.eod.eod.domain.user.model.User;
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
 import lombok.Builder;
@@ -37,12 +39,19 @@ public class Item {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "reporter_name", length = 50)
+    private String reporterName;
+
     @Column(name = "image", nullable = false, columnDefinition = "TEXT")
     private String image;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ItemStatus status;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", nullable = false)
+    private ItemCategory category;
 
     @Column(name = "found_at", nullable = false)
     private LocalDateTime foundAt;
@@ -69,25 +78,29 @@ public class Item {
 
     @Builder
     public Item(User student, User admin, Long foundPlaceId, String foundPlaceDetail,
-                String name, String image, ItemStatus status, LocalDateTime foundAt) {
+                String name, String reporterName, String image, ItemStatus status, ItemCategory category, LocalDateTime foundAt) {
         this.student = student;
         this.admin = admin;
         this.foundPlaceId = foundPlaceId;
         this.foundPlaceDetail = foundPlaceDetail;
         this.name = name;
+        this.reporterName = reporterName;
         this.image = image;
         this.status = status;
+        this.category = category;
         this.foundAt = foundAt;
         this.createdAt = LocalDateTime.now();
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
     public static Item registerLostItem(User admin, Long foundPlaceId, String foundPlaceDetail,
-                                        String name, String imageUrl, LocalDateTime foundAt) {
+                                        String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
         requireAdmin(admin);
         validateFoundAt(foundAt);
+        validateCategory(category);
         String sanitizedName = sanitizeName(name);
         String sanitizedDetail = sanitizeDetail(foundPlaceDetail);
+        String sanitizedReporterName = sanitizeReporterName(reporterName);
 
         return Item.builder()
                 .student(admin)
@@ -95,8 +108,10 @@ public class Item {
                 .foundPlaceId(requirePlaceId(foundPlaceId))
                 .foundPlaceDetail(sanitizedDetail)
                 .name(sanitizedName)
+                .reporterName(sanitizedReporterName)
                 .image(imageUrl == null ? "" : imageUrl)
                 .status(ItemStatus.LOST)
+                .category(category)
                 .foundAt(foundAt)
                 .build();
     }
@@ -175,10 +190,27 @@ public class Item {
         }
     }
 
+    private static void validateCategory(ItemCategory category) {
+        if (category == null) {
+            throw new IllegalArgumentException("카테고리는 필수입니다.");
+        }
+    }
+
     private static String sanitizeName(String name) {
         String trimmed = requireText(name, "물품 이름은 필수입니다.");
         if (trimmed.length() > 100) {
             throw new IllegalArgumentException("물품 이름은 100자를 초과할 수 없습니다.");
+        }
+        return trimmed;
+    }
+
+    private static String sanitizeReporterName(String reporterName) {
+        if (reporterName == null || reporterName.trim().isEmpty()) {
+            return null;
+        }
+        String trimmed = reporterName.trim();
+        if (trimmed.length() > 50) {
+            throw new IllegalArgumentException("신고자 이름은 50자를 초과할 수 없습니다.");
         }
         return trimmed;
     }
@@ -265,5 +297,37 @@ public class Item {
 
     public enum ApprovalStatus {
         PENDING, APPROVED, REJECTED
+    }
+
+    public enum ItemCategory {
+        SCHOOL_UNIFORM("교복"),
+        GYM_UNIFORM("체육복"),
+        GROUP_UNIFORM("단체복"),
+        CASUAL_CLOTHES("사복"),
+        WIRELESS_EARBUDS("무선 이어폰"),
+        ELECTRONICS("전자기기"),
+        GLASSES("안경"),
+        ETC("기타");
+
+        private final String koreanName;
+
+        ItemCategory(String koreanName) {
+            this.koreanName = koreanName;
+        }
+
+        @JsonValue
+        public String getKoreanName() {
+            return koreanName;
+        }
+
+        @JsonCreator
+        public static ItemCategory from(String koreanName) {
+            for (ItemCategory category : ItemCategory.values()) {
+                if (category.koreanName.equals(koreanName)) {
+                    return category;
+                }
+            }
+            throw new IllegalArgumentException("유효하지 않은 카테고리입니다: " + koreanName);
+        }
     }
 }
