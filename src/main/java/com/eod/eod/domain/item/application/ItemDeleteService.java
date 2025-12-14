@@ -1,6 +1,5 @@
 package com.eod.eod.domain.item.application;
 
-import com.eod.eod.domain.item.infrastructure.ItemRepository;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Transactional
 public class ItemDeleteService {
 
-    private final ItemRepository itemRepository;
+    private final ItemFacade itemFacade;
 
     public void deleteItem(Long itemId, User currentUser) {
         // ADMIN 권한 확인
@@ -21,10 +20,9 @@ public class ItemDeleteService {
         }
 
         // 물품 존재 여부 확인
-        Item item = itemRepository.findById(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 물품을 찾을 수 없습니다."));
+        Item item = itemFacade.getItemById(itemId);
 
         // 물품 삭제
-        itemRepository.delete(item);
+        itemFacade.delete(item);
     }
 }
