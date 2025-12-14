@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.presentation.dto.request;
 
+import com.eod.eod.domain.item.model.Item;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -20,10 +21,14 @@ public class ItemRegistrationForm {
     @Schema(description = "물품 이름", example = "아이패드", requiredMode = Schema.RequiredMode.REQUIRED)
     private String name;
 
+    @Size(max = 50, message = "신고자 이름은 최대 50자까지 입력 가능합니다.")
+    @Schema(description = "신고자 이름", example = "홍길동", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String reporterName;
+
     @NotBlank(message = "필수 항목이 누락되었습니다.")
     @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "습득 일자는 yyyy-MM-dd 형식이어야 합니다.")
     @Schema(description = "습득 일자(yyyy-MM-dd)", example = "2025-01-12", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String foundDate;
+    private String foundAt;
 
     @NotNull(message = "필수 항목이 누락되었습니다.")
     @Schema(description = "습득 장소 ID", example = "3", requiredMode = Schema.RequiredMode.REQUIRED)
@@ -36,5 +41,14 @@ public class ItemRegistrationForm {
 
     @Schema(description = "분실물 이미지 파일 (JPEG/PNG)")
     private MultipartFile image;
+
+    @NotNull(message = "필수 항목이 누락되었습니다.")
+    @Schema(
+        description = "물품 카테고리",
+        example = "전자기기",
+        allowableValues = {"교복", "체육복", "단체복", "사복", "무선 이어폰", "전자기기", "안경", "기타"},
+        requiredMode = Schema.RequiredMode.REQUIRED
+    )
+    private Item.ItemCategory category;
 
 }
