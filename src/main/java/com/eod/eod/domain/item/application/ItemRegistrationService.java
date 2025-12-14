@@ -27,25 +27,29 @@ public class ItemRegistrationService {
 
     public Long registerItem(
             String name,
-            String foundDate,
+            String reporterName,
+            String foundAt,
             Long placeId,
             String placeDetail,
             MultipartFile imageFile,
+            Item.ItemCategory category,
             User currentUser
     ) {
-        LocalDate parsedFoundDate = parseDate(foundDate);
+        LocalDate parsedFoundAt = parseDate(foundAt);
         ensurePlaceExists(placeId);
 
         String imageUrl = resolveImageUrl(imageFile);
-        LocalDateTime foundAt = toFoundDateTime(parsedFoundDate);
+        LocalDateTime foundAtDateTime = toFoundDateTime(parsedFoundAt);
 
         Item item = Item.registerLostItem(
                 currentUser,
                 placeId,
                 placeDetail,
                 name,
+                reporterName,
                 imageUrl,
-                foundAt
+                category,
+                foundAtDateTime
         );
 
         Item savedItem = itemFacade.save(item);
