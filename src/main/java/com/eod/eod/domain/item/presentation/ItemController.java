@@ -64,24 +64,26 @@ public class ItemController {
     ) {
         Long itemId = itemRegistrationService.registerItem(
                 form.getName(),
-                form.getFoundDate(),
+                form.getReporterName(),
+                form.getFoundAt(),
                 form.getPlaceId(),
                 form.getPlaceDetail(),
                 form.getImage(),
+                form.getCategory(),
                 currentUser
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ItemCreateResponse.success(itemId));
     }
 
-    @Operation(summary = "분실물 검색", description = "장소 ID 리스트와 상태로 분실물을 검색합니다. 페이징을 지원합니다.")
+    @Operation(summary = "분실물 검색", description = "장소 ID 리스트, 상태, 습득일 기간, 카테고리로 분실물을 검색합니다. 페이징을 지원합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "검색 성공",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ItemSearchResponse.class)
                     )),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태 값)",
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태 값 또는 카테고리)",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = "{\"message\": \"유효하지 않은 상태 값입니다: INVALID\"}")
@@ -95,6 +97,9 @@ public class ItemController {
         ItemSearchResponse response = itemQueryService.searchItems(
                 request.getPlaceIds(),
                 request.getStatus(),
+                request.getFoundAtFrom(),
+                request.getFoundAtTo(),
+                request.getCategory(),
                 request.getPage(),
                 request.getSize()
         );
