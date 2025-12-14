@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "소유권 주장 요청")
 public class ItemClaimRequest {
 
     @NotBlank(message = "주장 이유는 필수입니다.")

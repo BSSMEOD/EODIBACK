@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "분실물 검색 요청")
 public class ItemSearchRequest {
 
     @Min(value = 1, message = "페이지 번호는 1 이상이어야 합니다.")

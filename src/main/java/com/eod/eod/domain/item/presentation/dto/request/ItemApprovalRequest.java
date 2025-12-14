@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "물품 승인 요청")
 public class ItemApprovalRequest {
 
     @NotNull(message = "승인 결과는 필수입니다.")

@@ -7,10 +7,6 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@Schema(
-    description = "소유권 주장 응답",
-    example = "{\"message\": \"소유권 주장이 정상적으로 등록되었습니다.\"}"
-)
 public class ItemClaimResponse {
 
     @JsonProperty("message")

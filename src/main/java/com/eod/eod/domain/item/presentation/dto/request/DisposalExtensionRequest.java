@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "폐기 기간 연장 요청")
 public class DisposalExtensionRequest {
 
     @NotNull(message = "보류 사유 ID는 필수입니다.")

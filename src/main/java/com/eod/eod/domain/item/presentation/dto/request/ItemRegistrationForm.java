@@ -13,7 +13,6 @@ import org.springframework.web.multipart.MultipartFile;
 @Getter
 @Setter
 @NoArgsConstructor
-@Schema(description = "분실물 등록 폼")
 public class ItemRegistrationForm {
 
     @NotBlank(message = "필수 항목이 누락되었습니다.")
