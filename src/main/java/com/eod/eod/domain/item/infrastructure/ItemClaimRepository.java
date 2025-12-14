@@ -5,7 +5,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long> {
+public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, ItemClaimRepositoryCustom {
 
     // 특정 사용자가 특정 아이템에 대해 이미 소유권 주장을 했는지 확인
     boolean existsByItemIdAndClaimantId(Long itemId, Long claimantId);
