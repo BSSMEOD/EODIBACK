@@ -1,6 +1,5 @@
 package com.eod.eod.domain.item.application;
 
-import com.eod.eod.domain.item.infrastructure.ItemRepository;
 import com.eod.eod.domain.item.model.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,7 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ItemSchedulerService {
 
-    private final ItemRepository itemRepository;
+    private final ItemFacade itemFacade;
 
     // 분실물 보관 기간 (6개월)
     private static final int RETENTION_MONTHS = 6;
@@ -38,7 +37,7 @@ public class ItemSchedulerService {
                 .plusWeeks(GRACE_PERIOD_WEEKS);
 
         // LOST 상태이면서 습득일이 (6개월 - 2주) 이전인 물품 조회
-        List<Item> longUnclaimedItems = itemRepository.findByStatusAndFoundAtBefore(
+        List<Item> longUnclaimedItems = itemFacade.findByStatusAndFoundAtBefore(
                 Item.ItemStatus.LOST,
                 thresholdDate
         );
@@ -75,7 +74,7 @@ public class ItemSchedulerService {
         LocalDateTime now = LocalDateTime.now();
 
         // 폐기 예정 상태이면서 폐기일이 지난 물품 조회
-        List<Item> expiredItems = itemRepository.findByStatusAndDiscardedAtBefore(
+        List<Item> expiredItems = itemFacade.findByStatusAndDiscardedAtBefore(
                 Item.ItemStatus.TO_BE_DISCARDED,
                 now
         );

@@ -1,7 +1,6 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.util.ExternalServerUtil;
-import com.eod.eod.domain.item.infrastructure.ItemRepository;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.place.infrastructure.PlaceRepository;
 import com.eod.eod.domain.user.model.User;
@@ -22,7 +21,7 @@ import java.time.format.DateTimeParseException;
 @Transactional
 public class ItemRegistrationService {
 
-    private final ItemRepository itemRepository;
+    private final ItemFacade itemFacade;
     private final PlaceRepository placeRepository;
     private final ExternalServerUtil externalServerUtil;
 
@@ -49,7 +48,7 @@ public class ItemRegistrationService {
                 foundAt
         );
 
-        Item savedItem = itemRepository.save(item);
+        Item savedItem = itemFacade.save(item);
         return savedItem.getId();
     }
 
