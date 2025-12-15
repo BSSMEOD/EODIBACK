@@ -11,6 +11,7 @@ import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,8 +23,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+import org.springdoc.core.annotations.ParameterObject;
 
 @Tag(name = "Reward", description = "상점 관리 API")
+@SecurityRequirement(name = "bearerAuth")
 @RestController
 @RequestMapping("/rewards")
 @RequiredArgsConstructor
@@ -98,7 +101,8 @@ public class RewardController {
     @GetMapping("/history")
     public ResponseEntity<?> getRewardHistory(
             @Parameter(description = "상점 지급 이력 조회 요청 파라미터")
-            @Valid RewardHistoryRequest request,
+            @ParameterObject
+            @Valid @ModelAttribute RewardHistoryRequest request,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
