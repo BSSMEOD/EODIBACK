@@ -11,21 +11,6 @@ import java.util.List;
 @Getter
 @Builder
 @AllArgsConstructor
-@Schema(
-        description = "날짜/학년/반으로 조회한 상점 지급 이력 응답",
-        example = """
-                {
-                  "histories": [
-                    {
-                      "received_at": "2025-08-05",
-                      "student_name": "홍길동",
-                      "item_name": "이어폰",
-                      "given_at": "2025-08-05"
-                    }
-                  ]
-                }
-                """
-)
 public class RewardGiveHistoryResponse {
 
     @JsonProperty("histories")
