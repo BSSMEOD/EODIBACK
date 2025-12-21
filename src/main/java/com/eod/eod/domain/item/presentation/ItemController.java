@@ -1,8 +1,7 @@
 package com.eod.eod.domain.item.presentation;
 
-import com.eod.eod.domain.item.application.ItemDetailService;
+import com.eod.eod.domain.item.application.ItemQueryService;
 import com.eod.eod.domain.item.application.ItemRegistrationService;
-import com.eod.eod.domain.item.application.ItemSearchService;
 import com.eod.eod.domain.item.presentation.dto.request.ItemRegistrationForm;
 import com.eod.eod.domain.item.presentation.dto.request.ItemSearchRequest;
 import com.eod.eod.domain.item.presentation.dto.response.ItemCreateResponse;
@@ -34,8 +33,7 @@ import org.springframework.web.bind.annotation.*;
 public class ItemController {
 
     private final ItemRegistrationService itemRegistrationService;
-    private final ItemDetailService itemDetailService;
-    private final ItemSearchService itemSearchService;
+    private final ItemQueryService itemQueryService;
 
     @Operation(summary = "분실물 등록", description = "Multipart Form 데이터로 분실물을 등록하고 이미지 파일은 외부 서버에 저장합니다.")
     @ApiResponses(value = {
@@ -66,24 +64,26 @@ public class ItemController {
     ) {
         Long itemId = itemRegistrationService.registerItem(
                 form.getName(),
-                form.getFoundDate(),
+                form.getReporterName(),
+                form.getFoundAt(),
                 form.getPlaceId(),
                 form.getPlaceDetail(),
                 form.getImage(),
+                form.getCategory(),
                 currentUser
         );
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ItemCreateResponse.success(itemId));
     }
 
-    @Operation(summary = "분실물 검색", description = "장소 ID와 상태로 분실물을 검색합니다. 페이징을 지원합니다.")
+    @Operation(summary = "분실물 검색", description = "장소 ID 리스트, 상태, 습득일 기간, 카테고리로 분실물을 검색합니다. 페이징을 지원합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "검색 성공",
                     content = @Content(
                             mediaType = "application/json",
                             schema = @Schema(implementation = ItemSearchResponse.class)
                     )),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태 값)",
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효하지 않은 상태 값 또는 카테고리)",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = "{\"message\": \"유효하지 않은 상태 값입니다: INVALID\"}")
@@ -92,11 +92,14 @@ public class ItemController {
     @GetMapping("/search")
     public ResponseEntity<ItemSearchResponse> searchItems(
             @Parameter(description = "분실물 검색 요청 파라미터")
-            @Valid @ModelAttribute ItemSearchRequest request
+            @Valid ItemSearchRequest request
     ) {
-        ItemSearchResponse response = itemSearchService.searchItems(
-                request.getPlaceId(),
+        ItemSearchResponse response = itemQueryService.searchItems(
+                request.getPlaceIds(),
                 request.getStatus(),
+                request.getFoundAtFrom(),
+                request.getFoundAtTo(),
+                request.getCategory(),
                 request.getPage(),
                 request.getSize()
         );
@@ -121,7 +124,7 @@ public class ItemController {
             @Parameter(description = "조회할 물품 ID", required = true, example = "1")
             @PathVariable Long id
     ) {
-        ItemDetailResponse response = itemDetailService.getItemDetail(id);
+        ItemDetailResponse response = itemQueryService.getItemDetail(id);
         return ResponseEntity.ok(response);
     }
 }

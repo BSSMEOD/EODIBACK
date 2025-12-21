@@ -6,10 +6,6 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@Schema(
-    description = "폐기 기간 연장 응답",
-    example = "{\"message\": \"페기 보류 되었습니다.\"}"
-)
 public class DisposalExtensionResponse {
 
     @Schema(description = "응답 메시지", example = "페기 보류 되었습니다.")

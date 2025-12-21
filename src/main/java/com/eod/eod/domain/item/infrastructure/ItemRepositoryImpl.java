@@ -11,7 +11,10 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.support.PageableExecutionUtils;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 
 @RequiredArgsConstructor
 public class ItemRepositoryImpl implements ItemRepositoryCustom {
@@ -19,19 +22,40 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    public Page<Item> searchItems(Long placeId, Item.ItemStatus status, Pageable pageable) {
+    public Page<Item> searchItems(List<Long> placeIds, Item.ItemStatus status, 
+                                   LocalDate foundAtFrom, LocalDate foundAtTo, 
+                                   Item.ItemCategory category, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QItem item = QItem.item;
 
         // 동적 쿼리 조건 생성
         BooleanBuilder builder = new BooleanBuilder();
 
-        if (placeId != null) {
-            builder.and(item.foundPlaceId.eq(placeId));
+        if (placeIds != null) {
+            List<Long> filteredPlaceIds = placeIds.stream()
+                    .filter(Objects::nonNull)
+                    .toList();
+            if (!filteredPlaceIds.isEmpty()) {
+                builder.and(item.foundPlaceId.in(filteredPlaceIds));
+            }
         }
 
         if (status != null) {
             builder.and(item.status.eq(status));
+        }
+
+        if (foundAtFrom != null) {
+            LocalDateTime startDateTime = foundAtFrom.atStartOfDay();
+            builder.and(item.foundAt.goe(startDateTime));
+        }
+
+        if (foundAtTo != null) {
+            LocalDateTime endDateTime = foundAtTo.atTime(23, 59, 59, 999999999);
+            builder.and(item.foundAt.loe(endDateTime));
+        }
+
+        if (category != null) {
+            builder.and(item.category.eq(category));
         }
 
         // 쿼리 실행

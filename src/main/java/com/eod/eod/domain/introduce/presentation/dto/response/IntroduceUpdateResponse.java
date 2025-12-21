@@ -7,10 +7,6 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@Schema(
-    description = "소개 페이지 수정 응답",
-    example = "{\"message\": \"소개 페이지가 성공적으로 수정되었습니다.\"}"
-)
 public class IntroduceUpdateResponse {
 
     @JsonProperty("message")

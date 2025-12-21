@@ -1,6 +1,5 @@
 package com.eod.eod.domain.item.presentation;
 
-import com.eod.eod.domain.item.application.DisposalCountService;
 import com.eod.eod.domain.item.application.DisposalReasonService;
 import com.eod.eod.domain.item.presentation.dto.request.DisposalExtensionRequest;
 import com.eod.eod.domain.item.presentation.dto.request.DisposalReasonRequest;
@@ -33,7 +32,6 @@ import org.springframework.web.bind.annotation.*;
 public class ItemDisposalController {
 
     private final DisposalReasonService disposalReasonService;
-    private final DisposalCountService disposalCountService;
 
     @Operation(summary = "폐기 보류 사유 제출", description = "폐기 예정 물품에 대한 보류 사유를 제출합니다. 선생님 또는 관리자 권한이 필요합니다.")
     @ApiResponses(value = {
@@ -160,7 +158,7 @@ public class ItemDisposalController {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
 
-        long count = disposalCountService.getDisposalCount();
+        long count = disposalReasonService.countItemsToBeDiscarded();
         return ResponseEntity.ok(DisposalCountResponse.of(count));
     }
 }

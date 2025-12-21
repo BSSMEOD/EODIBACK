@@ -30,6 +30,8 @@ public class QItem extends EntityPathBase<Item> {
 
     public final com.eod.eod.domain.user.model.QUser approvedBy;
 
+    public final EnumPath<Item.ItemCategory> category = createEnum("category", Item.ItemCategory.class);
+
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
     public final DateTimePath<java.time.LocalDateTime> discardedAt = createDateTime("discardedAt", java.time.LocalDateTime.class);
@@ -45,6 +47,8 @@ public class QItem extends EntityPathBase<Item> {
     public final StringPath image = createString("image");
 
     public final StringPath name = createString("name");
+
+    public final StringPath reporterName = createString("reporterName");
 
     public final EnumPath<Item.ItemStatus> status = createEnum("status", Item.ItemStatus.class);
 

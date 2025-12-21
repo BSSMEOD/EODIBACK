@@ -6,10 +6,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@Schema(
-    description = "회수 신청 건수 응답",
-    example = "{\"count\": 8}"
-)
 public class ClaimCountResponse {
 
     @Schema(description = "회수 신청 건수", example = "8")

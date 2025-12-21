@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.presentation.dto.response;
 
+import com.eod.eod.domain.item.model.Item;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +13,6 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 @AllArgsConstructor
-@Schema(description = "분실물 요약 정보")
 public class ItemSummaryResponse {
 
     @Schema(description = "물품 ID", example = "101")
@@ -21,10 +21,13 @@ public class ItemSummaryResponse {
     @Schema(description = "물품 이름", example = "무선 이어폰")
     private String name;
 
-    @JsonProperty("foundDate")
+    @Schema(description = "신고자 이름", example = "홍길동")
+    private String reporterName;
+
+    @JsonProperty("foundAt")
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(description = "습득 날짜", example = "2025-07-01")
-    private LocalDateTime foundDate;
+    private LocalDateTime foundAt;
 
     @JsonProperty("foundPlace")
     @Schema(description = "습득 장소", example = "SRC")
@@ -40,4 +43,7 @@ public class ItemSummaryResponse {
 
     @Schema(description = "물품 상태", example = "LOST", allowableValues = {"LOST", "TO_BE_DISCARDED", "DISCARDED", "GIVEN"})
     private String status;
+
+    @Schema(description = "물품 카테고리", example = "무선 이어폰")
+    private Item.ItemCategory category;
 }

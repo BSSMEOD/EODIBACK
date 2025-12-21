@@ -10,7 +10,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @NoArgsConstructor
-@Schema(description = "폐기 보류 사유 제출 요청")
 public class DisposalReasonRequest {
 
     @NotBlank(message = "보류 사유는 필수입니다.")

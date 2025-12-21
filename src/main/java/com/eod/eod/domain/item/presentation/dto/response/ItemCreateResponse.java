@@ -7,10 +7,6 @@ import lombok.Getter;
 
 @Getter
 @AllArgsConstructor
-@Schema(
-    description = "분실물 등록 응답",
-    example = "{\"item_id\": 104, \"message\": \"분실물이 성공적으로 등록되었습니다.\"}"
-)
 public class ItemCreateResponse {
 
     @JsonProperty("itemId")
