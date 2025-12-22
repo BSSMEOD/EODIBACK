@@ -95,6 +95,7 @@ public class ItemController {
             @Valid ItemSearchRequest request
     ) {
         ItemSearchResponse response = itemQueryService.searchItems(
+                request.getQuery(),
                 request.getPlaceIds(),
                 request.getStatus(),
                 request.getFoundAtFrom(),

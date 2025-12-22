@@ -22,7 +22,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    public Page<Item> searchItems(List<Long> placeIds, Item.ItemStatus status, 
+    public Page<Item> searchItems(String trimmedQuery, List<Long> placeIds, Item.ItemStatus status,
                                    LocalDate foundAtFrom, LocalDate foundAtTo, 
                                    Item.ItemCategory category, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
@@ -30,6 +30,10 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
 
         // 동적 쿼리 조건 생성
         BooleanBuilder builder = new BooleanBuilder();
+
+        if (trimmedQuery != null && !trimmedQuery.isBlank()) {
+            builder.and(item.name.containsIgnoreCase(trimmedQuery));
+        }
 
         if (placeIds != null) {
             List<Long> filteredPlaceIds = placeIds.stream()

@@ -19,7 +19,7 @@ public interface ItemRepositoryCustom {
      * @param pageable 페이징 정보
      * @return 검색된 물품 페이지
      */
-    Page<Item> searchItems(List<Long> placeIds, Item.ItemStatus status, 
+    Page<Item> searchItems(String trimmedQuery,List<Long> placeIds, Item.ItemStatus status,
                           LocalDate foundAtFrom, LocalDate foundAtTo, 
                           Item.ItemCategory category, Pageable pageable);
 }
