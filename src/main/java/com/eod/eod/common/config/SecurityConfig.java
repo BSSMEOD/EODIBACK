@@ -73,6 +73,8 @@ public class SecurityConfig {
                         ).permitAll()
                         // OAuth2 로그인 경로 허용
                         .requestMatchers("/login/**", "/oauth2/**", "/auth/oauth/**").permitAll()
+                        // BSM OAuth callback
+                        .requestMatchers("/oauth/bsm").permitAll()
                         // 로그아웃은 인증된 사용자만 가능
                         .requestMatchers(HttpMethod.POST, "/auth/logout").hasAnyRole("USER", "TEACHER", "ADMIN")
                         // 그 외 Auth API 허용 (로그인, 토큰 재발급 등)
