@@ -191,10 +191,6 @@ public class ItemClaimController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        if (currentUser == null) {
-            throw new IllegalStateException("인증이 필요합니다.");
-        }
-
         if (!currentUser.isAdmin()) {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
