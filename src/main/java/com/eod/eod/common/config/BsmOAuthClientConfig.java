@@ -11,7 +11,7 @@ public class BsmOAuthClientConfig {
     @Bean("bsmOauthRestClient")
     public RestClient bsmOauthRestClient(
             RestClient.Builder builder,
-            @Value("${bsm.oauth.base-url:https://auth.bssm.kro.kr}") String baseUrl
+            @Value("${bsm.oauth.base-url:https://auth.bssm.app}") String baseUrl
     ) {
         return builder.baseUrl(baseUrl).build();
     }

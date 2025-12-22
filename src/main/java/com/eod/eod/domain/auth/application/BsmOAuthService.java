@@ -31,7 +31,7 @@ public class BsmOAuthService {
     @Value("${bsm.auth.client-secret}")
     private String clientSecret;
 
-    @Value("${bsm.oauth.base-url:https://auth.bssm.kro.kr}")
+    @Value("${bsm.oauth.base-url:https://auth.bssm.app}")
     private String baseUrl;
 
     @Value("${bsm.oauth.redirect-uri:https://www.jojaemin.com/oauth/bsm}")
