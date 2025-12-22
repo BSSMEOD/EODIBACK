@@ -20,6 +20,11 @@ public class ItemSearchRequest {
     @Schema(description = "페이지 크기", example = "10", defaultValue = "10")
     private int size = 10;
 
+    @Schema(description = "검색어 (선택 사항)",
+            example = "아이폰",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String query;
+
     @JsonProperty("place_ids")
     @Schema(description = "장소 ID 리스트 (선택 사항)", example = "[2,3]")
     private List<Long> placeIds;
