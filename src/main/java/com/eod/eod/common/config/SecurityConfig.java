@@ -19,6 +19,7 @@ import com.eod.eod.domain.auth.application.CustomOAuth2UserService;
 import com.eod.eod.domain.auth.application.OAuth2SuccessHandler;
 import com.eod.eod.domain.auth.application.OAuth2FailureHandler;
 import com.eod.eod.common.exception.CustomAccessDeniedHandler;
+import com.eod.eod.common.exception.CustomAuthenticationEntryPoint;
 
 @Configuration
 @EnableWebSecurity
@@ -31,6 +32,7 @@ public class SecurityConfig {
     private final OAuth2FailureHandler oAuth2FailureHandler;
     private final CorsConfigurationSource corsConfigurationSource;
     private final CustomAccessDeniedHandler customAccessDeniedHandler;
+    private final CustomAuthenticationEntryPoint customAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -118,6 +120,7 @@ public class SecurityConfig {
                         .anyRequest().authenticated()
                 )
                 .exceptionHandling(exception -> exception
+                        .authenticationEntryPoint(customAuthenticationEntryPoint)
                         .accessDeniedHandler(customAccessDeniedHandler)
                 )
                 // OAuth2 로그인 설정

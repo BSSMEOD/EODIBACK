@@ -9,6 +9,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InsufficientAuthenticationException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.HttpMediaTypeNotAcceptableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -46,6 +49,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleIllegalStateException(IllegalStateException illegalStateException) {
         return buildResponse(HttpStatus.BAD_REQUEST, illegalStateException.getMessage());
+    }
+
+    // 인증 실패 (401)
+    @ExceptionHandler({
+            AuthenticationException.class,
+            InsufficientAuthenticationException.class,
+            BadCredentialsException.class
+    })
+    public ResponseEntity<ErrorResponse> handleAuthenticationException(AuthenticationException authenticationException) {
+        log.warn("인증 실패: {}", authenticationException.getMessage());
+        return buildResponse(HttpStatus.UNAUTHORIZED, "인증이 필요합니다. 로그인 후 다시 시도해주세요.");
     }
 
     // ADMIN 권한이 없는 경우 (403)
