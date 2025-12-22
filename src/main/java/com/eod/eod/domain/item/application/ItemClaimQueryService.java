@@ -28,6 +28,11 @@ public class ItemClaimQueryService {
 
     public ClaimItemListResponse getPendingClaimItems() {
         List<ClaimItemDto> items = itemClaimRepository.findItemsWithPendingClaims();
+
+        if (items.isEmpty()) {
+            throw new IllegalStateException("회수 신청 요청이 존재하지 않습니다.");
+        }
+
         return ClaimItemListResponse.of(items);
     }
 
