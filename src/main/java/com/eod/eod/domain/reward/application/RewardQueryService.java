@@ -74,11 +74,6 @@ public class RewardQueryService {
         // 지급 이력 조회
         List<RewardRecord> records = rewardRecordRepository.findByDateAndGradeAndClass(dateTime, grade, classNumber);
 
-        // 이력이 없는 경우
-        if (records.isEmpty()) {
-            throw new IllegalArgumentException("지급 이력이 없습니다.");
-        }
-
         // Response 변환
         List<RewardGiveHistoryResponse.RewardGiveHistoryItem> histories = records.stream()
                 .map(record -> RewardGiveHistoryResponse.RewardGiveHistoryItem.builder()
