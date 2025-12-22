@@ -90,9 +90,9 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/items/*").permitAll()
                         .requestMatchers(HttpMethod.GET, "/items/*/disposal-reason").permitAll()
 
-                        // Claim 관련 API - 학생(USER)만 가능
+                        // Claim 관련 API
                         .requestMatchers(HttpMethod.POST, "/items/*/claims").hasRole("USER")
-                        .requestMatchers(HttpMethod.GET, "/items/claims/count").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/items/claims/**").hasRole("ADMIN")
 
                         // 물품 등록/수정/삭제는 관리자만
                         .requestMatchers(HttpMethod.POST, "/items").hasRole("ADMIN")
