@@ -48,17 +48,17 @@ public class ItemQueryService {
                 .build();
     }
 
-    public ItemSearchResponse searchItems(List<Long> placeIds, String status, 
+    public ItemSearchResponse searchItems(String query, List<Long> placeIds, String status,
                                           LocalDate foundAtFrom, LocalDate foundAtTo,
                                           String category, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "foundAt"));
 
         Item.ItemStatus itemStatus = parseStatus(status);
         Item.ItemCategory itemCategory = parseCategory(category);
-        
+        String trimmedQuery = parseQuery(query);
         List<Long> filteredPlaceIds = filterNullPlaceIds(placeIds);
 
-        Page<Item> itemPage = itemRepository.searchItems(filteredPlaceIds, itemStatus, 
+        Page<Item> itemPage = itemRepository.searchItems(trimmedQuery, filteredPlaceIds, itemStatus,
                                                           foundAtFrom, foundAtTo, 
                                                           itemCategory, pageable);
 
@@ -83,6 +83,14 @@ public class ItemQueryService {
         return Item.ItemCategory.from(category);
     }
 
+    private String parseQuery(String query) {
+        if (query == null) {
+            return null;
+        }
+        String trimmedQuery = query.trim();
+        return trimmedQuery.isEmpty() ? null : trimmedQuery;
+    }
+    
     private List<Long> filterNullPlaceIds(List<Long> placeIds) {
         if (placeIds == null) {
             return null;

@@ -53,17 +53,17 @@ class ItemQueryServiceTest {
         ReflectionTestUtils.setField(place, "place", "도서관");
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
-        when(itemRepository.searchItems(anyList(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(),anyList(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "foundAt")), 1));
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(placeIds, "LOST", null, null, null, 1, 5);
+        ItemSearchResponse response = itemQueryService.searchItems(isNull(), placeIds, "LOST", null, null, null, 1, 5);
 
         // then
         ArgumentCaptor<List<Long>> placeIdsCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
 
-        verify(itemRepository).searchItems(placeIdsCaptor.capture(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), pageableCaptor.capture());
+        verify(itemRepository).searchItems(isNull(), placeIdsCaptor.capture(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), pageableCaptor.capture());
 
         assertThat(placeIdsCaptor.getValue()).containsExactly(1L, 2L);
 
@@ -80,14 +80,14 @@ class ItemQueryServiceTest {
     @Test
     void placeIds_null이고_status_공백이면_필터_없이_검색된다() {
         // given
-        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(null, "   ", null, null, null, 1, 10);
+        ItemSearchResponse response = itemQueryService.searchItems(null, null, "   ", null, null, null, 1, 10);
 
         // then
-        verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
+        verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
         verifyNoInteractions(placeRepository);
 
         assertThat(response.getContent()).isEmpty();
@@ -99,7 +99,7 @@ class ItemQueryServiceTest {
     void status_소문자도_ENUM으로_파싱된다() {
         // given
         Item item = createItem(1L, Item.ItemStatus.LOST);
-        when(itemRepository.searchItems(isNull(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(), isNull(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 10), 1));
         Place place = new Place();
         ReflectionTestUtils.setField(place, "id", 1L);
@@ -107,10 +107,10 @@ class ItemQueryServiceTest {
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
         // when
-        itemQueryService.searchItems(null, "lost", null, null, null, 1, 10);
+        itemQueryService.searchItems(null, null, "lost", null, null, null, 1, 10);
 
         // then
-        verify(itemRepository).searchItems(isNull(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class));
+        verify(itemRepository).searchItems(isNull(), isNull(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class));
         verify(placeRepository).findAllById(any());
     }
 
@@ -119,7 +119,7 @@ class ItemQueryServiceTest {
         // given
         Item first = createItem(1L, Item.ItemStatus.LOST);
         Item second = createItem(1L, Item.ItemStatus.LOST);
-        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(first, second), PageRequest.of(0, 10), 2));
 
         Place place = new Place();
@@ -128,7 +128,7 @@ class ItemQueryServiceTest {
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
         // when
-        itemQueryService.searchItems(null, null, null, null, null, 1, 10);
+        itemQueryService.searchItems(null, null, null, null, null, null, 1, 10);
 
         // then
         verify(placeRepository, times(1)).findAllById(any());
@@ -138,12 +138,12 @@ class ItemQueryServiceTest {
     void 장소_없으면_빈_문자열로_반환한다() {
         // given
         Item item = createItem(99L, Item.ItemStatus.LOST);
-        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 10), 1));
         when(placeRepository.findAllById(any())).thenReturn(List.of());
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(null, null, null, null, null, 1, 10);
+        ItemSearchResponse response = itemQueryService.searchItems(null, null, null, null, null, null, 1, 10);
 
         // then
         assertThat(response.getContent()).hasSize(1);
