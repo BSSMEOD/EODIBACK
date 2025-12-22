@@ -53,3 +53,8 @@ temp/
 *.tmp
 *.swp
 *.swo
+
+# Allow prebuilt jar to be included in the build context
+!build/
+!build/libs/
+!build/libs/*.jar
