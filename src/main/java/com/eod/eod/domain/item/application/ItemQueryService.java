@@ -55,8 +55,7 @@ public class ItemQueryService {
 
         Item.ItemStatus itemStatus = parseStatus(status);
         Item.ItemCategory itemCategory = parseCategory(category);
-
-        String trimmedQuery = query.trim();
+        String trimmedQuery = parseQuery(query);
         List<Long> filteredPlaceIds = filterNullPlaceIds(placeIds);
 
         Page<Item> itemPage = itemRepository.searchItems(trimmedQuery, filteredPlaceIds, itemStatus,
@@ -84,6 +83,14 @@ public class ItemQueryService {
         return Item.ItemCategory.from(category);
     }
 
+    private String parseQuery(String query) {
+        if (query == null) {
+            return null;
+        }
+        String trimmedQuery = query.trim();
+        return trimmedQuery.isEmpty() ? null : trimmedQuery;
+    }
+    
     private List<Long> filterNullPlaceIds(List<Long> placeIds) {
         if (placeIds == null) {
             return null;
