@@ -134,6 +134,8 @@ jobs:
           LOG_DIR=${{ secrets.LOG_DIR }}
           BSM_CLIENT_ID=${{ secrets.BSM_CLIENT_ID }}
           BSM_CLIENT_SECRET=${{ secrets.BSM_CLIENT_SECRET }}
+          BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
+          BSM_REDIRECT_URI=${{ secrets.BSM_REDIRECT_URI }}
           EOF
           
           # GitHub Container Registry 로그인
