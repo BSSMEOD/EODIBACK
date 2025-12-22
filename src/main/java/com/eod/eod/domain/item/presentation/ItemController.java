@@ -65,6 +65,7 @@ public class ItemController {
         Long itemId = itemRegistrationService.registerItem(
                 form.getName(),
                 form.getReporterName(),
+                form.getStudentCode(),
                 form.getFoundAt(),
                 form.getPlaceId(),
                 form.getPlaceDetail(),

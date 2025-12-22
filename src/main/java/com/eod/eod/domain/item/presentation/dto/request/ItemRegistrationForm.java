@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -24,6 +25,10 @@ public class ItemRegistrationForm {
     @Size(max = 50, message = "신고자 이름은 최대 50자까지 입력 가능합니다.")
     @Schema(description = "신고자 이름", example = "홍길동", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String reporterName;
+
+    @Min(value = 1, message = "학번은 1 이상이어야 합니다.")
+    @Schema(description = "학생 학번 (선택)", example = "30102", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private Integer studentCode;
 
     @NotBlank(message = "필수 항목이 누락되었습니다.")
     @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "습득 일자는 yyyy-MM-dd 형식이어야 합니다.")

@@ -1,9 +1,9 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.util.ExternalServerUtil;
+import com.eod.eod.domain.item.exception.InvalidParameterException;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.place.infrastructure.PlaceRepository;
-import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -20,17 +20,16 @@ import java.time.format.DateTimeParseException;
 @Service
 @RequiredArgsConstructor
 @Transactional
-public class ItemRegistrationService {
+public class ItemUpdateService {
 
     private final ItemFacade itemFacade;
     private final PlaceRepository placeRepository;
-    private final UserRepository userRepository;
     private final ExternalServerUtil externalServerUtil;
 
-    public Long registerItem(
+    public void updateItem(
+            Long itemId,
             String name,
             String reporterName,
-            Integer studentCode,
             String foundAt,
             Long placeId,
             String placeDetail,
@@ -38,27 +37,43 @@ public class ItemRegistrationService {
             Item.ItemCategory category,
             User currentUser
     ) {
-        LocalDate parsedFoundAt = parseDate(foundAt);
-        ensurePlaceExists(placeId);
+        if (!hasAnyUpdate(name, reporterName, foundAt, placeId, placeDetail, category, imageFile)) {
+            throw new InvalidParameterException("수정할 항목이 없습니다.");
+        }
 
-        User student = resolveStudent(studentCode, currentUser);
+        LocalDateTime foundAtDateTime = parseFoundAt(foundAt);
+        if (placeId != null) {
+            ensurePlaceExists(placeId);
+        }
+
         String imageUrl = resolveImageUrl(imageFile);
-        LocalDateTime foundAtDateTime = toFoundDateTime(parsedFoundAt);
+        Item item = itemFacade.getItemById(itemId);
+        item.updateDetails(name, reporterName, placeId, placeDetail, category, foundAtDateTime, imageUrl, currentUser);
+    }
 
-        Item item = Item.registerLostItem(
-                student,
-                currentUser,
-                placeId,
-                placeDetail,
-                name,
-                reporterName,
-                imageUrl,
-                category,
-                foundAtDateTime
-        );
+    private boolean hasAnyUpdate(
+            String name,
+            String reporterName,
+            String foundAt,
+            Long placeId,
+            String placeDetail,
+            Item.ItemCategory category,
+            MultipartFile imageFile
+    ) {
+        return name != null
+                || reporterName != null
+                || foundAt != null
+                || placeId != null
+                || placeDetail != null
+                || category != null
+                || (imageFile != null && !imageFile.isEmpty());
+    }
 
-        Item savedItem = itemFacade.save(item);
-        return savedItem.getId();
+    private LocalDateTime parseFoundAt(String rawDate) {
+        if (rawDate == null) {
+            return null;
+        }
+        return parseDate(rawDate).atStartOfDay();
     }
 
     private LocalDate parseDate(String rawDate) {
@@ -70,25 +85,14 @@ public class ItemRegistrationService {
     }
 
     private void ensurePlaceExists(Long placeId) {
-        if (placeId == null) {
-            throw new IllegalStateException("필수 항목이 누락되었습니다.");
-        }
         if (!placeRepository.existsById(placeId)) {
             throw new IllegalArgumentException("등록되지 않은 장소입니다.");
         }
     }
 
-    private User resolveStudent(Integer studentCode, User currentUser) {
-        if (studentCode == null) {
-            return currentUser;
-        }
-        return userRepository.findByStudentCode(studentCode)
-                .orElseThrow(() -> new IllegalArgumentException("해당 학생을 찾을 수 없습니다."));
-    }
-
     private String resolveImageUrl(MultipartFile imageFile) {
         if (imageFile == null || imageFile.isEmpty()) {
-            return "";
+            return null;
         }
 
         Item.validateImage(imageFile.getSize(), imageFile.getContentType());
@@ -104,12 +108,7 @@ public class ItemRegistrationService {
         } catch (IOException e) {
             throw new IllegalStateException("이미지 파일을 읽을 수 없습니다.");
         } catch (Exception e) {
-            // 외부 서버 통신 실패 (네트워크 오류, 타임아웃, 인증 실패 등)
             throw new IllegalStateException("이미지 업로드에 실패했습니다: " + e.getMessage());
         }
-    }
-
-    private LocalDateTime toFoundDateTime(LocalDate date) {
-        return date.atStartOfDay();
     }
 }

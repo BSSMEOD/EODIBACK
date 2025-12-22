@@ -93,9 +93,10 @@ public class Item {
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
-    public static Item registerLostItem(User admin, Long foundPlaceId, String foundPlaceDetail,
+    public static Item registerLostItem(User student, User admin, Long foundPlaceId, String foundPlaceDetail,
                                         String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
         requireAdmin(admin);
+        requireStudent(student);
         validateFoundAt(foundAt);
         validateCategory(category);
         String sanitizedName = sanitizeName(name);
@@ -103,7 +104,7 @@ public class Item {
         String sanitizedReporterName = sanitizeReporterName(reporterName);
 
         return Item.builder()
-                .student(admin)
+                .student(student)
                 .admin(admin)
                 .foundPlaceId(requirePlaceId(foundPlaceId))
                 .foundPlaceDetail(sanitizedDetail)
@@ -114,6 +115,40 @@ public class Item {
                 .category(category)
                 .foundAt(foundAt)
                 .build();
+    }
+
+    public void updateDetails(String name,
+                              String reporterName,
+                              Long foundPlaceId,
+                              String foundPlaceDetail,
+                              ItemCategory category,
+                              LocalDateTime foundAt,
+                              String imageUrl,
+                              User updater) {
+        validateAdminRole(updater);
+        if (name != null) {
+            this.name = sanitizeName(name);
+        }
+        if (reporterName != null) {
+            this.reporterName = sanitizeReporterName(reporterName);
+        }
+        if (foundPlaceId != null) {
+            this.foundPlaceId = requirePlaceId(foundPlaceId);
+        }
+        if (foundPlaceDetail != null) {
+            this.foundPlaceDetail = sanitizeDetail(foundPlaceDetail);
+        }
+        if (category != null) {
+            validateCategory(category);
+            this.category = category;
+        }
+        if (foundAt != null) {
+            validateFoundAt(foundAt);
+            this.foundAt = foundAt;
+        }
+        if (imageUrl != null) {
+            this.image = imageUrl;
+        }
     }
 
     // 물품 지급 처리
@@ -178,6 +213,12 @@ public class Item {
     private static void requireAdmin(User user) {
         if (user == null || !user.isAdmin()) {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
+    }
+
+    private static void requireStudent(User student) {
+        if (student == null) {
+            throw new IllegalArgumentException("학생 정보가 필요합니다.");
         }
     }
 

@@ -3,11 +3,14 @@ package com.eod.eod.domain.item.presentation;
 import com.eod.eod.domain.item.application.ItemApprovalService;
 import com.eod.eod.domain.item.application.ItemDeleteService;
 import com.eod.eod.domain.item.application.ItemGiveService;
+import com.eod.eod.domain.item.application.ItemUpdateService;
 import com.eod.eod.domain.item.presentation.dto.request.ItemApprovalRequest;
 import com.eod.eod.domain.item.presentation.dto.request.ItemGiveRequest;
+import com.eod.eod.domain.item.presentation.dto.request.ItemUpdateForm;
 import com.eod.eod.domain.item.presentation.dto.response.ItemApprovalResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemDeleteResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemGiveResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ItemUpdateResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +22,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
@@ -34,6 +38,7 @@ public class ItemAdminController {
     private final ItemGiveService itemGiveService;
     private final ItemApprovalService itemApprovalService;
     private final ItemDeleteService itemDeleteService;
+    private final ItemUpdateService itemUpdateService;
 
     @Operation(summary = "물품 지급", description = "학생에게 특정 물품을 지급합니다.")
     @ApiResponses(value = {
@@ -124,6 +129,57 @@ public class ItemAdminController {
                 currentUser
         );
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "물품 수정", description = "물품 정보를 수정합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "물품 수정 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = ItemUpdateResponse.class)
+                    )),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (유효성 검증 실패)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"수정할 항목이 없습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "물품 또는 장소를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"해당 물품을 찾을 수 없습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"인증에 실패했습니다.\"}")
+                    ))
+    })
+    @PatchMapping(value = "/{item-id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<ItemUpdateResponse> updateItem(
+            @Parameter(description = "수정할 물품 ID", required = true, example = "1")
+            @PathVariable("item-id") Long itemId,
+            @Parameter(description = "물품 수정 폼", required = true)
+            @Valid @ModelAttribute ItemUpdateForm form,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        itemUpdateService.updateItem(
+                itemId,
+                form.getName(),
+                form.getReporterName(),
+                form.getFoundAt(),
+                form.getPlaceId(),
+                form.getPlaceDetail(),
+                form.getImage(),
+                form.getCategory(),
+                currentUser
+        );
+        return ResponseEntity.ok(ItemUpdateResponse.success());
     }
 
     @Operation(summary = "물품 삭제", description = "특정 물품을 삭제합니다. ADMIN 권한이 필요합니다.")
