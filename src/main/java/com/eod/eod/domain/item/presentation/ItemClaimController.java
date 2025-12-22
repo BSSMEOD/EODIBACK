@@ -70,7 +70,7 @@ public class ItemClaimController {
                     )
             )
     })
-    @PostMapping("/{itemId}/claim")
+    @PostMapping("/{itemId}/claims")
     public ResponseEntity<ItemClaimResponse> claimItem(
             @PathVariable Long itemId,
             @Valid @RequestBody ItemClaimRequest request,
