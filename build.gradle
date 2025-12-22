@@ -21,6 +21,7 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven { url 'https://jitpack.io' }
 }
 
 dependencies {
@@ -51,6 +52,9 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	implementation 'com.mysql:mysql-connector-j'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // BSM Oauth
+	implementation 'com.github.leehj050211:bsm-oauth-java:1.1.1'
 }
 
 tasks.named('test') {

@@ -3,9 +3,16 @@ package com.eod.eod.domain.auth.application;
 import com.eod.eod.domain.auth.model.RefreshToken;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
+import leehj050211.bsmOauth.BsmOauth;
+import leehj050211.bsmOauth.dto.resource.BsmUserResource;
+import leehj050211.bsmOauth.exception.BsmOAuthCodeNotFoundException;
+import leehj050211.bsmOauth.exception.BsmOAuthInvalidClientException;
+import leehj050211.bsmOauth.exception.BsmOAuthTokenNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
 
 @Service
 @RequiredArgsConstructor
@@ -14,6 +21,7 @@ public class AuthService {
 
     private final TokenService tokenService;
     private final UserRepository userRepository;
+    private final BsmOauth bsmOauth;
 
     // Refresh Token으로 Access/Refresh 토큰 재발급
     public RefreshTokenResult refreshAccessToken(String refreshToken) {
@@ -90,5 +98,28 @@ public class AuthService {
         public String getRefreshToken() {
             return refreshToken;
         }
+    }
+
+
+    public void oauth(String authCode) throws IOException {
+        try {
+            String nickname = this.getUserNickname(authCode);
+            System.out.println("nickname " + nickname);
+        } catch (BsmOAuthCodeNotFoundException e) {
+            // 임시 인증코드를 찾을 수 없음
+        } catch (BsmOAuthTokenNotFoundException e) {
+            // 유저 토큰을 찾을 수 없음
+        } catch (BsmOAuthInvalidClientException e) {
+            // 클라이언트 ID 또는 시크릿이 잘못됨
+        }
+    }
+
+    private String getUserNickname(String authCode) throws IOException, BsmOAuthInvalidClientException, BsmOAuthCodeNotFoundException, BsmOAuthTokenNotFoundException {
+        // 임시 인증코드를 유저 토큰으로 교환
+        // 유저 토큰은 유저마다 고유하기에 따로 보관하여 일정시간마다 유저의 정보를 갱신하는 용도로도 사용할 수 있습니다
+        String token = bsmOauth.getToken(authCode);
+        // 토큰으로 유저의 정보를 가져옴
+        BsmUserResource resource = bsmOauth.getResource(token);
+        return resource.getNickname();
     }
 }
