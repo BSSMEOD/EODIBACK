@@ -113,7 +113,10 @@ class BsmOAuthIntegrationTest {
         assert savedUser.getEmail().equals("hong@bssm.hs.kr");
         assert savedUser.getName().equals("홍길동");
         assert savedUser.getRole() == User.Role.USER;
-        assert savedUser.getStudentCode().equals(12345);
+        assert savedUser.getGrade().equals(1);
+        assert savedUser.getClassNo().equals(2);
+        assert savedUser.getStudentNo().equals(3);
+        assert savedUser.getIsGraduate().equals(false);
     }
 
     @Test
@@ -126,7 +129,10 @@ class BsmOAuthIntegrationTest {
                 .oauthProvider("bsm")
                 .oauthId("999999")
                 .role(User.Role.USER)
-                .studentCode(99999)
+                .grade(1)
+                .classNo(2)
+                .studentNo(3)
+                .isGraduate(false)
                 .build();
         userRepository.save(existingUser);
 
@@ -300,10 +306,12 @@ class BsmOAuthIntegrationTest {
                 .put("nickname", nickname)
                 .put("email", email);
 
-        // student 객체 추가 (grade=1, classNo=2 → studentCode=120)
+        // student 객체 추가
         var studentNode = objectMapper.createObjectNode()
                 .put("grade", 1)
-                .put("classNo", 2);
+                .put("classNo", 2)
+                .put("studentNo", 3)
+                .put("isGraduate", false);
         userNode.set("student", studentNode);
 
         return userNode;

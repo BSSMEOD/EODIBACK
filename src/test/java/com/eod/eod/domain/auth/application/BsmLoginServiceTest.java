@@ -85,7 +85,10 @@ class BsmLoginServiceTest {
                         user.getOauthId().equals(providerId) &&
                         user.getEmail().equals(email) &&
                         user.getName().equals(nickname) &&
-                        user.getStudentCode() != null &&
+                        user.getGrade() != null &&
+                        user.getClassNo() != null &&
+                        user.getStudentNo() != null &&
+                        user.getIsGraduate() != null &&
                         user.getRole() == User.Role.USER
         ));
     }
@@ -105,7 +108,10 @@ class BsmLoginServiceTest {
                 .oauthProvider("bsm")
                 .oauthId(providerId)
                 .role(User.Role.USER)
-                .studentCode(120)
+                .grade(1)
+                .classNo(2)
+                .studentNo(3)
+                .isGraduate(false)
                 .build();
 
         JsonNode mockResource = createMockBsmUserResource(providerId, userCode, nickname, email);
@@ -265,10 +271,12 @@ class BsmLoginServiceTest {
                 .put("nickname", nickname)
                 .put("email", email);
 
-        // student 객체 추가 (grade=1, classNo=2 → studentCode=120)
+        // student 객체 추가
         var studentNode = objectMapper.createObjectNode()
                 .put("grade", 1)
-                .put("classNo", 2);
+                .put("classNo", 2)
+                .put("studentNo", 3)
+                .put("isGraduate", false);
         userNode.set("student", studentNode);
 
         return userNode;

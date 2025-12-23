@@ -46,7 +46,10 @@ public class BsmLoginService {
         }
 
         User newUser = User.builder()
-                .studentCode(userInfo.studentCode())
+                .isGraduate(userInfo.isGraduate())
+                .grade(userInfo.grade())
+                .classNo(userInfo.classNo())
+                .studentNo(userInfo.studentNo())
                 .oauthProvider(PROVIDER)
                 .oauthId(userInfo.oauthId())
                 .name(userInfo.name())
@@ -59,7 +62,8 @@ public class BsmLoginService {
 
     public record LoginResult(String accessToken, String refreshToken, User user) {}
 
-    private record BsmUserInfo(String oauthId, String email, String name, User.Role role, Integer studentCode) {
+    private record BsmUserInfo(String oauthId, String email, String name, User.Role role,
+                               Boolean isGraduate, Integer grade, Integer classNo, Integer studentNo) {
         static BsmUserInfo from(JsonNode resource) {
             String oauthId = firstText(resource, "id", "userCode", "user_code");
             if (oauthId == null || oauthId.isBlank()) {
@@ -81,18 +85,19 @@ public class BsmLoginService {
                     ? User.Role.TEACHER
                     : User.Role.USER;
 
-            Integer studentCode = null;
+            Boolean isGraduate = null;
+            Integer grade = null;
+            Integer classNo = null;
+            Integer studentNo = null;
             JsonNode studentNode = resource.get("student");
             if (studentNode != null && studentNode.isObject()) {
-                Integer grade = firstInt(studentNode, "grade");
-                Integer classNumber = firstInt(studentNode, "classNo", "classNumber", "class_num", "class");
-                if (grade != null && classNumber != null) {
-                    // 기존 코드에서 grade/class 필터링에 사용되는 형태(학년*100 + 반*10)
-                    studentCode = grade * 100 + classNumber * 10;
-                }
+                isGraduate = firstBoolean(studentNode, "isGraduate", "is_graduate", "graduate");
+                grade = firstInt(studentNode, "grade");
+                classNo = firstInt(studentNode, "classNo", "classNumber", "class_num", "class");
+                studentNo = firstInt(studentNode, "studentNo", "studentNumber", "student_no", "number");
             }
 
-            return new BsmUserInfo(oauthId, email, name, appRole, studentCode);
+            return new BsmUserInfo(oauthId, email, name, appRole, isGraduate, grade, classNo, studentNo);
         }
 
         private static String firstText(JsonNode node, String... keys) {
@@ -117,6 +122,21 @@ public class BsmLoginService {
                     } catch (NumberFormatException ignored) {
                         // continue
                     }
+                }
+            }
+            return null;
+        }
+
+        private static Boolean firstBoolean(JsonNode node, String... keys) {
+            for (String key : keys) {
+                JsonNode value = node.get(key);
+                if (value == null || value.isNull()) continue;
+                if (value.isBoolean()) return value.asBoolean();
+                if (value.isNumber()) return value.asInt() != 0;
+                if (value.isTextual()) {
+                    String text = value.asText().trim().toLowerCase();
+                    if ("true".equals(text) || "1".equals(text) || "yes".equals(text)) return true;
+                    if ("false".equals(text) || "0".equals(text) || "no".equals(text)) return false;
                 }
             }
             return null;
