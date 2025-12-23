@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 
 @Getter
 @AllArgsConstructor
-public class ClaimItemDto {
+public class ClaimItemResponse {
 
     @Schema(description = "물품 ID", example = "2")
     private Long id;

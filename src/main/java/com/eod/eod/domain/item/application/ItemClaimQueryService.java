@@ -2,7 +2,7 @@ package com.eod.eod.domain.item.application;
 
 import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
 import com.eod.eod.domain.item.model.ItemClaim;
-import com.eod.eod.domain.item.presentation.dto.response.ClaimItemDto;
+import com.eod.eod.domain.item.presentation.dto.response.ClaimItemResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class ItemClaimQueryService {
     }
 
     public ClaimItemListResponse getPendingClaimItems() {
-        List<ClaimItemDto> items = itemClaimRepository.findItemsWithPendingClaims();
+        List<ClaimItemResponse> items = itemClaimRepository.findItemsWithPendingClaims();
 
         return ClaimItemListResponse.of(items);
     }
