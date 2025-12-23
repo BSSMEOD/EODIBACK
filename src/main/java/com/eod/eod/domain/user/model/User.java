@@ -18,8 +18,17 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "student_code")
-    private Integer studentCode;
+    @Column(name = "is_graduate")
+    private Boolean isGraduate;
+
+    @Column(name = "grade")
+    private Integer grade;
+
+    @Column(name = "class_no")
+    private Integer classNo;
+
+    @Column(name = "student_no")
+    private Integer studentNo;
 
     @Column(name = "oauth_provider", nullable = false, length = 20)
     private String oauthProvider;
@@ -44,8 +53,12 @@ public class User {
     private LocalDateTime createdAt;
 
     @Builder
-    public User(Integer studentCode, String oauthProvider, String oauthId, String name, String email, Role role, String introduce) {
-        this.studentCode = studentCode;
+    public User(Boolean isGraduate, Integer grade, Integer classNo, Integer studentNo,
+                String oauthProvider, String oauthId, String name, String email, Role role, String introduce) {
+        this.isGraduate = isGraduate;
+        this.grade = grade;
+        this.classNo = classNo;
+        this.studentNo = studentNo;
         this.oauthProvider = oauthProvider;
         this.oauthId = oauthId;
         this.name = name;
