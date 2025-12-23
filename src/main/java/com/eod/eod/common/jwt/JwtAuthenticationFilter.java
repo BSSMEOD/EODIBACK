@@ -35,38 +35,63 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             // Request에서 JWT 토큰 추출
             String token = getJwtFromRequest(request);
 
-            // 토큰 검증
-            if (StringUtils.hasText(token) && jwtTokenProvider.validateToken(token)) {
-                // Access Token인지 확인
-                if ("access".equals(jwtTokenProvider.getTokenType(token))) {
-                    Long userId = jwtTokenProvider.getUserIdFromToken(token);
-                    String role = jwtTokenProvider.getRoleFromToken(token);
-
-                    // DB에서 User 엔티티 조회
-                    User user = userRepository.findById(userId)
-                            .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-                    // Spring Security 인증 객체 생성
-                    List<SimpleGrantedAuthority> authorities = List.of(
-                            new SimpleGrantedAuthority("ROLE_" + role)
-                    );
-
-                    // Principal을 User 객체로 설정 (중요!)
-                    UsernamePasswordAuthenticationToken authentication =
-                            new UsernamePasswordAuthenticationToken(user, null, authorities);
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-
-                    // SecurityContext에 인증 정보 설정
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
-
-                    log.info("JWT 인증 성공 - userId: {}, userName: {}, role: {}, authorities: {}",
-                              user.getId(), user.getName(), role, authorities);
-                }
+            // 토큰이 없으면 필터 체인 계속 진행 (공개 엔드포인트 허용)
+            if (!StringUtils.hasText(token)) {
+                filterChain.doFilter(request, response);
+                return;
             }
+
+            // 토큰이 있으면 검증 시도 (만료 예외 구분 처리)
+            try {
+                if (jwtTokenProvider.validateToken(token)) {
+                    // Access Token인지 확인
+                    if ("access".equals(jwtTokenProvider.getTokenType(token))) {
+                        Long userId = jwtTokenProvider.getUserIdFromToken(token);
+                        String role = jwtTokenProvider.getRoleFromToken(token);
+
+                        // DB에서 User 엔티티 조회
+                        User user = userRepository.findById(userId)
+                                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+                        // Spring Security 인증 객체 생성
+                        List<SimpleGrantedAuthority> authorities = List.of(
+                                new SimpleGrantedAuthority("ROLE_" + role)
+                        );
+
+                        // Principal을 User 객체로 설정
+                        UsernamePasswordAuthenticationToken authentication =
+                                new UsernamePasswordAuthenticationToken(user, null, authorities);
+                        authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+
+                        // SecurityContext에 인증 정보 설정
+                        SecurityContextHolder.getContext().setAuthentication(authentication);
+
+                        log.info("JWT 인증 성공 - userId: {}, userName: {}, role: {}, authorities: {}",
+                                user.getId(), user.getName(), role, authorities);
+                    } else {
+                        // Access Token이 아닌 경우 (Refresh Token 등)
+                        log.warn("Access Token이 아닌 토큰 유형: {}", jwtTokenProvider.getTokenType(token));
+                        sendUnauthorizedResponse(response, "Access Token이 필요합니다.");
+                        return;
+                    }
+                } else {
+                    // 토큰이 유효하지 않은 경우 (만료 포함)
+                    log.warn("유효하지 않은 JWT 토큰");
+                    sendUnauthorizedResponse(response, "유효하지 않은 토큰입니다.");
+                    return;
+                }
+            } catch (io.jsonwebtoken.ExpiredJwtException e) {
+                // 토큰 만료 - 401 반환하고 필터 체인 중단
+                log.debug("만료된 JWT 토큰: {}", e.getMessage());
+                sendUnauthorizedResponse(response, "토큰이 만료되었습니다.");
+                return;
+            }
+
         } catch (Exception e) {
-            log.error("JWT 인증 실패: {}", e.getMessage());
-            // 인증 실패 시 SecurityContext 비우기
+            log.error("JWT 인증 실패: {}", e.getMessage(), e);
             SecurityContextHolder.clearContext();
+            sendUnauthorizedResponse(response, "인증에 실패했습니다.");
+            return;
         }
 
         filterChain.doFilter(request, response);
@@ -79,6 +104,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return bearerToken.substring(7);
         }
         return null;
+    }
+
+    // 401 Unauthorized 응답 전송
+    private void sendUnauthorizedResponse(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(String.format("{\"error\": \"Unauthorized\", \"message\": \"%s\"}", message));
     }
 
     @Override
