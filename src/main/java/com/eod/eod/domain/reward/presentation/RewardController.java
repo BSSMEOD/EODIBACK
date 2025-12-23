@@ -70,32 +70,36 @@ public class RewardController {
     }
 
     @Operation(summary = "상점 지급 이력 조회",
-               description = "1) 사용자별 조회: ?user_id=1\n2) 날짜/학년/반별 조회: ?date=2025-08-05&grade=3&class=2")
+               description = "1) 사용자별 조회: ?user_id=1\n2) 날짜/학년/반별 조회: ?date=2025-08-05&grade=3&class=2\n\n" +
+                       "※ 데이터가 없을 경우 빈 배열([])을 반환합니다.")
     @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "사용자별 조회 성공",
+            @ApiResponse(responseCode = "200", description = "조회 성공 (데이터가 없을 경우 빈 배열 반환)",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RewardHistoryResponse.class)
+                            schema = @Schema(implementation = RewardHistoryResponse.class),
+                            examples = {
+                                    @ExampleObject(name = "사용자별 조회 - 데이터 있음",
+                                            value = "{\"userId\": 1, \"rewards\": [{\"rewardId\": 12, \"itemId\": 5, \"itemName\": \"무선 이어폰\", \"givenBy\": \"김선생\", \"givenAt\": \"2025-07-31\"}]}"),
+                                    @ExampleObject(name = "사용자별 조회 - 데이터 없음",
+                                            value = "{\"userId\": 1, \"rewards\": []}"),
+                                    @ExampleObject(name = "날짜/학년/반별 조회 - 데이터 없음",
+                                            value = "{\"histories\": []}")
+                            }
                     )),
-            @ApiResponse(responseCode = "200", description = "날짜/학년/반별 조회 성공",
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터",
                     content = @Content(
                             mediaType = "application/json",
-                            schema = @Schema(implementation = RewardGiveHistoryResponse.class)
+                            examples = @ExampleObject(value = "{\"message\": \"user_id만 제공하거나 date, grade, class를 모두 제공해야 합니다.\"}")
                     )),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = "{\"message\": \"로그인이 필요합니다.\"}")
                     )),
-            @ApiResponse(responseCode = "403", description = "접근 권한 없음",
+            @ApiResponse(responseCode = "403", description = "접근 권한 없음 (TEACHER 또는 ADMIN만 가능)",
                     content = @Content(
                             mediaType = "application/json",
                             examples = @ExampleObject(value = "{\"message\": \"접근 권한이 없습니다.\"}")
-                    )),
-            @ApiResponse(responseCode = "404", description = "데이터를 찾을 수 없음",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"message\": \"지급 이력이 없습니다.\"}")
                     ))
     })
     @GetMapping("/history")
