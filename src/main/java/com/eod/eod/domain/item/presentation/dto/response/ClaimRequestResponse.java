@@ -14,7 +14,7 @@ public class ClaimRequestResponse {
     private Long requestId;
     private Long itemId;
     private String itemName;
-    private String thumbnailUrl;
+    private String imageUrl;
     private String requestMessage;
     private String requesterName;
     private String requesterType;
@@ -26,7 +26,7 @@ public class ClaimRequestResponse {
                 .requestId(claim.getId())
                 .itemId(claim.getItem().getId())
                 .itemName(claim.getItem().getName())
-                .thumbnailUrl(claim.getItem().getImage())
+                .imageUrl(claim.getItem().getImage())
                 .requestMessage(claim.getClaimReason())
                 .requesterName(claim.getClaimant().getName())
                 .requesterType(mapRoleToRequesterType(claim.getClaimant()))
