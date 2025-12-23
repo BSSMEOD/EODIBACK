@@ -22,6 +22,10 @@ services:
       - BASE_URL=${BASE_URL}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
       - LOG_DIR=${LOG_DIR}
+      - BSM_CLIENT_ID=${BSM_CLIENT_ID}
+      - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
+      - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
+      - BSM_REDIRECT_URI=${BSM_REDIRECT_URI}
     depends_on:
       mysql:
         condition: service_healthy
