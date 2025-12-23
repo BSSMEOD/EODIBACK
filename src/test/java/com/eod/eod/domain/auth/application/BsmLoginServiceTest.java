@@ -65,6 +65,8 @@ class BsmLoginServiceTest {
         when(bsmOAuthService.exchangeCode(TEST_CODE, true)).thenReturn(exchangeResult);
         when(userRepository.findByOauthProviderAndOauthId("bsm", providerId))
                 .thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Mock AuthService.issueTokensForOAuth2Login
         AuthService.TokenPair tokenPair = new AuthService.TokenPair(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
@@ -121,6 +123,8 @@ class BsmLoginServiceTest {
         when(bsmOAuthService.exchangeCode(TEST_CODE, true)).thenReturn(exchangeResult);
         when(userRepository.findByOauthProviderAndOauthId("bsm", providerId))
                 .thenReturn(Optional.of(existingUser));
+        // 기존 사용자 정보 업데이트를 위한 save mock 추가
+        when(userRepository.save(any(User.class))).thenReturn(existingUser);
 
         // Mock AuthService.issueTokensForOAuth2Login
         AuthService.TokenPair tokenPair = new AuthService.TokenPair(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
@@ -135,8 +139,8 @@ class BsmLoginServiceTest {
         assertThat(result.accessToken()).isEqualTo(TEST_ACCESS_TOKEN);
         assertThat(result.refreshToken()).isEqualTo(TEST_REFRESH_TOKEN);
 
-        // 사용자 저장이 호출되지 않았는지 검증
-        verify(userRepository, never()).save(any(User.class));
+        // 기존 사용자도 학생 정보 업데이트를 위해 save가 호출됨
+        verify(userRepository, times(1)).save(any(User.class));
     }
 
     @Test
@@ -155,31 +159,42 @@ class BsmLoginServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 실패 - BSM resource에 id 없음")
-    void testLoginFailsWhenResourceMissingId() {
-        // given
+    @DisplayName("로그인 성공 - BSM resource에 id 없지만 userCode 있음")
+    void testLoginSucceedsWithUserCodeOnly() {
+        // given - id는 없지만 userCode가 있으면 성공
+        String userCode = "12345";
+        String nickname = "홍길동";
+        String email = "hong@bssm.hs.kr";
+
         JsonNode mockResource = objectMapper.createObjectNode()
-                .put("userCode", "12345")
-                .put("nickname", "홍길동")
-                .put("email", "hong@bssm.hs.kr");
+                .put("userCode", userCode)
+                .put("nickname", nickname)
+                .put("email", email);
 
         BsmOAuthService.ExchangeResult exchangeResult =
                 new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockResource);
 
         when(bsmOAuthService.exchangeCode(TEST_CODE, true)).thenReturn(exchangeResult);
+        when(userRepository.findByOauthProviderAndOauthId("bsm", userCode))
+                .thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // when & then
-        assertThatThrownBy(() -> bsmLoginService.login(TEST_CODE))
-                .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("BSM resource에 id/userCode가 없습니다");
+        AuthService.TokenPair tokenPair = new AuthService.TokenPair(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
+        when(authService.issueTokensForOAuth2Login(any(User.class)))
+                .thenReturn(tokenPair);
+
+        // when & then - 예외 없이 성공해야 함
+        BsmLoginService.LoginResult result = bsmLoginService.login(TEST_CODE);
+        assertThat(result).isNotNull();
+        assertThat(result.user().getOauthId()).isEqualTo(userCode);
     }
 
     @Test
-    @DisplayName("로그인 실패 - BSM resource에 userCode 없음")
+    @DisplayName("로그인 실패 - BSM resource에 id와 userCode 모두 없음")
     void testLoginFailsWhenResourceMissingUserCode() {
-        // given
+        // given - id, userCode, user_code 모두 없음
         JsonNode mockResource = objectMapper.createObjectNode()
-                .put("id", "123456")
                 .put("nickname", "홍길동")
                 .put("email", "hong@bssm.hs.kr");
 
@@ -245,6 +260,8 @@ class BsmLoginServiceTest {
         when(bsmOAuthService.exchangeCode(TEST_CODE, true)).thenReturn(exchangeResult);
         when(userRepository.findByOauthProviderAndOauthId("bsm", providerId))
                 .thenReturn(Optional.empty());
+        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
         // Mock AuthService.issueTokensForOAuth2Login
         AuthService.TokenPair tokenPair = new AuthService.TokenPair(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);

@@ -165,6 +165,14 @@ class BsmOAuthIntegrationTest {
                 .filter(u -> u.getOauthId().equals("999999"))
                 .count();
         assert userCount == 1 : "User should not be duplicated";
+
+        // 기존 사용자 정보가 BSM에서 가져온 최신 정보로 업데이트되었는지 확인
+        User updatedUser = userRepository.findByOauthProviderAndOauthId("bsm", "999999")
+                .orElseThrow(() -> new AssertionError("User should exist"));
+        assert updatedUser.getGrade().equals(1) : "Grade should be updated from BSM";
+        assert updatedUser.getClassNo().equals(2) : "ClassNo should be updated from BSM";
+        assert updatedUser.getStudentNo().equals(3) : "StudentNo should be updated from BSM";
+        assert updatedUser.getIsGraduate().equals(false) : "IsGraduate should be updated from BSM";
     }
 
     @Test

@@ -37,7 +37,15 @@ public class BsmLoginService {
     private User findOrCreateUser(BsmUserInfo userInfo) {
         Optional<User> byProviderAndId = userRepository.findByOauthProviderAndOauthId(PROVIDER, userInfo.oauthId());
         if (byProviderAndId.isPresent()) {
-            return byProviderAndId.get();
+            // 기존 사용자의 학생 정보를 BSM 최신 정보로 업데이트
+            User existingUser = byProviderAndId.get();
+            existingUser.updateStudentInfo(
+                    userInfo.isGraduate(),
+                    userInfo.grade(),
+                    userInfo.classNo(),
+                    userInfo.studentNo()
+            );
+            return userRepository.save(existingUser);
         }
 
         // 이메일은 unique 이므로, 다른 provider 계정과 자동으로 연결하지 않습니다.
