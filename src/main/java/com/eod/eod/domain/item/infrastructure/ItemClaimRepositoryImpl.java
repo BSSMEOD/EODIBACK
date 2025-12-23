@@ -4,7 +4,7 @@ import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.model.QItem;
 import com.eod.eod.domain.item.model.QItemClaim;
-import com.eod.eod.domain.item.presentation.dto.response.ClaimItemDto;
+import com.eod.eod.domain.item.presentation.dto.response.ClaimItemResponse;
 import com.eod.eod.domain.place.model.QPlace;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
@@ -19,7 +19,7 @@ public class ItemClaimRepositoryImpl implements ItemClaimRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    public List<ClaimItemDto> findItemsWithPendingClaims() {
+    public List<ClaimItemResponse> findItemsWithPendingClaims() {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QItem item = QItem.item;
         QItemClaim claim = QItemClaim.itemClaim;
@@ -27,7 +27,7 @@ public class ItemClaimRepositoryImpl implements ItemClaimRepositoryCustom {
 
         return queryFactory
                 .select(Projections.constructor(
-                        ClaimItemDto.class,
+                        ClaimItemResponse.class,
                         item.id,
                         item.name,
                         item.foundAt,

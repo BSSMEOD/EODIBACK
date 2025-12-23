@@ -9,9 +9,9 @@ import java.util.List;
 @AllArgsConstructor
 public class ClaimItemListResponse {
 
-    private List<ClaimItemDto> items;
+    private List<ClaimItemResponse> items;
 
-    public static ClaimItemListResponse of(List<ClaimItemDto> items) {
+    public static ClaimItemListResponse of(List<ClaimItemResponse> items) {
         return new ClaimItemListResponse(items);
     }
 }
