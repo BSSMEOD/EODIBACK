@@ -12,6 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -33,6 +34,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @Transactional
+@ActiveProfiles("test")
 class BsmOAuthIntegrationTest {
 
     @Autowired
@@ -176,45 +178,91 @@ class BsmOAuthIntegrationTest {
     }
 
     @Test
-    @DisplayName("콜백 실패 - state 불일치")
-    void testCallbackFailsWithStateMismatch() throws Exception {
+    @DisplayName("콜백 성공 (경고) - state 불일치")
+    void testCallbackSucceedsWithStateMismatch() throws Exception {
         // given
         String wrongState = "wrong_state_value";
         String correctState = "correct_state_value";
 
-        // when & then
+        JsonNode mockUserResource = createMockBsmUserResource(
+                "123456",
+                "12345",
+                "홍길동",
+                "hong@bssm.hs.kr"
+        );
+
+        BsmOAuthService.ExchangeResult exchangeResult =
+                new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockUserResource);
+
+        when(bsmOAuthService.exchangeCode(eq(TEST_CODE), eq(true)))
+                .thenReturn(exchangeResult);
+
+        // when & then - state 불일치해도 로그인 성공 (BSM OAuth가 state를 반환하지 않으므로)
         mockMvc.perform(get("/oauth/bsm")
                         .param("code", TEST_CODE)
                         .param("state", wrongState)
                         .cookie(new Cookie("bsm_oauth_state", correctState)))
                 .andDo(print())
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", containsString("error=state_mismatch")))
-                .andExpect(cookie().maxAge("bsm_oauth_state", 0)); // 쿠키 삭제됨
+                .andExpect(header().string("Location", containsString("auth/callback")))
+                .andExpect(header().string("Location", containsString("#token=")))
+                .andExpect(cookie().exists("refreshToken"));
     }
 
     @Test
-    @DisplayName("콜백 실패 - state 쿠키 없음")
-    void testCallbackFailsWithoutStateCookie() throws Exception {
-        // when & then
+    @DisplayName("콜백 성공 (경고) - state 쿠키 없음")
+    void testCallbackSucceedsWithoutStateCookie() throws Exception {
+        // given
+        JsonNode mockUserResource = createMockBsmUserResource(
+                "123456",
+                "12345",
+                "홍길동",
+                "hong@bssm.hs.kr"
+        );
+
+        BsmOAuthService.ExchangeResult exchangeResult =
+                new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockUserResource);
+
+        when(bsmOAuthService.exchangeCode(eq(TEST_CODE), eq(true)))
+                .thenReturn(exchangeResult);
+
+        // when & then - state 쿠키 없어도 로그인 성공
         mockMvc.perform(get("/oauth/bsm")
                         .param("code", TEST_CODE)
                         .param("state", TEST_STATE))
                 .andDo(print())
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", containsString("error=state_mismatch")));
+                .andExpect(header().string("Location", containsString("auth/callback")))
+                .andExpect(header().string("Location", containsString("#token=")))
+                .andExpect(cookie().exists("refreshToken"));
     }
 
     @Test
-    @DisplayName("콜백 실패 - state 파라미터 없음")
-    void testCallbackFailsWithoutStateParam() throws Exception {
-        // when & then
+    @DisplayName("콜백 성공 (경고) - state 파라미터 없음 (BSM OAuth 실제 동작)")
+    void testCallbackSucceedsWithoutStateParam() throws Exception {
+        // given
+        JsonNode mockUserResource = createMockBsmUserResource(
+                "123456",
+                "12345",
+                "홍길동",
+                "hong@bssm.hs.kr"
+        );
+
+        BsmOAuthService.ExchangeResult exchangeResult =
+                new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockUserResource);
+
+        when(bsmOAuthService.exchangeCode(eq(TEST_CODE), eq(true)))
+                .thenReturn(exchangeResult);
+
+        // when & then - BSM OAuth가 state를 반환하지 않아도 로그인 성공
         mockMvc.perform(get("/oauth/bsm")
                         .param("code", TEST_CODE)
                         .cookie(new Cookie("bsm_oauth_state", TEST_STATE)))
                 .andDo(print())
                 .andExpect(status().isFound())
-                .andExpect(header().string("Location", containsString("error=state_mismatch")));
+                .andExpect(header().string("Location", containsString("auth/callback")))
+                .andExpect(header().string("Location", containsString("#token=")))
+                .andExpect(cookie().exists("refreshToken"));
     }
 
     @Test
@@ -258,9 +306,8 @@ class BsmOAuthIntegrationTest {
     @Test
     @DisplayName("콜백 실패 - BSM 사용자 정보에 필수 필드 누락 (id)")
     void testCallbackFailsWhenUserResourceMissingId() throws Exception {
-        // given
+        // given - id, userCode, user_code 모두 누락
         JsonNode mockUserResource = objectMapper.createObjectNode()
-                .put("userCode", "12345")
                 .put("nickname", "테스트")
                 .put("email", "test@bssm.hs.kr");
 

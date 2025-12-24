@@ -49,13 +49,15 @@ public class BsmOAuthCallbackController {
                     .map(c -> c.getValue())
                     .orElse(null);
 
+            // State 검증 (BSM OAuth가 state를 반환하지 않으므로 경고만 처리)
             if (expectedState == null || state == null || !expectedState.equals(state)) {
-                log.warn("BSM OAuth state mismatch. expected={}, actual={}", expectedState, state);
-                failRedirect(response, "state_mismatch");
-                return;
+                log.warn("BSM OAuth state mismatch. expected={}, actual={} (continuing login process)", expectedState, state);
             }
 
-            cookieUtil.deleteCookie(response, STATE_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
+            // State 쿠키 삭제 (있는 경우)
+            if (expectedState != null) {
+                cookieUtil.deleteCookie(response, STATE_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
+            }
 
             BsmLoginService.LoginResult loginResult = bsmLoginService.login(code);
 
