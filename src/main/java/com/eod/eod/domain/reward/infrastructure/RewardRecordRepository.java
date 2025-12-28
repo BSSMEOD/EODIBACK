@@ -18,8 +18,8 @@ public interface RewardRecordRepository extends JpaRepository<RewardRecord, Long
             "JOIN FETCH r.student s " +
             "JOIN FETCH r.item i " +
             "WHERE FUNCTION('DATE', r.createdAt) = FUNCTION('DATE', :date) " +
-            "AND FUNCTION('FLOOR', s.studentCode / 100) = :grade " +
-            "AND FUNCTION('MOD', FUNCTION('FLOOR', s.studentCode / 10), 10) = :classNumber " +
+            "AND s.grade = :grade " +
+            "AND s.classNo = :classNumber " +
             "ORDER BY r.createdAt DESC")
     List<RewardRecord> findByDateAndGradeAndClass(
             @Param("date") LocalDateTime date,
