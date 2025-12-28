@@ -256,43 +256,31 @@ public class BsmOAuthService {
     private Optional<JsonNode> fetchUserResource(String token) {
         log.debug("BSM 사용자 정보 조회 시작");
         
-        // 시도 1: Bearer 토큰 방식
-        log.debug("사용자 정보 조회 - 시도 1: Bearer 토큰 헤더 방식");
         try {
-            JsonNode resource = bsmOauthRestClient.get()
+            // BSM 공식 문서: POST /resource with JSON body
+            Map<String, Object> payload = new LinkedHashMap<>();
+            payload.put("clientId", clientId);
+            payload.put("clientSecret", clientSecret);
+            payload.put("token", token);
+            
+            log.debug("사용자 정보 조회 - POST /resource (clientId={}, token={}...)", 
+                    clientId, token.substring(0, Math.min(10, token.length())));
+            
+            JsonNode resource = bsmOauthRestClient.post()
                     .uri("/resource")
-                    .header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON)
                     .accept(MediaType.APPLICATION_JSON)
+                    .body(payload)
                     .retrieve()
                     .body(JsonNode.class);
-            log.info("✅ 사용자 정보 조회 성공 (Bearer 토큰 방식)");
+                    
+            log.info("✅ 사용자 정보 조회 성공");
             return Optional.ofNullable(resource);
         } catch (RestClientResponseException e) {
-            log.warn("❌ 사용자 정보 조회 실패 (Bearer 토큰) - {} {}", e.getStatusCode(), e.getMessage());
+            log.error("❌ 사용자 정보 조회 실패 - {} {}, 응답: {}", 
+                    e.getStatusCode(), e.getMessage(), e.getResponseBodyAsString());
+            return Optional.empty();
         }
-
-        // 시도 2-4: 쿼리 파라미터 방식 (여러 필드명 시도)
-        for (String queryKey : new String[]{"token", "accessToken", "access_token"}) {
-            log.debug("사용자 정보 조회 - 쿼리 파라미터 방식: {}=***", queryKey);
-            try {
-                String uri = UriComponentsBuilder.fromPath("/resource")
-                        .queryParam(queryKey, token)
-                        .build()
-                        .toUriString();
-                JsonNode resource = bsmOauthRestClient.get()
-                        .uri(uri)
-                        .accept(MediaType.APPLICATION_JSON)
-                        .retrieve()
-                        .body(JsonNode.class);
-                log.info("✅ 사용자 정보 조회 성공 (쿼리 파라미터: {})", queryKey);
-                return Optional.ofNullable(resource);
-            } catch (RestClientResponseException e) {
-                log.warn("❌ 사용자 정보 조회 실패 (쿼리: {}) - {} {}", queryKey, e.getStatusCode(), e.getMessage());
-            }
-        }
-
-        log.warn("⚠️ 모든 사용자 정보 조회 방식 실패");
-        return Optional.empty();
     }
 
     private String extractToken(JsonNode node) {
