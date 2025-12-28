@@ -57,7 +57,7 @@ class ItemQueryServiceTest {
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "foundAt")), 1));
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(isNull(), placeIds, "LOST", null, null, null, 1, 5);
+        ItemSearchResponse response = itemQueryService.searchItems(null, placeIds, "LOST", null, null, null, 1, 5);
 
         // then
         ArgumentCaptor<List<Long>> placeIdsCaptor = ArgumentCaptor.forClass(List.class);
