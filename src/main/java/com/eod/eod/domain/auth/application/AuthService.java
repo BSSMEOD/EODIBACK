@@ -9,11 +9,13 @@ import leehj050211.bsmOauth.exception.BsmOAuthCodeNotFoundException;
 import leehj050211.bsmOauth.exception.BsmOAuthInvalidClientException;
 import leehj050211.bsmOauth.exception.BsmOAuthTokenNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -104,13 +106,13 @@ public class AuthService {
     public void oauth(String authCode) throws IOException {
         try {
             String nickname = this.getUserNickname(authCode);
-            System.out.println("nickname " + nickname);
+            log.debug("OAuth 사용자 nickname: {}", nickname);
         } catch (BsmOAuthCodeNotFoundException e) {
-            // 임시 인증코드를 찾을 수 없음
+            log.warn("임시 인증코드를 찾을 수 없음: {}", authCode);
         } catch (BsmOAuthTokenNotFoundException e) {
-            // 유저 토큰을 찾을 수 없음
+            log.warn("유저 토큰을 찾을 수 없음");
         } catch (BsmOAuthInvalidClientException e) {
-            // 클라이언트 ID 또는 시크릿이 잘못됨
+            log.error("클라이언트 ID 또는 시크릿이 잘못됨");
         }
     }
 

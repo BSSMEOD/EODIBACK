@@ -7,11 +7,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.RestClientResponseException;
-import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -75,98 +72,14 @@ public class BsmOAuthService {
     }
 
     private String exchangeCodeForToken(String code) {
-        log.info("BSM OAuth 토큰 교환 시작 - code: {}...", code.substring(0, Math.min(10, code.length())));
-        JsonNode node = null;
-        RestClientResponseException lastError = null;
+        JsonNode node = requestTokenWithJsonBody(code, true);
 
-        // 시도 1: 표준 OAuth 2.0 JSON body (권장)
-        log.debug("시도 1/6: 표준 OAuth 2.0 JSON body 요청");
-        try {
-            node = requestTokenWithStandardOAuthFields(code);
-            log.info("✅ 성공: 표준 OAuth 2.0 JSON 방식으로 토큰 획득");
-        } catch (RestClientResponseException e) {
-            lastError = e;
-            log.warn("❌ 실패 (시도 1/6): 표준 OAuth 2.0 JSON - {} {}", e.getStatusCode(), e.getMessage());
-        }
-
-        // 시도 2: 표준 OAuth 2.0 Form body (가장 일반적)
-        if (node == null) {
-            log.debug("시도 2/6: 표준 OAuth 2.0 Form body 요청");
-            try {
-                node = requestTokenWithStandardOAuthFieldsForm(code);
-                log.info("✅ 성공: 표준 OAuth 2.0 Form 방식으로 토큰 획득");
-            } catch (RestClientResponseException e) {
-                lastError = e;
-                log.warn("❌ 실패 (시도 2/6): 표준 OAuth 2.0 Form - {} {}", e.getStatusCode(), e.getMessage());
-            }
-        }
-
-        // 시도 3: BSM 커스텀 JSON (authCode)
-        if (node == null) {
-            log.debug("시도 3/6: BSM 커스텀 JSON (authCode) 요청");
-            try {
-                node = requestTokenWithJsonBody(code, true);
-                log.info("✅ 성공: BSM 커스텀 JSON (authCode) 방식으로 토큰 획득");
-            } catch (RestClientResponseException e) {
-                lastError = e;
-                log.warn("❌ 실패 (시도 3/6): BSM 커스텀 JSON (authCode) - {} {}", e.getStatusCode(), e.getMessage());
-            }
-        }
-
-        // 시도 4: BSM 커스텀 JSON (authcode 소문자)
-        if (node == null) {
-            log.debug("시도 4/6: BSM 커스텀 JSON (authcode) 요청");
-            try {
-                node = requestTokenWithJsonBody(code, false);
-                log.info("✅ 성공: BSM 커스텀 JSON (authcode) 방식으로 토큰 획득");
-            } catch (RestClientResponseException e) {
-                lastError = e;
-                log.warn("❌ 실패 (시도 4/6): BSM 커스텀 JSON (authcode) - {} {}", e.getStatusCode(), e.getMessage());
-            }
-        }
-
-        // 시도 5: BSM 커스텀 Form (authCode)
-        if (node == null) {
-            log.debug("시도 5/6: BSM 커스텀 Form (authCode) 요청");
-            try {
-                node = requestTokenWithFormBody(code, true);
-                log.info("✅ 성공: BSM 커스텀 Form (authCode) 방식으로 토큰 획득");
-            } catch (RestClientResponseException e) {
-                lastError = e;
-                log.warn("❌ 실패 (시도 5/6): BSM 커스텀 Form (authCode) - {} {}", e.getStatusCode(), e.getMessage());
-            }
-        }
-
-        // 시도 6: BSM 커스텀 Form (authcode 소문자)
-        if (node == null) {
-            log.debug("시도 6/6: BSM 커스텀 Form (authcode) 요청");
-            try {
-                node = requestTokenWithFormBody(code, false);
-                log.info("✅ 성공: BSM 커스텀 Form (authcode) 방식으로 토큰 획득");
-            } catch (RestClientResponseException e) {
-                lastError = e;
-                log.warn("❌ 실패 (시도 6/6): BSM 커스텀 Form (authcode) - {} {}", e.getStatusCode(), e.getMessage());
-            }
-        }
-
-        // 모든 시도 실패 시 예외 발생
-        if (node == null && lastError != null) {
-            log.error("❌ 모든 토큰 교환 시도 실패 - 마지막 오류: {} {}, 응답 본문: {}", 
-                    lastError.getStatusCode(), 
-                    lastError.getMessage(),
-                    lastError.getResponseBodyAsString());
-            throw new IllegalStateException("모든 토큰 요청 시도가 실패했습니다. 마지막 오류: " + lastError.getMessage(), lastError);
-        }
-
-        // 응답에서 토큰 추출
-        log.debug("토큰 추출 시작 - 응답: {}", node);
         String token = extractToken(node);
         if (token == null || token.isBlank()) {
             log.error("❌ 토큰 추출 실패 - 응답에 토큰이 없음: {}", node);
             throw new IllegalStateException("BSM 토큰 응답에 토큰이 포함되지 않았습니다: " + node);
         }
-        
-        log.info("✅ 토큰 교환 완료 - 토큰: {}...", token.substring(0, Math.min(10, token.length())));
+
         return token;
     }
 
@@ -188,67 +101,6 @@ public class BsmOAuthService {
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(payload)
-                .retrieve()
-                .body(JsonNode.class);
-    }
-
-    /**
-     * BSM 커스텀 필드로 Form body 토큰 요청
-     *
-     * @param code 인증 코드
-     * @param useNewFieldName true: authCode, false: authcode
-     * @return 토큰 응답
-     */
-    private JsonNode requestTokenWithFormBody(String code, boolean useNewFieldName) {
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("clientId", clientId);
-        form.add("clientSecret", clientSecret);
-        form.add(useNewFieldName ? "authCode" : "authcode", code);
-
-        return bsmOauthRestClient.post()
-                .uri("/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(form)
-                .retrieve()
-                .body(JsonNode.class);
-    }
-
-    private JsonNode requestTokenWithStandardOAuthFields(String code) {
-        Map<String, Object> payload = new LinkedHashMap<>();
-        payload.put("grant_type", "authorization_code");
-        payload.put("code", code);
-        payload.put("client_id", clientId);
-        payload.put("client_secret", clientSecret);
-        payload.put("redirect_uri", redirectUri);
-
-        log.debug("표준 OAuth 2.0 JSON 요청 - URI: {}/token, payload: {{grant_type=authorization_code, code=***, client_id={}, redirect_uri={}}}", 
-                baseUrl, clientId, redirectUri);
-
-        return bsmOauthRestClient.post()
-                .uri("/token")
-                .contentType(MediaType.APPLICATION_JSON)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(payload)
-                .retrieve()
-                .body(JsonNode.class);
-    }
-
-    private JsonNode requestTokenWithStandardOAuthFieldsForm(String code) {
-        MultiValueMap<String, String> form = new LinkedMultiValueMap<>();
-        form.add("grant_type", "authorization_code");
-        form.add("code", code);
-        form.add("client_id", clientId);
-        form.add("client_secret", clientSecret);
-        form.add("redirect_uri", redirectUri);
-
-        log.debug("표준 OAuth 2.0 Form 요청 - URI: {}/token, Content-Type: application/x-www-form-urlencoded", baseUrl);
-
-        return bsmOauthRestClient.post()
-                .uri("/token")
-                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
-                .accept(MediaType.APPLICATION_JSON)
-                .body(form)
                 .retrieve()
                 .body(JsonNode.class);
     }
