@@ -73,37 +73,46 @@ public class BsmLoginService {
     private record BsmUserInfo(String oauthId, String email, String name, User.Role role,
                                Boolean isGraduate, Integer grade, Integer classNo, Integer studentNo) {
         static BsmUserInfo from(JsonNode resource) {
-            String oauthId = firstText(resource, "id", "userCode", "user_code");
-            if (oauthId == null || oauthId.isBlank()) {
-                throw new IllegalStateException("BSM resource에 id/userCode가 없습니다: " + resource);
+            // BSM API 응답 구조: {"user": {...}, "scopeList": [...]}
+            JsonNode userNode = resource.get("user");
+            if (userNode == null || userNode.isNull()) {
+                throw new IllegalStateException("BSM resource에 user 객체가 없습니다: " + resource);
             }
 
-            String email = firstText(resource, "email");
+            // email은 필수
+            String email = firstText(userNode, "email");
             if (email == null || email.isBlank()) {
                 throw new IllegalStateException("BSM resource에 email이 없습니다: " + resource);
             }
 
-            String name = firstText(resource, "nickname", "name");
+            // id가 없는 경우 studentNo를 oauthId로 사용 (학생), 또는 email 사용 (교사)
+            String oauthId = firstText(userNode, "id", "userCode", "user_code");
+            if (oauthId == null || oauthId.isBlank()) {
+                Integer studentNoForId = firstInt(userNode, "studentNo", "studentNumber", "student_no");
+                if (studentNoForId != null) {
+                    oauthId = "student_" + studentNoForId;
+                } else {
+                    oauthId = "email_" + email;
+                }
+            }
+
+            // 이름 (nickname 또는 name, 없으면 email 사용)
+            String name = firstText(userNode, "nickname", "name");
             if (name == null || name.isBlank()) {
                 name = email;
             }
 
-            String roleText = firstText(resource, "role");
+            // 역할 (TEACHER 또는 USER)
+            String roleText = firstText(userNode, "role");
             User.Role appRole = (roleText != null && roleText.toUpperCase().contains("TEACHER"))
                     ? User.Role.TEACHER
                     : User.Role.USER;
 
-            Boolean isGraduate = null;
-            Integer grade = null;
-            Integer classNo = null;
-            Integer studentNo = null;
-            JsonNode studentNode = resource.get("student");
-            if (studentNode != null && studentNode.isObject()) {
-                isGraduate = firstBoolean(studentNode, "isGraduate", "is_graduate", "graduate");
-                grade = firstInt(studentNode, "grade");
-                classNo = firstInt(studentNode, "classNo", "classNumber", "class_num", "class");
-                studentNo = firstInt(studentNode, "studentNo", "studentNumber", "student_no", "number");
-            }
+            // 학생 정보는 user 객체에 직접 포함되어 있음
+            Boolean isGraduate = firstBoolean(userNode, "isGraduate", "is_graduate", "graduate");
+            Integer grade = firstInt(userNode, "grade");
+            Integer classNo = firstInt(userNode, "classNo", "classNumber", "class_num", "class");
+            Integer studentNo = firstInt(userNode, "studentNo", "studentNumber", "student_no", "number");
 
             return new BsmUserInfo(oauthId, email, name, appRole, isGraduate, grade, classNo, studentNo);
         }
