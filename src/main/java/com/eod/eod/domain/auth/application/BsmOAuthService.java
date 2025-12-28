@@ -39,7 +39,7 @@ public class BsmOAuthService {
     @Value("${bsm.auth.client-secret}")
     private String clientSecret;
 
-    @Value("${bsm.oauth.base-url:https://auth.bssm.app}")
+    @Value("${bsm.oauth.base-url:https://api-auth.bssm.app}")
     private String baseUrl;
 
     @Value("${bsm.oauth.redirect-uri:https://www.jojaemin.com/oauth/bsm}")
@@ -48,13 +48,17 @@ public class BsmOAuthService {
     /**
      * BSM OAuth 인증 시작 URL 생성
      *
+     * 인증 시작은 https://auth.bssm.app/oauth 사용
+     * (API 호출과 다른 도메인)
+     *
      * @param state CSRF 방지를 위한 state 파라미터
      * @return BSM OAuth 서버로 리다이렉트할 URL
      */
     public String buildAuthorizeUrl(String state) {
         String encodedRedirectUri = URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
         String encodedState = URLEncoder.encode(state, StandardCharsets.UTF_8);
-        return String.format("%s/oauth?clientId=%s&redirectURI=%s&state=%s", baseUrl, clientId, encodedRedirectUri, encodedState);
+        // 인증 시작 URL은 auth.bssm.app 사용
+        return String.format("https://auth.bssm.app/oauth?clientId=%s&redirectURI=%s&state=%s", clientId, encodedRedirectUri, encodedState);
     }
 
     /**
@@ -180,7 +184,7 @@ public class BsmOAuthService {
         payload.put(useNewFieldName ? "authCode" : "authcode", code);
 
         return bsmOauthRestClient.post()
-                .uri("/api/oauth/token")
+                .uri("/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(payload)
@@ -202,7 +206,7 @@ public class BsmOAuthService {
         form.add(useNewFieldName ? "authCode" : "authcode", code);
 
         return bsmOauthRestClient.post()
-                .uri("/api/oauth/token")
+                .uri("/token")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(form)
@@ -218,11 +222,11 @@ public class BsmOAuthService {
         payload.put("client_secret", clientSecret);
         payload.put("redirect_uri", redirectUri);
 
-        log.debug("표준 OAuth 2.0 JSON 요청 - URI: /api/oauth/token, payload: {grant_type=authorization_code, code=***, client_id={}, redirect_uri={}}", 
-                clientId, redirectUri);
+        log.debug("표준 OAuth 2.0 JSON 요청 - URI: {}/token, payload: {{grant_type=authorization_code, code=***, client_id={}, redirect_uri={}}}", 
+                baseUrl, clientId, redirectUri);
 
         return bsmOauthRestClient.post()
-                .uri("/api/oauth/token")
+                .uri("/token")
                 .contentType(MediaType.APPLICATION_JSON)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(payload)
@@ -238,10 +242,10 @@ public class BsmOAuthService {
         form.add("client_secret", clientSecret);
         form.add("redirect_uri", redirectUri);
 
-        log.debug("표준 OAuth 2.0 Form 요청 - URI: /api/oauth/token, Content-Type: application/x-www-form-urlencoded");
+        log.debug("표준 OAuth 2.0 Form 요청 - URI: {}/token, Content-Type: application/x-www-form-urlencoded", baseUrl);
 
         return bsmOauthRestClient.post()
-                .uri("/api/oauth/token")
+                .uri("/token")
                 .contentType(MediaType.APPLICATION_FORM_URLENCODED)
                 .accept(MediaType.APPLICATION_JSON)
                 .body(form)
@@ -256,7 +260,7 @@ public class BsmOAuthService {
         log.debug("사용자 정보 조회 - 시도 1: Bearer 토큰 헤더 방식");
         try {
             JsonNode resource = bsmOauthRestClient.get()
-                    .uri("/api/oauth/resource")
+                    .uri("/resource")
                     .header("Authorization", "Bearer " + token)
                     .accept(MediaType.APPLICATION_JSON)
                     .retrieve()
@@ -271,7 +275,7 @@ public class BsmOAuthService {
         for (String queryKey : new String[]{"token", "accessToken", "access_token"}) {
             log.debug("사용자 정보 조회 - 쿼리 파라미터 방식: {}=***", queryKey);
             try {
-                String uri = UriComponentsBuilder.fromPath("/api/oauth/resource")
+                String uri = UriComponentsBuilder.fromPath("/resource")
                         .queryParam(queryKey, token)
                         .build()
                         .toUriString();
