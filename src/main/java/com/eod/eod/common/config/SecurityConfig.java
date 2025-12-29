@@ -118,6 +118,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/introduce").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.GET, "/introduce").permitAll()
 
+                        // 정적 리소스 - 업로드된 이미지 접근 허용
+                        .requestMatchers(HttpMethod.GET, "/images/**").permitAll()
+                        .requestMatchers(HttpMethod.POST,"/images").hasAnyRole("USER", "TEACHER", "ADMIN")
+
                         // 나머지 요청은 인증 필요
                         .anyRequest().authenticated()
                 )
