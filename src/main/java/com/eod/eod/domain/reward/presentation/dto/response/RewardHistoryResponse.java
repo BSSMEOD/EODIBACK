@@ -34,6 +34,21 @@ public class RewardHistoryResponse {
                 .build();
     }
 
+    /**
+     * 검색 결과를 RewardHistoryResponse로 변환
+     * userId는 검색 조건으로 사용된 값이며, null일 수 있습니다.
+     */
+    public static RewardHistoryResponse fromRecords(List<RewardRecord> records, Long userId) {
+        List<RewardInfo> rewards = records.stream()
+                .map(RewardInfo::from)
+                .collect(Collectors.toList());
+
+        return RewardHistoryResponse.builder()
+                .userId(userId)
+                .rewards(rewards)
+                .build();
+    }
+
     @Getter
     @Builder
     public static class RewardInfo {
