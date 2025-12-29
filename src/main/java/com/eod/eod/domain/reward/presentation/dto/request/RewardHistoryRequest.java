@@ -46,4 +46,9 @@ public class RewardHistoryRequest {
         }
         throw new IllegalArgumentException("user_id만 제공하거나 date, grade, class를 모두 제공해야 합니다.");
     }
+
+    // URL 파라미터 'class'를 classNumber 필드에 매핑하기 위한 Setter
+    public void setClass(Integer classNumber) {
+        this.classNumber = classNumber;
+    }
 }
