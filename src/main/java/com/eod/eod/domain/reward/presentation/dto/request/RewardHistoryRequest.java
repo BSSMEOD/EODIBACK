@@ -87,9 +87,4 @@ public class RewardHistoryRequest {
     public Long getEffectiveUserId() {
         return userId;
     }
-
-    // URL 파라미터 'class'를 classNumber 필드에 매핑하기 위한 Setter
-    public void setClass(Integer classNumber) {
-        this.classNumber = classNumber;
-    }
 }
