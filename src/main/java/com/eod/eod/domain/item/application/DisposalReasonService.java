@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Service
@@ -33,15 +34,25 @@ public class DisposalReasonService {
     }
 
     /**
-     * 폐기 보류 사유 조회
+     * 폐기 보류 사유 조회 (날짜 필터 지원)
      */
     @Transactional(readOnly = true)
-    public DisposalReason getDisposalReason(Long itemId) {
-        // 물품 조회
-        Item item = itemFacade.getItemById(itemId);
+    public DisposalReason getDisposalReason(Long itemId, LocalDate from, LocalDate to) {
+        // 물품 존재 여부 확인
+        itemFacade.getItemById(itemId);
 
-        // 최신 폐기 보류 사유 조회
-        return disposalReasonRepository.findTopByItemOrderByCreatedAtDesc(item)
+        // 날짜 필터가 있는 경우
+        if (from != null || to != null) {
+            LocalDateTime fromDateTime = from != null ? from.atStartOfDay() : LocalDateTime.of(1970, 1, 1, 0, 0);
+            LocalDateTime toDateTime = to != null ? to.atStartOfDay() : LocalDateTime.now().plusYears(100);
+
+            return disposalReasonRepository.findTopByItemIdAndCreatedAtBetweenOrderByCreatedAtDesc(
+                    itemId, fromDateTime, toDateTime)
+                    .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
+        }
+
+        // 날짜 필터가 없으면 최신 사유 조회
+        return disposalReasonRepository.findTopByItemIdOrderByCreatedAtDesc(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 물품의 폐기 보류 사유를 찾을 수 없습니다."));
     }
 

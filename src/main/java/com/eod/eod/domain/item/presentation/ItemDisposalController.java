@@ -23,6 +23,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
 @Tag(name = "Item Disposal", description = "물품 폐기 관리 API")
 @RestController
@@ -86,10 +88,14 @@ public class ItemDisposalController {
     @GetMapping("/{item-id}/disposal-reason")
     public ResponseEntity<DisposalReasonResponse> getDisposalReason(
             @Parameter(description = "조회할 물품 ID", required = true, example = "1")
-            @PathVariable("item-id") Long itemId
+            @PathVariable("item-id") Long itemId,
+            @Parameter(description = "시작 날짜 (inclusive)", example = "2025-12-01")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
+            @Parameter(description = "종료 날짜 (exclusive)", example = "2025-12-31")
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
         DisposalReasonResponse response = DisposalReasonResponse.from(
-                disposalReasonService.getDisposalReason(itemId)
+                disposalReasonService.getDisposalReason(itemId, from, to)
         );
         return ResponseEntity.ok(response);
     }
