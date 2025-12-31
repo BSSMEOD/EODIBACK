@@ -15,7 +15,6 @@ import java.time.LocalDate;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Setter
 public class RewardHistoryRequest {
 
     // 기존 파라미터 (하위 호환성 유지)
@@ -45,9 +44,34 @@ public class RewardHistoryRequest {
     @Schema(description = "종료 날짜 (exclusive)", example = "2025-12-31", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private LocalDate to;
 
+    // Setters for Spring to bind request parameters
+    public void setUserId(Long userId) {
+        this.userId = userId;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public void setGrade(Integer grade) {
+        this.grade = grade;
+    }
+
     // URL 파라미터 'class'를 classNumber 필드에 매핑하기 위한 Setter
     public void setClass(Integer classNumber) {
         this.classNumber = classNumber;
+    }
+
+    public void setItemId(Long itemId) {
+        this.itemId = itemId;
+    }
+
+    public void setFrom(LocalDate from) {
+        this.from = from;
+    }
+
+    public void setTo(LocalDate to) {
+        this.to = to;
     }
 
     /**
