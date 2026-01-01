@@ -1,6 +1,7 @@
 package com.eod.eod.common.exception;
 
 import com.eod.eod.domain.item.exception.InvalidParameterException;
+import com.eod.eod.domain.image.exception.ImageException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidParameterException.class)
     public ResponseEntity<ErrorResponse> handleInvalidParameterException(InvalidParameterException invalidParameterException) {
         return buildResponse(HttpStatus.BAD_REQUEST, invalidParameterException.getMessage());
+    }
+
+    @ExceptionHandler(ImageException.class)
+    public ResponseEntity<ErrorResponse> handleImageException(ImageException imageException) {
+        return buildResponse(imageException.getErrorCode().getStatus(), imageException.getErrorCode().getMessage());
     }
 
     // 물품을 찾을 수 없는 경우 (404)
