@@ -69,8 +69,26 @@ public class RewardController {
         return ResponseEntity.ok(RewardGiveResponse.success());
     }
 
-    @Operation(summary = "상점 지급 이력 조회",
-               description = "1) 사용자별 조회: ?user_id=1\n2) 날짜/학년/반별 조회: ?date=2025-08-05&grade=3&class=2\n\n" +
+    @Operation(summary = "상점 지급 이력 검색",
+               description = "**동적 필터링 검색**\n\n" +
+                       "모든 파라미터는 선택적이며, 조합하여 사용할 수 있습니다.\n\n" +
+                       "**검색 파라미터:**\n" +
+                       "- `userId`: 특정 사용자로 필터링\n" +
+                       "- `itemId`: 특정 아이템으로 필터링\n" +
+                       "- `from`: 시작 날짜 (inclusive, yyyy-MM-dd)\n" +
+                       "- `to`: 종료 날짜 (exclusive, yyyy-MM-dd)\n" +
+                       "- `grade`: 학년으로 필터링\n" +
+                       "- `class`: 반으로 필터링\n\n" +
+                       "**레거시 파라미터 (하위 호환성):**\n" +
+                       "- `user_id`: userId와 동일\n" +
+                       "- `date`: from과 동일\n\n" +
+                       "**예시:**\n" +
+                       "- `/rewards/history` - 전체 조회\n" +
+                       "- `/rewards/history?userId=3` - 사용자 3번의 이력\n" +
+                       "- `/rewards/history?itemId=10` - 아이템 10번이 지급된 이력\n" +
+                       "- `/rewards/history?from=2025-12-01&to=2025-12-31` - 12월 이력\n" +
+                       "- `/rewards/history?userId=3&from=2025-12-01` - 사용자 3번의 12월 이후 이력\n" +
+                       "- `/rewards/history?grade=3&class=2` - 3학년 2반 이력\n\n" +
                        "※ 데이터가 없을 경우 빈 배열([])을 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공 (데이터가 없을 경우 빈 배열 반환)",
@@ -78,18 +96,11 @@ public class RewardController {
                             mediaType = "application/json",
                             schema = @Schema(implementation = RewardHistoryResponse.class),
                             examples = {
-                                    @ExampleObject(name = "사용자별 조회 - 데이터 있음",
-                                            value = "{\"userId\": 1, \"rewards\": [{\"rewardId\": 12, \"itemId\": 5, \"itemName\": \"무선 이어폰\", \"givenBy\": \"김선생\", \"givenAt\": \"2025-07-31\"}]}"),
-                                    @ExampleObject(name = "사용자별 조회 - 데이터 없음",
-                                            value = "{\"userId\": 1, \"rewards\": []}"),
-                                    @ExampleObject(name = "날짜/학년/반별 조회 - 데이터 없음",
-                                            value = "{\"histories\": []}")
+                                    @ExampleObject(name = "검색 결과 있음",
+                                            value = "{\"userId\": null, \"rewards\": [{\"rewardId\": 12, \"itemId\": 5, \"itemName\": \"무선 이어폰\", \"givenBy\": \"김선생\", \"givenAt\": \"2025-07-31\"}]}"),
+                                    @ExampleObject(name = "검색 결과 없음",
+                                            value = "{\"userId\": null, \"rewards\": []}")
                             }
-                    )),
-            @ApiResponse(responseCode = "400", description = "잘못된 요청 파라미터",
-                    content = @Content(
-                            mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"message\": \"user_id만 제공하거나 date, grade, class를 모두 제공해야 합니다.\"}")
                     )),
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(
@@ -103,14 +114,14 @@ public class RewardController {
                     ))
     })
     @GetMapping("/history")
-    public ResponseEntity<?> getRewardHistory(
-            @Parameter(description = "상점 지급 이력 조회 요청 파라미터")
+    public ResponseEntity<RewardHistoryResponse> getRewardHistory(
+            @Parameter(description = "상점 지급 이력 검색 파라미터 (모두 선택적)")
             @ParameterObject
             @Valid @ModelAttribute RewardHistoryRequest request,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-         Object response = rewardQueryService.getRewardHistory(request, currentUser);
+        RewardHistoryResponse response = rewardQueryService.searchRewardHistory(request, currentUser);
         return ResponseEntity.ok(response);
     }
 }

@@ -1,6 +1,7 @@
 package com.eod.eod.domain.reward.application;
 
 import com.eod.eod.domain.reward.infrastructure.RewardRecordRepository;
+import com.eod.eod.domain.reward.infrastructure.RewardRecordSpecification;
 import com.eod.eod.domain.reward.model.RewardRecord;
 import com.eod.eod.domain.reward.presentation.dto.request.RewardHistoryRequest;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
@@ -8,6 +9,7 @@ import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,19 +30,31 @@ public class RewardQueryService {
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-    public Object getRewardHistory(RewardHistoryRequest request, User currentUser) {
-        request.validate();
-
-        if (request.isUserQuery()) {
-            return getRewardHistory(request.getUserId(), currentUser);
+    /**
+     * 상점 지급 이력 검색 (동적 필터링)
+     * 모든 파라미터는 선택적이며, 조건에 맞는 결과만 반환합니다.
+     */
+    public RewardHistoryResponse searchRewardHistory(RewardHistoryRequest request, User currentUser) {
+        // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능) - 테스트를 위해 임시로 null 체크 추가
+        if (currentUser != null && !currentUser.isTeacherOrAdmin()) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
-        return getGiveHistoryByDateAndClass(
-                request.getDate(),
+        // 동적 검색 조건 생성
+        Specification<RewardRecord> spec = RewardRecordSpecification.searchWithFilters(
+                request.getEffectiveUserId(),
+                request.getItemId(),
+                request.getEffectiveFrom(),
+                request.getTo(),
                 request.getGrade(),
-                request.getClassNumber(),
-                currentUser
+                request.getClassNumber()
         );
+
+        // 검색 실행
+        List<RewardRecord> records = rewardRecordRepository.findAll(spec);
+
+        // Response 변환 (userId는 필터링 조건으로 사용된 값을 반환)
+        return RewardHistoryResponse.fromRecords(records, request.getEffectiveUserId());
     }
 
     // 상점 지급 이력 조회

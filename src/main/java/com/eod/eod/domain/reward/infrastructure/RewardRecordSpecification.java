@@ -14,7 +14,6 @@ public class RewardRecordSpecification {
 
     /**
      * 동적 검색 조건을 생성합니다.
-     * N+1 문제 방지를 위해 item과 teacher를 fetch join으로 함께 조회합니다.
      *
      * @param userId 학생 ID (선택)
      * @param itemId 아이템 ID (선택)
