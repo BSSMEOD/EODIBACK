@@ -2,6 +2,8 @@ package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ItemQueryService;
 import com.eod.eod.domain.item.application.ItemRegistrationService;
+    import com.eod.eod.domain.item.application.command.ItemRegistrationCommand;
+import com.eod.eod.domain.item.application.command.ItemUpdateCommand;
 import com.eod.eod.domain.item.presentation.dto.request.ItemRegistrationForm;
 import com.eod.eod.domain.item.presentation.dto.request.ItemSearchRequest;
 import com.eod.eod.domain.item.presentation.dto.request.ItemUpdateForm;
@@ -63,7 +65,7 @@ public class ItemController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        Long itemId = itemRegistrationService.registerItem(
+        ItemRegistrationCommand command = new ItemRegistrationCommand(
                 form.getName(),
                 form.getReporterStudentCode(),
                 form.getReporterName(),
@@ -71,9 +73,9 @@ public class ItemController {
                 form.getPlaceId(),
                 form.getPlaceDetail(),
                 form.getImageUrl(),
-                form.getCategory(),
-                currentUser
+                form.getCategory()
         );
+        Long itemId = itemRegistrationService.registerItem(command, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ItemCreateResponse.success(itemId));
     }
@@ -160,8 +162,7 @@ public class ItemController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        itemRegistrationService.updateItem(
-                id,
+        ItemUpdateCommand command = new ItemUpdateCommand(
                 form.getName(),
                 form.getReporterStudentCode(),
                 form.getReporterName(),
@@ -169,9 +170,9 @@ public class ItemController {
                 form.getPlaceId(),
                 form.getPlaceDetail(),
                 form.getImageUrl(),
-                form.getCategory(),
-                currentUser
+                form.getCategory()
         );
+        itemRegistrationService.updateItem(id, command, currentUser);
         return ResponseEntity.ok().build();
     }
 }

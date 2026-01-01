@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.common.annotation.RequireAdmin;
 import com.eod.eod.domain.item.infrastructure.DisposalReasonRepository;
 import com.eod.eod.domain.item.model.DisposalReason;
 import com.eod.eod.domain.item.model.Item;
@@ -48,6 +49,7 @@ public class DisposalReasonService {
     /**
      * 폐기 기간 연장
      */
+    @RequireAdmin
     public void extendDisposalPeriod(Long itemId, Long reasonId, User currentUser) {
         // 물품 조회
         Item item = itemFacade.getItemById(itemId);
@@ -59,11 +61,6 @@ public class DisposalReasonService {
         // 보류 사유가 해당 물품의 것인지 확인
         if (!disposalReason.getItem().equals(item)) {
             throw new IllegalArgumentException("해당 보류 사유는 이 물품의 것이 아닙니다.");
-        }
-
-        // 관리자 권한 확인
-        if (!currentUser.isAdmin()) {
-            throw new IllegalStateException("관리자 권한이 필요합니다.");
         }
 
         // 물품 상태 확인
