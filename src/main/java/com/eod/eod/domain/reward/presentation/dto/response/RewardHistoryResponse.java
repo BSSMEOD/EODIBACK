@@ -1,6 +1,7 @@
 package com.eod.eod.domain.reward.presentation.dto.response;
 
 import com.eod.eod.domain.reward.model.RewardRecord;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
@@ -50,6 +51,10 @@ public class RewardHistoryResponse {
         @Schema(description = "지급 물품 이름", example = "무선 이어폰")
         private String itemName;
 
+        @JsonProperty("item")
+        @Schema(description = "물품 상세 정보")
+        private ItemInfo item;
+
         @JsonProperty("givenBy")
         @Schema(description = "상점을 지급한 교사 이름", example = "김선생")
         private String givenBy;
@@ -63,6 +68,7 @@ public class RewardHistoryResponse {
                     .rewardId(record.getId())
                     .itemId(record.getItem().getId())
                     .itemName(record.getItem().getName())
+                    .item(ItemInfo.from(record.getItem()))
                     .givenBy(record.getTeacher().getName())
                     .givenAt(formatDate(record.getCreatedAt()))
                     .build();
@@ -70,6 +76,43 @@ public class RewardHistoryResponse {
 
         private static String formatDate(LocalDateTime dateTime) {
             return dateTime.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        }
+    }
+
+    @Getter
+    @Builder
+    public static class ItemInfo {
+
+        @Schema(description = "물품 ID", example = "10")
+        private Long id;
+
+        @Schema(description = "물품 이름", example = "USB")
+        private String name;
+
+        @Schema(description = "물품 카테고리", example = "전자기기")
+        private com.eod.eod.domain.item.model.Item.ItemCategory category;
+
+        @Schema(description = "물품 상태", example = "GIVEN")
+        private String status;
+
+        @JsonProperty("imageUrl")
+        @Schema(description = "물품 이미지 URL")
+        private String imageUrl;
+
+        @JsonProperty("foundAt")
+        @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm")
+        @Schema(description = "습득 날짜", example = "2025-12-01 10:00")
+        private LocalDateTime foundAt;
+
+        public static ItemInfo from(com.eod.eod.domain.item.model.Item item) {
+            return ItemInfo.builder()
+                    .id(item.getId())
+                    .name(item.getName())
+                    .category(item.getCategory())
+                    .status(item.getStatus().name())
+                    .imageUrl(item.getImage())
+                    .foundAt(item.getFoundAt())
+                    .build();
         }
     }
 }
