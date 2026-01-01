@@ -1,6 +1,7 @@
 package com.eod.eod.domain.reward.infrastructure;
 
 import com.eod.eod.domain.reward.model.RewardRecord;
+import jakarta.persistence.criteria.JoinType;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.jpa.domain.Specification;
 
@@ -31,6 +32,13 @@ public class RewardRecordSpecification {
             Integer classNumber
     ) {
         return (root, query, criteriaBuilder) -> {
+            // N+1 문제 방지: item과 teacher를 fetch join
+            // COUNT 쿼리에서는 fetch join이 필요 없으므로 조건부로 적용
+            if (query != null && Long.class != query.getResultType()) {
+                root.fetch("item", JoinType.LEFT);
+                root.fetch("teacher", JoinType.LEFT);
+            }
+
             List<Predicate> predicates = new ArrayList<>();
 
             // userId 필터: student.id = ?
