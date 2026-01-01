@@ -3,6 +3,7 @@ package com.eod.eod.domain.item.application;
 import com.eod.eod.domain.item.infrastructure.DisposalReasonRepository;
 import com.eod.eod.domain.item.model.DisposalReason;
 import com.eod.eod.domain.item.model.Item;
+import com.eod.eod.domain.item.exception.InvalidParameterException;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -43,11 +44,29 @@ public class DisposalReasonService {
 
         // 날짜 필터가 있는 경우
         if (from != null || to != null) {
-            LocalDateTime fromDateTime = from != null ? from.atStartOfDay() : LocalDateTime.of(1970, 1, 1, 0, 0);
-            LocalDateTime toDateTime = to != null ? to.atStartOfDay() : LocalDateTime.now().plusYears(100);
+            if (from != null && to != null && from.isAfter(to)) {
+                throw new InvalidParameterException("from은 to보다 이후일 수 없습니다.");
+            }
 
-            return disposalReasonRepository.findTopByItemIdAndCreatedAtBetweenOrderByCreatedAtDesc(
-                    itemId, fromDateTime, toDateTime)
+            if (from != null && to != null) {
+                LocalDateTime fromDateTime = from.atStartOfDay();
+                LocalDateTime toDateTimeExclusive = to.plusDays(1).atStartOfDay();
+                return disposalReasonRepository
+                        .findTopByItemIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+                                itemId, fromDateTime, toDateTimeExclusive)
+                        .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
+            }
+
+            if (from != null) {
+                LocalDateTime fromDateTime = from.atStartOfDay();
+                return disposalReasonRepository
+                        .findTopByItemIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(itemId, fromDateTime)
+                        .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
+            }
+
+            LocalDateTime toDateTimeExclusive = to.plusDays(1).atStartOfDay();
+            return disposalReasonRepository
+                    .findTopByItemIdAndCreatedAtLessThanOrderByCreatedAtDesc(itemId, toDateTimeExclusive)
                     .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
         }
 

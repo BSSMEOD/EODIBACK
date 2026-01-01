@@ -22,8 +22,20 @@ public interface DisposalReasonRepository extends JpaRepository<DisposalReason, 
     /**
      * 특정 아이템의 특정 기간 내 최신 폐기 보류 사유 조회
      */
-    Optional<DisposalReason> findTopByItemIdAndCreatedAtBetweenOrderByCreatedAtDesc(
-            Long itemId, LocalDateTime fromDateTime, LocalDateTime toDateTime);
+    Optional<DisposalReason> findTopByItemIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
+            Long itemId, LocalDateTime fromDateTime, LocalDateTime toDateTimeExclusive);
+
+    /**
+     * 특정 아이템의 특정 기간 이후 최신 폐기 보류 사유 조회
+     */
+    Optional<DisposalReason> findTopByItemIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(
+            Long itemId, LocalDateTime fromDateTime);
+
+    /**
+     * 특정 아이템의 특정 기간 이전 최신 폐기 보류 사유 조회
+     */
+    Optional<DisposalReason> findTopByItemIdAndCreatedAtLessThanOrderByCreatedAtDesc(
+            Long itemId, LocalDateTime toDateTimeExclusive);
 
     /**
      * 특정 아이템의 폐기 보류 사유 존재 여부 확인

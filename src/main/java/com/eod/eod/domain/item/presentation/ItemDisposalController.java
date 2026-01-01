@@ -91,7 +91,7 @@ public class ItemDisposalController {
             @PathVariable("item-id") Long itemId,
             @Parameter(description = "시작 날짜 (inclusive)", example = "2025-12-01")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate from,
-            @Parameter(description = "종료 날짜 (exclusive)", example = "2025-12-31")
+            @Parameter(description = "종료 날짜 (inclusive, 포함)", example = "2025-12-31")
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate to
     ) {
         DisposalReasonResponse response = DisposalReasonResponse.from(
