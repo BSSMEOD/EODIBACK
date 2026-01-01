@@ -23,15 +23,15 @@ public class DisposalReasonService {
     /**
      * 폐기 보류 사유 제출
      */
-    public void submitDisposalReason(Long itemId, String reason, Integer extensionDays, User currentUser) {
+    public DisposalReason submitDisposalReason(Long itemId, String reason, Integer extensionDays, User currentUser) {
         // 물품 조회
         Item item = itemFacade.getItemById(itemId);
 
         // 폐기 보류 사유 생성 (도메인에서 선생님 권한 및 물품 상태 검증)
         DisposalReason disposalReason = DisposalReason.create(item, currentUser, reason, extensionDays);
 
-        // 저장
-        disposalReasonRepository.save(disposalReason);
+        // 저장 및 반환 (영속화된 엔티티 사용)
+        return disposalReasonRepository.save(disposalReason);
     }
 
     /**
@@ -56,18 +56,6 @@ public class DisposalReasonService {
                                 itemId, fromDateTime, toDateTimeExclusive)
                         .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
             }
-
-            if (from != null) {
-                LocalDateTime fromDateTime = from.atStartOfDay();
-                return disposalReasonRepository
-                        .findTopByItemIdAndCreatedAtGreaterThanEqualOrderByCreatedAtDesc(itemId, fromDateTime)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
-            }
-
-            LocalDateTime toDateTimeExclusive = to.plusDays(1).atStartOfDay();
-            return disposalReasonRepository
-                    .findTopByItemIdAndCreatedAtLessThanOrderByCreatedAtDesc(itemId, toDateTimeExclusive)
-                    .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
         }
 
         // 날짜 필터가 없으면 최신 사유 조회
