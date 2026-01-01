@@ -1,4 +1,4 @@
-package com.eod.eod.domain.image.entity;
+package com.eod.eod.domain.image.model;
 
 
 import com.eod.eod.domain.user.model.User;
