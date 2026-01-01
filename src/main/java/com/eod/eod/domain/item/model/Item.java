@@ -93,7 +93,7 @@ public class Item {
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
-    public static Item registerLostItem(User admin, Long foundPlaceId, String foundPlaceDetail,
+    public static Item registerLostItem(User admin, User student, Long foundPlaceId, String foundPlaceDetail,
                                         String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
         requireAdmin(admin);
         validateFoundAt(foundAt);
@@ -103,7 +103,7 @@ public class Item {
         String sanitizedReporterName = sanitizeReporterName(reporterName);
 
         return Item.builder()
-                .student(admin)
+                .student(student != null ? student : admin)
                 .admin(admin)
                 .foundPlaceId(requirePlaceId(foundPlaceId))
                 .foundPlaceDetail(sanitizedDetail)
@@ -114,6 +114,23 @@ public class Item {
                 .category(category)
                 .foundAt(foundAt)
                 .build();
+    }
+
+    // 물품 정보 수정
+    public void updateItem(User updater, User student, Long foundPlaceId, String foundPlaceDetail,
+                          String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
+        validateAdminRole(updater);
+        validateFoundAt(foundAt);
+        validateCategory(category);
+
+        this.student = student != null ? student : this.student;
+        this.foundPlaceId = requirePlaceId(foundPlaceId);
+        this.foundPlaceDetail = sanitizeDetail(foundPlaceDetail);
+        this.name = sanitizeName(name);
+        this.reporterName = sanitizeReporterName(reporterName);
+        this.image = imageUrl == null ? "" : imageUrl;
+        this.category = category;
+        this.foundAt = foundAt;
     }
 
     // 물품 지급 처리
