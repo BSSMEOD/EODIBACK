@@ -9,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.function.Consumer;
+import java.util.function.Function;
+import java.util.function.Supplier;
 
 @Slf4j
 @Service
@@ -29,38 +32,17 @@ public class ItemSchedulerService {
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void autoMarkItemsAsToBeDiscarded() {
-        log.info("폐기 예정 전환 스케줄러 시작");
-
-        // (6개월 - 2주) 전 날짜 계산
         LocalDateTime thresholdDate = LocalDateTime.now()
                 .minusMonths(RETENTION_MONTHS)
                 .plusWeeks(GRACE_PERIOD_WEEKS);
 
-        // LOST 상태이면서 습득일이 (6개월 - 2주) 이전인 물품 조회
-        List<Item> longUnclaimedItems = itemFacade.findByStatusAndFoundAtBefore(
-                Item.ItemStatus.LOST,
-                thresholdDate
+        processScheduledTask(
+                "폐기 예정 전환",
+                () -> itemFacade.findByStatusAndFoundAtBefore(Item.ItemStatus.LOST, thresholdDate),
+                Item::markAsToBeDiscarded,
+                item -> String.format("ID: %d, 이름: %s, 습득일: %s, 폐기 예정일: %s",
+                        item.getId(), item.getName(), item.getFoundAt(), item.getDiscardedAt())
         );
-
-        if (longUnclaimedItems.isEmpty()) {
-            log.info("폐기 예정 전환 대상 물품이 없습니다.");
-            return;
-        }
-
-        // 각 물품을 폐기 예정 상태로 변경
-        int markedCount = 0;
-        for (Item item : longUnclaimedItems) {
-            try {
-                item.markAsToBeDiscarded();
-                markedCount++;
-                log.info("물품 폐기 예정으로 전환 완료 - ID: {}, 이름: {}, 습득일: {}, 폐기 예정일: {}",
-                        item.getId(), item.getName(), item.getFoundAt(), item.getDiscardedAt());
-            } catch (Exception e) {
-                log.error("물품 폐기 예정 전환 중 오류 발생 - ID: {}, 오류: {}", item.getId(), e.getMessage());
-            }
-        }
-
-        log.info("폐기 예정 전환 스케줄러 완료 - 총 {}개 물품 전환 (습득일 + 6개월에 폐기 예정)", markedCount);
     }
 
     /**
@@ -69,34 +51,46 @@ public class ItemSchedulerService {
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void autoDiscardExpiredItems() {
-        log.info("자동 폐기 스케줄러 시작");
-
         LocalDateTime now = LocalDateTime.now();
 
-        // 폐기 예정 상태이면서 폐기일이 지난 물품 조회
-        List<Item> expiredItems = itemFacade.findByStatusAndDiscardedAtBefore(
-                Item.ItemStatus.TO_BE_DISCARDED,
-                now
+        processScheduledTask(
+                "자동 폐기",
+                () -> itemFacade.findByStatusAndDiscardedAtBefore(Item.ItemStatus.TO_BE_DISCARDED, now),
+                Item::discard,
+                item -> String.format("ID: %d, 이름: %s, 폐기 예정일: %s",
+                        item.getId(), item.getName(), item.getDiscardedAt())
         );
+    }
 
-        if (expiredItems.isEmpty()) {
-            log.info("폐기 대상 물품이 없습니다.");
+    /**
+     * 스케줄 작업 공통 처리 로직
+     */
+    private void processScheduledTask(
+            String taskName,
+            Supplier<List<Item>> itemsFetcher,
+            Consumer<Item> itemProcessor,
+            Function<Item, String> itemInfoProvider
+    ) {
+        log.info("{} 스케줄러 시작", taskName);
+
+        List<Item> items = itemsFetcher.get();
+
+        if (items.isEmpty()) {
+            log.info("{} 대상 물품이 없습니다.", taskName);
             return;
         }
 
-        // 각 물품을 폐기 처리
-        int discardedCount = 0;
-        for (Item item : expiredItems) {
+        int processedCount = 0;
+        for (Item item : items) {
             try {
-                item.discard();
-                discardedCount++;
-                log.info("물품 자동 폐기 완료 - ID: {}, 이름: {}, 폐기 예정일: {}",
-                        item.getId(), item.getName(), item.getDiscardedAt());
+                itemProcessor.accept(item);
+                processedCount++;
+                log.info("{} 완료 - {}", taskName, itemInfoProvider.apply(item));
             } catch (Exception e) {
-                log.error("물품 폐기 중 오류 발생 - ID: {}, 오류: {}", item.getId(), e.getMessage());
+                log.error("{} 중 오류 발생 - ID: {}, 오류: {}", taskName, item.getId(), e.getMessage());
             }
         }
 
-        log.info("자동 폐기 스케줄러 완료 - 총 {}개 물품 폐기", discardedCount);
+        log.info("{} 스케줄러 완료 - 총 {}개 물품 처리", taskName, processedCount);
     }
 }

@@ -75,53 +75,7 @@ class ItemGiveServiceTest {
         verify(giveRecordRepository).save(any(GiveRecord.class));
     }
 
-    @Test
-    void 물품_지급_실패_ADMIN_권한_없음() {
-        // given
-        Long itemId = 1L;
-        Long receiverId = 2L;
-
-        User adminUser = User.builder()
-                .name("Admin User")
-                .email("admin@test.com")
-                .role(User.Role.ADMIN)
-                .build();
-
-        User nonAdminUser = User.builder()
-                .name("Non Admin User")
-                .email("user@test.com")
-                .role(User.Role.USER)
-                .build();
-
-        User receiverUser = User.builder()
-                .name("Receiver User")
-                .email("receiver@test.com")
-                .role(User.Role.USER)
-                .build();
-
-        Item item = Item.builder()
-                .student(receiverUser)
-                .admin(adminUser)
-                .foundPlaceId(1L)
-                .foundPlaceDetail("Test place")
-                .name("Test item")
-                .image("test.jpg")
-                .status(Item.ItemStatus.LOST)
-                .foundAt(java.time.LocalDateTime.now())
-                .build();
-
-        when(itemFacade.getItemById(itemId)).thenReturn(item);
-        when(userRepository.findById(receiverId)).thenReturn(Optional.of(receiverUser));
-
-        // when & then
-        assertThatThrownBy(() -> itemGiveService.giveItemToStudent(itemId, receiverId, nonAdminUser))
-                .isInstanceOf(AccessDeniedException.class)
-                .hasMessage("ADMIN 권한이 없습니다.");
-
-        verify(itemFacade).getItemById(itemId);
-        verify(userRepository).findById(receiverId);
-        verify(giveRecordRepository, never()).save(any());
-    }
+    // Note: 권한 검증 테스트는 @RequireAdmin AOP로 처리되므로 통합 테스트에서 검증
 
     @Test
     void 물품_지급_실패_물품_없음() {

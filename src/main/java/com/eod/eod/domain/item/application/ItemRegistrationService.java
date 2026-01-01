@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.common.annotation.RequireAdmin;
 import com.eod.eod.domain.item.application.command.ItemRegistrationCommand;
 import com.eod.eod.domain.item.application.command.ItemUpdateCommand;
 import com.eod.eod.domain.item.model.Item;
@@ -23,6 +24,7 @@ public class ItemRegistrationService {
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
 
+    @RequireAdmin
     public Long registerItem(ItemRegistrationCommand command, User currentUser) {
         LocalDateTime foundAtDateTime = validateAndParseFoundAt(command.foundAt(), command.placeId());
         User student = findStudentByCode(command.reporterStudentCode());
@@ -81,6 +83,7 @@ public class ItemRegistrationService {
         }
     }
 
+    @RequireAdmin
     public void updateItem(Long itemId, ItemUpdateCommand command, User currentUser) {
         Item item = itemFacade.getItemById(itemId);
         LocalDateTime foundAtDateTime = validateAndParseFoundAt(command.foundAt(), command.placeId());
