@@ -73,9 +73,16 @@ public class BsmLoginService {
     private record BsmUserInfo(String oauthId, String email, String name, User.Role role,
                                Boolean isGraduate, Integer grade, Integer classNo, Integer studentNo) {
         static BsmUserInfo from(JsonNode resource) {
+            if (resource == null || resource.isNull()) {
+                throw new IllegalStateException("BSM resource에 user 객체가 없습니다: " + resource);
+            }
+
             // BSM API 응답 구조: {"user": {...}, "scopeList": [...]}
             JsonNode userNode = resource.get("user");
-            if (userNode == null || userNode.isNull()) {
+            if (userNode == null || !userNode.isObject()) {
+                userNode = resource;
+            }
+            if (!userNode.isObject()) {
                 throw new IllegalStateException("BSM resource에 user 객체가 없습니다: " + resource);
             }
 
@@ -85,15 +92,10 @@ public class BsmLoginService {
                 throw new IllegalStateException("BSM resource에 email이 없습니다: " + resource);
             }
 
-            // id가 없는 경우 studentNo를 oauthId로 사용 (학생), 또는 email 사용 (교사)
+            // id, userCode는 필수
             String oauthId = firstText(userNode, "id", "userCode", "user_code");
             if (oauthId == null || oauthId.isBlank()) {
-                Integer studentNoForId = firstInt(userNode, "studentNo", "studentNumber", "student_no");
-                if (studentNoForId != null) {
-                    oauthId = "student_" + studentNoForId;
-                } else {
-                    oauthId = "email_" + email;
-                }
+                throw new IllegalStateException("BSM resource에 id/userCode가 없습니다: " + resource);
             }
 
             // 이름 (nickname 또는 name, 없으면 email 사용)
@@ -108,11 +110,26 @@ public class BsmLoginService {
                     ? User.Role.TEACHER
                     : User.Role.USER;
 
-            // 학생 정보는 user 객체에 직접 포함되어 있음
-            Boolean isGraduate = firstBoolean(userNode, "isGraduate", "is_graduate", "graduate");
-            Integer grade = firstInt(userNode, "grade");
-            Integer classNo = firstInt(userNode, "classNo", "classNumber", "class_num", "class");
-            Integer studentNo = firstInt(userNode, "studentNo", "studentNumber", "student_no", "number");
+            JsonNode studentNode = userNode.get("student");
+            Boolean isGraduate = firstBoolean(studentNode, "isGraduate", "is_graduate", "graduate");
+            if (isGraduate == null) {
+                isGraduate = firstBoolean(userNode, "isGraduate", "is_graduate", "graduate");
+            }
+
+            Integer grade = firstInt(studentNode, "grade");
+            if (grade == null) {
+                grade = firstInt(userNode, "grade");
+            }
+
+            Integer classNo = firstInt(studentNode, "classNo", "classNumber", "class_num", "class");
+            if (classNo == null) {
+                classNo = firstInt(userNode, "classNo", "classNumber", "class_num", "class");
+            }
+
+            Integer studentNo = firstInt(studentNode, "studentNo", "studentNumber", "student_no", "number");
+            if (studentNo == null) {
+                studentNo = firstInt(userNode, "studentNo", "studentNumber", "student_no", "number");
+            }
 
             return new BsmUserInfo(oauthId, email, name, appRole, isGraduate, grade, classNo, studentNo);
         }
@@ -128,6 +145,7 @@ public class BsmLoginService {
         }
 
         private static Integer firstInt(JsonNode node, String... keys) {
+            if (node == null || node.isNull()) return null;
             for (String key : keys) {
                 JsonNode value = node.get(key);
                 if (value == null || value.isNull()) continue;
@@ -145,6 +163,7 @@ public class BsmLoginService {
         }
 
         private static Boolean firstBoolean(JsonNode node, String... keys) {
+            if (node == null || node.isNull()) return null;
             for (String key : keys) {
                 JsonNode value = node.get(key);
                 if (value == null || value.isNull()) continue;
