@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.common.annotation.RequireAdmin;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.presentation.dto.response.ItemApprovalResponse;
 import com.eod.eod.domain.user.model.User;
@@ -15,11 +16,12 @@ public class ItemApprovalService {
     private final ItemFacade itemFacade;
 
     // 물품 승인/거절 처리
+    @RequireAdmin
     public ItemApprovalResponse processApproval(Long itemId, Item.ApprovalStatus approvalStatus, User currentUser) {
         // 물품 조회
         Item item = itemFacade.getItemById(itemId);
 
-        // 승인/거절 처리 (Item 도메인에서 모든 검증 및 상태 변경)
+        // 승인/거절 처리
         item.processApproval(approvalStatus, currentUser);
 
         // Response 변환

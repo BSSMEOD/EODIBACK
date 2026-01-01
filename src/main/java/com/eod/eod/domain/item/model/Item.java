@@ -10,7 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.Set;
 
 @Entity
 @Table(name = "items")
@@ -73,9 +72,6 @@ public class Item {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
-    private static final long MAX_IMAGE_SIZE_BYTES = 5L * 1024 * 1024;
-    private static final Set<String> ALLOWED_IMAGE_CONTENT_TYPES = Set.of("image/jpeg", "image/png");
-
     @Builder
     public Item(User student, User admin, Long foundPlaceId, String foundPlaceDetail,
                 String name, String reporterName, String image, ItemStatus status, ItemCategory category, LocalDateTime foundAt) {
@@ -93,19 +89,18 @@ public class Item {
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
-    public static Item registerLostItem(User admin, Long foundPlaceId, String foundPlaceDetail,
+    public static Item registerLostItem(User admin, User student, Long foundPlaceId, String foundPlaceDetail,
                                         String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
-        requireAdmin(admin);
-        validateFoundAt(foundAt);
-        validateCategory(category);
-        String sanitizedName = sanitizeName(name);
-        String sanitizedDetail = sanitizeDetail(foundPlaceDetail);
-        String sanitizedReporterName = sanitizeReporterName(reporterName);
+        ItemValidator.validateFoundAt(foundAt);
+        ItemValidator.validateCategory(category);
+        String sanitizedName = ItemSanitizer.sanitizeName(name);
+        String sanitizedDetail = ItemSanitizer.sanitizeDetail(foundPlaceDetail);
+        String sanitizedReporterName = ItemSanitizer.sanitizeReporterName(reporterName);
 
         return Item.builder()
-                .student(admin)
+                .student(student != null ? student : admin)
                 .admin(admin)
-                .foundPlaceId(requirePlaceId(foundPlaceId))
+                .foundPlaceId(ItemValidator.requirePlaceId(foundPlaceId))
                 .foundPlaceDetail(sanitizedDetail)
                 .name(sanitizedName)
                 .reporterName(sanitizedReporterName)
@@ -116,9 +111,24 @@ public class Item {
                 .build();
     }
 
+    // 물품 정보 수정
+    public void updateItem(User updater, User student, Long foundPlaceId, String foundPlaceDetail,
+                          String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
+        ItemValidator.validateFoundAt(foundAt);
+        ItemValidator.validateCategory(category);
+
+        this.student = student != null ? student : this.student;
+        this.foundPlaceId = ItemValidator.requirePlaceId(foundPlaceId);
+        this.foundPlaceDetail = ItemSanitizer.sanitizeDetail(foundPlaceDetail);
+        this.name = ItemSanitizer.sanitizeName(name);
+        this.reporterName = ItemSanitizer.sanitizeReporterName(reporterName);
+        this.image = imageUrl == null ? "" : imageUrl;
+        this.category = category;
+        this.foundAt = foundAt;
+    }
+
     // 물품 지급 처리
     public void giveToStudent(User receiver, User giver) {
-        validateAdminRole(giver);
         if (this.status == ItemStatus.GIVEN) {
             throw new IllegalStateException("해당 물품은 이미 지급 처리되었습니다.");
         }
@@ -129,7 +139,6 @@ public class Item {
     // 승인/거절 처리
     public void processApproval(ApprovalStatus approvalStatus, User approver) {
         validateApprovalNotProcessed();
-        validateAdminRole(approver);
 
         if (approvalStatus == ApprovalStatus.APPROVED) {
             this.approvalStatus = ApprovalStatus.APPROVED;
@@ -143,110 +152,10 @@ public class Item {
         this.approvedAt = LocalDateTime.now();
     }
 
-    // 승인 처리 (private - 내부 사용)
-    private void approve(User approver) {
-        validateApprovalNotProcessed();
-        validateAdminRole(approver);
-        this.approvalStatus = ApprovalStatus.APPROVED;
-        this.approvedBy = approver;
-        this.approvedAt = LocalDateTime.now();
-    }
-
-    // 거절 처리 (private - 내부 사용)
-    private void reject(User approver) {
-        validateApprovalNotProcessed();
-        validateAdminRole(approver);
-        this.approvalStatus = ApprovalStatus.REJECTED;
-        this.approvedBy = approver;
-        this.approvedAt = LocalDateTime.now();
-    }
-
     // 승인 처리 가능 여부 검증
     private void validateApprovalNotProcessed() {
         if (this.approvalStatus != ApprovalStatus.PENDING) {
             throw new IllegalStateException("이미 처리된 승인 요청입니다.");
-        }
-    }
-
-    // Admin 권한 검증
-    private void validateAdminRole(User user) {
-        if (!user.isAdmin()) {
-            throw new org.springframework.security.access.AccessDeniedException("ADMIN 권한이 없습니다.");
-        }
-    }
-
-    private static void requireAdmin(User user) {
-        if (user == null || !user.isAdmin()) {
-            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
-        }
-    }
-
-    private static void validateFoundAt(LocalDateTime foundAt) {
-        if (foundAt == null) {
-            throw new IllegalArgumentException("습득 일자는 필수입니다.");
-        }
-        if (foundAt.isAfter(LocalDateTime.now())) {
-            throw new IllegalStateException("과거 날짜만 등록할 수 있습니다.");
-        }
-    }
-
-    private static void validateCategory(ItemCategory category) {
-        if (category == null) {
-            throw new IllegalArgumentException("카테고리는 필수입니다.");
-        }
-    }
-
-    private static String sanitizeName(String name) {
-        String trimmed = requireText(name, "물품 이름은 필수입니다.");
-        if (trimmed.length() > 100) {
-            throw new IllegalArgumentException("물품 이름은 100자를 초과할 수 없습니다.");
-        }
-        return trimmed;
-    }
-
-    private static String sanitizeReporterName(String reporterName) {
-        if (reporterName == null || reporterName.trim().isEmpty()) {
-            return null;
-        }
-        String trimmed = reporterName.trim();
-        if (trimmed.length() > 50) {
-            throw new IllegalArgumentException("신고자 이름은 50자를 초과할 수 없습니다.");
-        }
-        return trimmed;
-    }
-
-    private static String sanitizeDetail(String placeDetail) {
-        String trimmed = requireText(placeDetail, "장소 설명은 필수입니다.");
-        if (trimmed.length() > 255) {
-            throw new IllegalArgumentException("장소 설명은 255자를 초과할 수 없습니다.");
-        }
-        return trimmed;
-    }
-
-    private static Long requirePlaceId(Long placeId) {
-        if (placeId == null) {
-            throw new IllegalArgumentException("장소 ID는 필수입니다.");
-        }
-        return placeId;
-    }
-
-    private static String requireText(String value, String message) {
-        if (value == null) {
-            throw new IllegalArgumentException(message);
-        }
-        String trimmed = value.trim();
-        if (trimmed.isEmpty()) {
-            throw new IllegalArgumentException(message);
-        }
-        return trimmed;
-    }
-
-    public static void validateImage(long size, String contentType) {
-        if (size > MAX_IMAGE_SIZE_BYTES) {
-            throw new IllegalStateException("이미지는 최대 5MB까지 업로드할 수 있습니다.");
-        }
-        if (contentType == null || !ALLOWED_IMAGE_CONTENT_TYPES.contains(contentType)) {
-            throw new IllegalStateException("이미지는 JPEG 또는 PNG 형식만 허용됩니다.");
         }
     }
 

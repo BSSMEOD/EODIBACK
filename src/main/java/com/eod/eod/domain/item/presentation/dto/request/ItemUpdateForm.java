@@ -6,13 +6,11 @@ import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import org.hibernate.validator.constraints.Length;
-import org.springframework.web.multipart.MultipartFile;
 
 @Getter
 @Setter
 @NoArgsConstructor
-public class ItemRegistrationForm {
+public class ItemUpdateForm {
 
     @NotBlank(message = "필수 항목이 누락되었습니다.")
     @Size(min = 1, max = 100, message = "물품 이름은 1~100자 사이로 입력해주세요.")
@@ -42,7 +40,7 @@ public class ItemRegistrationForm {
     @Schema(description = "구체적인 장소 설명", example = "본관 2층 로비", requiredMode = Schema.RequiredMode.REQUIRED)
     private String placeDetail;
 
-    @Schema(description = "분실물 이미지 파일 (JPEG/PNG)")
+    @Schema(description = "분실물 이미지 URL")
     private String imageUrl;
 
     @NotNull(message = "필수 항목이 누락되었습니다.")

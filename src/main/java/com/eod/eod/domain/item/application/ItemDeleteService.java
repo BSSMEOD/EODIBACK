@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.common.annotation.RequireAdmin;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -13,12 +14,8 @@ public class ItemDeleteService {
 
     private final ItemFacade itemFacade;
 
+    @RequireAdmin
     public void deleteItem(Long itemId, User currentUser) {
-        // ADMIN 권한 확인
-        if (!currentUser.isAdmin()) {
-            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
-        }
-
         // 물품 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
 

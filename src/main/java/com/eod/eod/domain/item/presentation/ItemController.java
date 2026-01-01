@@ -2,8 +2,11 @@ package com.eod.eod.domain.item.presentation;
 
 import com.eod.eod.domain.item.application.ItemQueryService;
 import com.eod.eod.domain.item.application.ItemRegistrationService;
+    import com.eod.eod.domain.item.application.command.ItemRegistrationCommand;
+import com.eod.eod.domain.item.application.command.ItemUpdateCommand;
 import com.eod.eod.domain.item.presentation.dto.request.ItemRegistrationForm;
 import com.eod.eod.domain.item.presentation.dto.request.ItemSearchRequest;
+import com.eod.eod.domain.item.presentation.dto.request.ItemUpdateForm;
 import com.eod.eod.domain.item.presentation.dto.response.ItemCreateResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemDetailResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemSearchResponse;
@@ -35,7 +38,7 @@ public class ItemController {
     private final ItemRegistrationService itemRegistrationService;
     private final ItemQueryService itemQueryService;
 
-    @Operation(summary = "분실물 등록", description = "Multipart Form 데이터로 분실물을 등록하고 이미지 파일은 외부 서버에 저장합니다.")
+    @Operation(summary = "분실물 등록", description = "JSON 형식으로 분실물을 등록합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "201", description = "분실물 등록 성공",
                     content = @Content(
@@ -55,23 +58,24 @@ public class ItemController {
                             examples = @ExampleObject(value = "{\"message\":\"등록되지 않은 장소입니다.\"}")
                     ))
     })
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping
     public ResponseEntity<ItemCreateResponse> registerItem(
             @Parameter(description = "분실물 등록 폼", required = true)
-            @Valid @ModelAttribute ItemRegistrationForm form,
+            @Valid @RequestBody ItemRegistrationForm form,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        Long itemId = itemRegistrationService.registerItem(
+        ItemRegistrationCommand command = new ItemRegistrationCommand(
                 form.getName(),
+                form.getReporterStudentCode(),
                 form.getReporterName(),
                 form.getFoundAt(),
                 form.getPlaceId(),
                 form.getPlaceDetail(),
-                form.getImage(),
-                form.getCategory(),
-                currentUser
+                form.getImageUrl(),
+                form.getCategory()
         );
+        Long itemId = itemRegistrationService.registerItem(command, currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ItemCreateResponse.success(itemId));
     }
@@ -127,5 +131,48 @@ public class ItemController {
     ) {
         ItemDetailResponse response = itemQueryService.getItemDetail(id);
         return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "물품 정보 수정", description = "물품의 정보를 수정합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "수정 성공",
+                    content = @Content(mediaType = "application/json")),
+            @ApiResponse(responseCode = "400", description = "필수 값 누락 또는 잘못된 입력",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\":\"필수 항목이 누락되었습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "403", description = "권한 부족 (ADMIN 권한 필요)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\":\"ADMIN 권한이 없습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "물품을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\":\"해당 물품을 찾을 수 없습니다.\"}")
+                    ))
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<Void> updateItem(
+            @Parameter(description = "수정할 물품 ID", required = true, example = "1")
+            @PathVariable Long id,
+            @Parameter(description = "물품 수정 폼", required = true)
+            @Valid @RequestBody ItemUpdateForm form,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        ItemUpdateCommand command = new ItemUpdateCommand(
+                form.getName(),
+                form.getReporterStudentCode(),
+                form.getReporterName(),
+                form.getFoundAt(),
+                form.getPlaceId(),
+                form.getPlaceDetail(),
+                form.getImageUrl(),
+                form.getCategory()
+        );
+        itemRegistrationService.updateItem(id, command, currentUser);
+        return ResponseEntity.ok().build();
     }
 }
