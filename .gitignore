@@ -45,3 +45,6 @@ CLAUDE.md
 *.log
 /logs/
 .DS_Store
+
+### Gradle ###
+gradle.properties
