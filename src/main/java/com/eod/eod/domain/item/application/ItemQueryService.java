@@ -50,17 +50,17 @@ public class ItemQueryService {
 
     public ItemSearchResponse searchItems(String query, List<Long> placeIds, String status,
                                           LocalDate foundAtFrom, LocalDate foundAtTo,
-                                          String category, int page, int size) {
+                                          List<String> categories, int page, int size) {
         Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "foundAt"));
 
         Item.ItemStatus itemStatus = parseStatus(status);
-        Item.ItemCategory itemCategory = parseCategory(category);
+        List<Item.ItemCategory> itemCategories = parseCategories(categories);
         String trimmedQuery = parseQuery(query);
         List<Long> filteredPlaceIds = filterNullPlaceIds(placeIds);
 
         Page<Item> itemPage = itemRepository.searchItems(trimmedQuery, filteredPlaceIds, itemStatus,
-                                                          foundAtFrom, foundAtTo, 
-                                                          itemCategory, pageable);
+                                                          foundAtFrom, foundAtTo,
+                                                          itemCategories, pageable);
 
         Map<Long, String> placeMap = buildPlaceMap(itemPage.getContent());
 
@@ -76,11 +76,14 @@ public class ItemQueryService {
         return Item.ItemStatus.valueOf(status.toUpperCase());
     }
 
-    private Item.ItemCategory parseCategory(String category) {
-        if (category == null || category.isBlank()) {
+    private List<Item.ItemCategory> parseCategories(List<String> categories) {
+        if (categories == null || categories.isEmpty()) {
             return null;
         }
-        return Item.ItemCategory.from(category);
+        return categories.stream()
+                .filter(category -> category != null && !category.isBlank())
+                .map(Item.ItemCategory::from)
+                .toList();
     }
 
     private String parseQuery(String query) {

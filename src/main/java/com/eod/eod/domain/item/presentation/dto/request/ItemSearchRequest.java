@@ -46,10 +46,10 @@ public class ItemSearchRequest {
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private LocalDate foundAtTo;
 
-    @com.eod.eod.common.validation.ItemCategoryValue(allowBlank = true,
+    @com.eod.eod.common.validation.ItemCategoriesValue(
             message = "유효하지 않은 카테고리 값입니다.")
-    @Schema(description = "물품 카테고리 (교복, 체육복, 단체복, 사복, 무선 이어폰, 전자기기, 안경, 기타) - 선택 사항",
-            example = "교복",
+    @Schema(description = "물품 카테고리 리스트 (교복, 체육복, 단체복, 사복, 무선 이어폰, 전자기기, 안경, 기타) - 선택 사항, 다중 선택 가능",
+            example = "[\"교복\", \"체육복\"]",
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    private String category;
+    private List<String> categories;
 }
