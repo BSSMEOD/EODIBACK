@@ -15,11 +15,11 @@ public interface ItemRepositoryCustom {
      * @param status 물품 상태 (선택 사항)
      * @param foundAtFrom 습득일 시작 날짜 (선택 사항)
      * @param foundAtTo 습득일 종료 날짜 (선택 사항)
-     * @param category 물품 카테고리 (선택 사항)
+     * @param categories 물품 카테고리 리스트 (선택 사항, 다중 선택 가능)
      * @param pageable 페이징 정보
      * @return 검색된 물품 페이지
      */
     Page<Item> searchItems(String trimmedQuery,List<Long> placeIds, Item.ItemStatus status,
-                          LocalDate foundAtFrom, LocalDate foundAtTo, 
-                          Item.ItemCategory category, Pageable pageable);
+                          LocalDate foundAtFrom, LocalDate foundAtTo,
+                          List<Item.ItemCategory> categories, Pageable pageable);
 }

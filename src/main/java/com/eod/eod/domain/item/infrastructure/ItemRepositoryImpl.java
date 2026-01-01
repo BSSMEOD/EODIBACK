@@ -23,8 +23,8 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
 
     @Override
     public Page<Item> searchItems(String trimmedQuery, List<Long> placeIds, Item.ItemStatus status,
-                                   LocalDate foundAtFrom, LocalDate foundAtTo, 
-                                   Item.ItemCategory category, Pageable pageable) {
+                                   LocalDate foundAtFrom, LocalDate foundAtTo,
+                                   List<Item.ItemCategory> categories, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
         QItem item = QItem.item;
 
@@ -58,8 +58,8 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
             builder.and(item.foundAt.loe(endDateTime));
         }
 
-        if (category != null) {
-            builder.and(item.category.eq(category));
+        if (categories != null && !categories.isEmpty()) {
+            builder.and(item.category.in(categories));
         }
 
         // 쿼리 실행

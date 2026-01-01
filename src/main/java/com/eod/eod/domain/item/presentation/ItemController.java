@@ -104,7 +104,7 @@ public class ItemController {
                 request.getStatus(),
                 request.getFoundAtFrom(),
                 request.getFoundAtTo(),
-                request.getCategory(),
+                request.getCategories(),
                 request.getPage(),
                 request.getSize()
         );
