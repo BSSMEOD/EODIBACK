@@ -10,6 +10,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Date;
 
 @Entity
 @Table(name = "items")
@@ -198,6 +200,10 @@ public class Item {
         if (this.discardedAt == null) {
             this.discardedAt = LocalDateTime.now();
         }
+    }
+
+    public String getDiscardedAtAsDate() {
+        return this.discardedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
     public enum ItemStatus {
