@@ -203,7 +203,9 @@ public class Item {
     }
 
     public String getDiscardedAt() {
-        return this.discardedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        return this.discardedAt != null
+                ? this.discardedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"))
+                : null;
     }
 
     public enum ItemStatus {

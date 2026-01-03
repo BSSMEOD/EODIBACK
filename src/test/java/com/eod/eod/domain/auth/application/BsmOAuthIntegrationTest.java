@@ -354,21 +354,22 @@ class BsmOAuthIntegrationTest {
 
     /**
      * Mock BSM 사용자 정보 생성 헬퍼 메서드
+     * 실제 BSM API 응답 구조와 동일하게 생성: {"user": {...}, "scopeList": [...]}
      */
     private JsonNode createMockBsmUserResource(String id, String userCode, String nickname, String email) {
+        // user 객체 생성 (실제 BSM API 응답 구조)
         var userNode = objectMapper.createObjectNode()
                 .put("id", id)
-                .put("nickname", nickname)
-                .put("email", email);
-
-        // student 객체 추가
-        var studentNode = objectMapper.createObjectNode()
+                .put("name", nickname)  // nickname이 아닌 name 필드 사용
+                .put("email", email)
+                .put("role", "STUDENT")
+                .put("isGraduate", false)
                 .put("grade", 1)
                 .put("classNo", 2)
-                .put("studentNo", 3)
-                .put("isGraduate", false);
-        userNode.set("student", studentNode);
+                .put("studentNo", 3);
 
-        return userNode;
+        // 최상위 객체에 user 래핑
+        return objectMapper.createObjectNode()
+                .set("user", userNode);
     }
 }

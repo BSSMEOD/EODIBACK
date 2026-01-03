@@ -128,7 +128,7 @@ public class ItemQueryService {
                 .placeDetail(item.getFoundPlaceDetail())
                 .imageUrl(item.getImage())
                 .status(item.getStatus().name())
-                .DisposalDate(item.getDiscardedAt())
+                .disposalDate(item.getDiscardedAt())
                 .category(item.getCategory())
                 .build();
     }
