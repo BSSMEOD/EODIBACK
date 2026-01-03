@@ -68,9 +68,9 @@ public class ItemDisposalController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        disposalReasonService.submitDisposalReason(itemId, request.getReason(), request.getDays(), currentUser);
+        var disposalReason = disposalReasonService.submitDisposalReason(itemId, request.getReason(), request.getDays(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(DisposalReasonSubmitResponse.of("보류 사유가 성공적으로 제출되었습니다."));
+                .body(DisposalReasonSubmitResponse.of(disposalReason, "보류 사유가 성공적으로 제출되었습니다."));
     }
 
     @Operation(summary = "폐기 보류 사유 조회", description = "특정 물품의 폐기 보류 사유를 조회합니다.")
@@ -135,7 +135,7 @@ public class ItemDisposalController {
     ) {
         String extendedDisposalDate = disposalReasonService.extendDisposalPeriod(itemId, request.getReasonId(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(DisposalExtensionResponse.of("페기 보류 되었습니다.", extendedDisposalDate));
+                .body(DisposalExtensionResponse.of("폐기 보류 되었습니다.", extendedDisposalDate));
     }
 
     @Operation(summary = "폐기 예정 물품 개수 조회", description = "현재 등록된 폐기 예정 물품의 총 건수를 반환합니다. ADMIN 권한이 필요합니다.")

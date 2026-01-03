@@ -10,6 +10,10 @@ import lombok.Getter;
 @Builder
 public class DisposalReasonResponse {
 
+    @JsonProperty("reasonId")
+    @Schema(description = "보류 사유 ID", example = "123")
+    private Long reasonId;
+
     @JsonProperty("itemId")
     @Schema(description = "물품 ID", example = "1")
     private Long itemId;
@@ -30,6 +34,7 @@ public class DisposalReasonResponse {
 
     public static DisposalReasonResponse from(DisposalReason disposalReason) {
         return DisposalReasonResponse.builder()
+                .reasonId(disposalReason.getId())
                 .itemId(disposalReason.getItem().getId())
                 .image(disposalReason.getItem().getImage())
                 .teacherName(disposalReason.getTeacher().getName())

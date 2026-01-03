@@ -10,7 +10,7 @@ import java.util.Date;
 @Builder
 public class DisposalExtensionResponse {
 
-    @Schema(description = "응답 메시지", example = "페기 보류 되었습니다.")
+    @Schema(description = "응답 메시지", example = "폐기 보류 되었습니다.")
     private String message;
 
     @Schema(description = "연장된 폐기 예정일", example = "2024-12-31")
