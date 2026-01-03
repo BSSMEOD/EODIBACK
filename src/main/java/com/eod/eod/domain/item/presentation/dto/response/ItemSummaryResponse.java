@@ -46,4 +46,7 @@ public class ItemSummaryResponse {
 
     @Schema(description = "물품 카테고리", example = "무선 이어폰")
     private Item.ItemCategory category;
+
+    @Schema(description = "폐기 예정일", example = "2024-12-31")
+    String disposalDate;
 }
