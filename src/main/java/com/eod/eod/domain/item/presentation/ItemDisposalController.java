@@ -25,6 +25,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
+import java.util.Date;
 
 @Tag(name = "Item Disposal", description = "물품 폐기 관리 API")
 @RestController
@@ -132,9 +133,9 @@ public class ItemDisposalController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        disposalReasonService.extendDisposalPeriod(itemId, request.getReasonId(), currentUser);
+        String extendedDisposalDate = disposalReasonService.extendDisposalPeriod(itemId, request.getReasonId(), currentUser);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(DisposalExtensionResponse.of("페기 보류 되었습니다."));
+                .body(DisposalExtensionResponse.of("페기 보류 되었습니다.", extendedDisposalDate));
     }
 
     @Operation(summary = "폐기 예정 물품 개수 조회", description = "현재 등록된 폐기 예정 물품의 총 건수를 반환합니다. ADMIN 권한이 필요합니다.")

@@ -12,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Service
 @RequiredArgsConstructor
@@ -68,7 +69,7 @@ public class DisposalReasonService {
      * 폐기 기간 연장
      */
     @RequireAdmin
-    public void extendDisposalPeriod(Long itemId, Long reasonId, User currentUser) {
+    public String extendDisposalPeriod(Long itemId, Long reasonId, User currentUser) {
         // 물품 조회
         Item item = itemFacade.getItemById(itemId);
 
@@ -88,6 +89,8 @@ public class DisposalReasonService {
 
         // 폐기 기간 연장 (보류 사유에 저장된 일수만큼 연장)
         item.extendDisposalDate(disposalReason.getExtensionDays());
+
+        return item.getDiscardedAtAsDate();
     }
 
     public long countItemsToBeDiscarded() {
