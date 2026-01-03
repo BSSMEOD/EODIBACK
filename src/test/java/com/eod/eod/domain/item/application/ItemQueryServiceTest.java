@@ -42,7 +42,7 @@ class ItemQueryServiceTest {
     private ItemQueryService itemQueryService;
 
     @Test
-    void placeIds가_null_제외_후_IN_검색된다() {
+    void placeIds가_Repository로_그대로_전달된다() {
         // given
         List<Long> placeIds = Arrays.asList(1L, null, 2L);
         Item item = createItem(1L, Item.ItemStatus.LOST);
@@ -53,11 +53,11 @@ class ItemQueryServiceTest {
         ReflectionTestUtils.setField(place, "place", "도서관");
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
-        when(itemRepository.searchItems(isNull(),anyList(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(), anyList(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "foundAt")), 1));
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(null, placeIds, "LOST", null, null, null, 1, 5);
+        ItemSearchResponse response = itemQueryService.searchItems(null, placeIds, "LOST", null, null, null, null, 1, 5);
 
         // then
         ArgumentCaptor<List<Long>> placeIdsCaptor = ArgumentCaptor.forClass(List.class);
@@ -65,7 +65,8 @@ class ItemQueryServiceTest {
 
         verify(itemRepository).searchItems(isNull(), placeIdsCaptor.capture(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), pageableCaptor.capture());
 
-        assertThat(placeIdsCaptor.getValue()).containsExactly(1L, 2L);
+        // Repository는 null 필터링을 직접 처리하므로 원본 리스트가 전달됨
+        assertThat(placeIdsCaptor.getValue()).containsExactly(1L, null, 2L);
 
         Pageable pageable = pageableCaptor.getValue();
         assertThat(pageable.getPageNumber()).isEqualTo(0);
@@ -78,13 +79,81 @@ class ItemQueryServiceTest {
     }
 
     @Test
+    void sort_latest면_내림차순_정렬된다() {
+        // given
+        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "foundAt")), 0));
+
+        // when
+        itemQueryService.searchItems(null, null, null, null, null, null, "LATEST", 1, 5);
+
+        // then
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), pageableCaptor.capture());
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("foundAt").getDirection())
+                .isEqualTo(Sort.Direction.DESC);
+        verifyNoInteractions(placeRepository);
+    }
+
+    @Test
+    void sort_null이면_기본값_최신순_정렬된다() {
+        // given
+        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "foundAt")), 0));
+
+        // when
+        itemQueryService.searchItems(null, null, null, null, null, null, null, 1, 5);
+
+        // then
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), pageableCaptor.capture());
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("foundAt").getDirection())
+                .isEqualTo(Sort.Direction.DESC);
+        verifyNoInteractions(placeRepository);
+    }
+
+    @Test
+    void sort_빈문자열이면_기본값_최신순_정렬된다() {
+        // given
+        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "foundAt")), 0));
+
+        // when
+        itemQueryService.searchItems(null, null, null, null, null, null, "   ", 1, 5);
+
+        // then
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), pageableCaptor.capture());
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("foundAt").getDirection())
+                .isEqualTo(Sort.Direction.DESC);
+        verifyNoInteractions(placeRepository);
+    }
+
+    @Test
+    void sort_oldest면_오름차순_정렬된다() {
+        // given
+        when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 5, Sort.by(Sort.Direction.ASC, "foundAt")), 0));
+
+        // when
+        itemQueryService.searchItems(null, null, null, null, null, null, "OLDEST", 1, 5);
+
+        // then
+        ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
+        verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), pageableCaptor.capture());
+        assertThat(pageableCaptor.getValue().getSort().getOrderFor("foundAt").getDirection())
+                .isEqualTo(Sort.Direction.ASC);
+        verifyNoInteractions(placeRepository);
+    }
+
+    @Test
     void placeIds_null이고_status_공백이면_필터_없이_검색된다() {
         // given
         when(itemRepository.searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(null, null, "   ", null, null, null, 1, 10);
+        ItemSearchResponse response = itemQueryService.searchItems(null, null, "   ", null, null, null, null, 1, 10);
 
         // then
         verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
@@ -107,7 +176,7 @@ class ItemQueryServiceTest {
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
         // when
-        itemQueryService.searchItems(null, null, "lost", null, null, null, 1, 10);
+        itemQueryService.searchItems(null, null, "lost", null, null, null, null, 1, 10);
 
         // then
         verify(itemRepository).searchItems(isNull(), isNull(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class));
@@ -128,7 +197,7 @@ class ItemQueryServiceTest {
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
         // when
-        itemQueryService.searchItems(null, null, null, null, null, null, 1, 10);
+        itemQueryService.searchItems(null, null, null, null, null, null, null, 1, 10);
 
         // then
         verify(placeRepository, times(1)).findAllById(any());
@@ -143,7 +212,7 @@ class ItemQueryServiceTest {
         when(placeRepository.findAllById(any())).thenReturn(List.of());
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(null, null, null, null, null, null, 1, 10);
+        ItemSearchResponse response = itemQueryService.searchItems(null, null, null, null, null, null, null, 1, 10);
 
         // then
         assertThat(response.getContent()).hasSize(1);

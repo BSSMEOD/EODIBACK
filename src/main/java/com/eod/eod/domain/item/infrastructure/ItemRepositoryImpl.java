@@ -3,16 +3,19 @@ package com.eod.eod.domain.item.infrastructure;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.model.QItem;
 import com.querydsl.core.BooleanBuilder;
+import com.querydsl.core.types.OrderSpecifier;
 import com.querydsl.jpa.impl.JPAQuery;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.support.PageableExecutionUtils;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.Objects;
 
@@ -54,7 +57,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
         }
 
         if (foundAtTo != null) {
-            LocalDateTime endDateTime = foundAtTo.atTime(23, 59, 59, 999999999);
+            LocalDateTime endDateTime = foundAtTo.atTime(LocalTime.MAX);
             builder.and(item.foundAt.loe(endDateTime));
         }
 
@@ -63,10 +66,16 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
         }
 
         // 쿼리 실행
+        OrderSpecifier<LocalDateTime> orderSpecifier = item.foundAt.desc();
+        Sort.Order foundAtOrder = pageable.getSort().getOrderFor("foundAt");
+        if (foundAtOrder != null && foundAtOrder.isAscending()) {
+            orderSpecifier = item.foundAt.asc();
+        }
+
         List<Item> content = queryFactory
                 .selectFrom(item)
                 .where(builder)
-                .orderBy(item.foundAt.desc())
+                .orderBy(orderSpecifier)
                 .offset(pageable.getOffset())
                 .limit(pageable.getPageSize())
                 .fetch();

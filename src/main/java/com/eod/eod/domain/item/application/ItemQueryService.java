@@ -2,6 +2,7 @@ package com.eod.eod.domain.item.application;
 
 import com.eod.eod.domain.item.infrastructure.ItemRepositoryCustom;
 import com.eod.eod.domain.item.model.Item;
+import com.eod.eod.domain.item.presentation.dto.request.ItemSearchSort;
 import com.eod.eod.domain.item.presentation.dto.response.ItemDetailResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemSearchResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemSummaryResponse;
@@ -50,15 +51,15 @@ public class ItemQueryService {
 
     public ItemSearchResponse searchItems(String query, List<Long> placeIds, String status,
                                           LocalDate foundAtFrom, LocalDate foundAtTo,
-                                          List<String> categories, int page, int size) {
-        Pageable pageable = PageRequest.of(page - 1, size, Sort.by(Sort.Direction.DESC, "foundAt"));
+                                          List<String> categories, String sort, int page, int size) {
+        Sort sortBy = parseSort(sort);
+        Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
         Item.ItemStatus itemStatus = parseStatus(status);
         List<Item.ItemCategory> itemCategories = parseCategories(categories);
         String trimmedQuery = parseQuery(query);
-        List<Long> filteredPlaceIds = filterNullPlaceIds(placeIds);
 
-        Page<Item> itemPage = itemRepository.searchItems(trimmedQuery, filteredPlaceIds, itemStatus,
+        Page<Item> itemPage = itemRepository.searchItems(trimmedQuery, placeIds, itemStatus,
                                                           foundAtFrom, foundAtTo,
                                                           itemCategories, pageable);
 
@@ -93,15 +94,15 @@ public class ItemQueryService {
         String trimmedQuery = query.trim();
         return trimmedQuery.isEmpty() ? null : trimmedQuery;
     }
-    
-    private List<Long> filterNullPlaceIds(List<Long> placeIds) {
-        if (placeIds == null) {
-            return null;
+
+    private Sort parseSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return ItemSearchSort.LATEST.toSort();
         }
-        return placeIds.stream()
-                .filter(java.util.Objects::nonNull)
-                .toList();
+        ItemSearchSort sortOrder = ItemSearchSort.valueOf(sort.trim().toUpperCase());
+        return sortOrder.toSort();
     }
+
 
     private Map<Long, String> buildPlaceMap(List<Item> items) {
         if (items == null || items.isEmpty()) {
@@ -113,12 +114,9 @@ public class ItemQueryService {
                 .collect(Collectors.toSet());
 
         return placeRepository.findAllById(placeIds).stream()
-                .collect(Collectors.toMap(Place::getId, this::getPlaceName));
+                .collect(Collectors.toMap(Place::getId, Place::getPlace));
     }
 
-    private String getPlaceName(Place place) {
-        return place.getPlace();
-    }
 
     private ItemSummaryResponse toSummaryDto(Item item, Map<Long, String> placeMap) {
         return ItemSummaryResponse.builder()
