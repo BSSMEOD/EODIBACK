@@ -159,64 +159,50 @@ class BsmLoginServiceTest {
     }
 
     @Test
-    @DisplayName("로그인 성공 - BSM resource에 id 없지만 userCode 있음")
-    void testLoginSucceedsWithUserCodeOnly() {
-        // given - id는 없지만 userCode가 있으면 성공
-        String userCode = "12345";
+    @DisplayName("로그인 실패 - BSM resource에 id 없음")
+    void testLoginFailsWhenResourceMissingId() {
+        // given - OAuth scope에 id를 요청하므로, id가 없으면 실패해야 함
         String nickname = "홍길동";
         String email = "hong@bssm.hs.kr";
 
+        var userNode = objectMapper.createObjectNode()
+                .put("name", nickname)
+                .put("email", email)
+                .put("role", "STUDENT")
+                .put("isGraduate", false)
+                .put("grade", 1)
+                .put("classNo", 2)
+                .put("studentNo", 3);
+
         JsonNode mockResource = objectMapper.createObjectNode()
-                .put("userCode", userCode)
-                .put("nickname", nickname)
-                .put("email", email);
-
-        BsmOAuthService.ExchangeResult exchangeResult =
-                new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockResource);
-
-        when(bsmOAuthService.exchangeCode(TEST_CODE, true)).thenReturn(exchangeResult);
-        when(userRepository.findByOauthProviderAndOauthId("bsm", userCode))
-                .thenReturn(Optional.empty());
-        when(userRepository.findByEmail(email)).thenReturn(Optional.empty());
-        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
-
-        AuthService.TokenPair tokenPair = new AuthService.TokenPair(TEST_ACCESS_TOKEN, TEST_REFRESH_TOKEN);
-        when(authService.issueTokensForOAuth2Login(any(User.class)))
-                .thenReturn(tokenPair);
-
-        // when & then - 예외 없이 성공해야 함
-        BsmLoginService.LoginResult result = bsmLoginService.login(TEST_CODE);
-        assertThat(result).isNotNull();
-        assertThat(result.user().getOauthId()).isEqualTo(userCode);
-    }
-
-    @Test
-    @DisplayName("로그인 실패 - BSM resource에 id와 userCode 모두 없음")
-    void testLoginFailsWhenResourceMissingUserCode() {
-        // given - id, userCode, user_code 모두 없음
-        JsonNode mockResource = objectMapper.createObjectNode()
-                .put("nickname", "홍길동")
-                .put("email", "hong@bssm.hs.kr");
+                .set("user", userNode);
 
         BsmOAuthService.ExchangeResult exchangeResult =
                 new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockResource);
 
         when(bsmOAuthService.exchangeCode(TEST_CODE, true)).thenReturn(exchangeResult);
 
-        // when & then
+        // when & then - id 없으므로 예외 발생
         assertThatThrownBy(() -> bsmLoginService.login(TEST_CODE))
                 .isInstanceOf(IllegalStateException.class)
-                .hasMessageContaining("BSM resource에 id/userCode가 없습니다");
+                .hasMessageContaining("BSM resource에 id가 없습니다");
     }
 
     @Test
     @DisplayName("로그인 실패 - BSM resource에 email 없음")
     void testLoginFailsWhenResourceMissingEmail() {
         // given
-        JsonNode mockResource = objectMapper.createObjectNode()
+        var userNode = objectMapper.createObjectNode()
                 .put("id", "123456")
-                .put("userCode", "12345")
-                .put("nickname", "홍길동");
+                .put("name", "홍길동")
+                .put("role", "STUDENT")
+                .put("isGraduate", false)
+                .put("grade", 1)
+                .put("classNo", 2)
+                .put("studentNo", 3);
+
+        JsonNode mockResource = objectMapper.createObjectNode()
+                .set("user", userNode);
 
         BsmOAuthService.ExchangeResult exchangeResult =
                 new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockResource);
@@ -281,21 +267,22 @@ class BsmLoginServiceTest {
 
     /**
      * Mock BSM 사용자 정보 생성 헬퍼 메서드
+     * 실제 BSM API 응답 구조와 동일하게 생성: {"user": {...}, "scopeList": [...]}
      */
     private JsonNode createMockBsmUserResource(String id, String userCode, String nickname, String email) {
+        // user 객체 생성 (실제 BSM API 응답 구조)
         var userNode = objectMapper.createObjectNode()
                 .put("id", id)
-                .put("nickname", nickname)
-                .put("email", email);
-
-        // student 객체 추가
-        var studentNode = objectMapper.createObjectNode()
+                .put("name", nickname)  // nickname이 아닌 name 필드 사용
+                .put("email", email)
+                .put("role", "STUDENT")
+                .put("isGraduate", false)
                 .put("grade", 1)
                 .put("classNo", 2)
-                .put("studentNo", 3)
-                .put("isGraduate", false);
-        userNode.set("student", studentNode);
+                .put("studentNo", 3);
 
-        return userNode;
+        // 최상위 객체에 user 래핑
+        return objectMapper.createObjectNode()
+                .set("user", userNode);
     }
 }
