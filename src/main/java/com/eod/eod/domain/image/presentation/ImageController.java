@@ -2,6 +2,7 @@ package com.eod.eod.domain.image.presentation;
 
 import com.eod.eod.domain.image.application.ImageService;
 import com.eod.eod.domain.image.presentation.dto.res.ImageUploadResponse;
+import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -59,9 +60,9 @@ public class ImageController {
                 content = @Content(mediaType = MediaType.MULTIPART_FORM_DATA_VALUE)
             )
             @RequestParam("file") MultipartFile file,
-            @AuthenticationPrincipal Long userId
+            @AuthenticationPrincipal User currentUser
     ) {
-        String url = imageService.uploadImage(file, userId);
+        String url = imageService.uploadImage(file, currentUser.getId());
         return ResponseEntity.ok(ImageUploadResponse.create(url));
     }
 }
