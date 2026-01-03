@@ -2,6 +2,7 @@ package com.eod.eod.domain.item.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.eod.eod.common.validation.EnumValue;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
@@ -52,4 +53,12 @@ public class ItemSearchRequest {
             example = "[\"교복\", \"체육복\"]",
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private List<String> categories;
+
+    @EnumValue(enumClass = ItemSearchSort.class, message = "유효하지 않은 정렬 값입니다.")
+    @Schema(description = "정렬 순서 (LATEST: 최신순, OLDEST: 과거순) - 선택 사항, 기본 LATEST(최신순)",
+            example = "LATEST",
+            allowableValues = {"LATEST", "OLDEST"},
+            defaultValue = "LATEST",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    private String sort = ItemSearchSort.LATEST.name();
 }
