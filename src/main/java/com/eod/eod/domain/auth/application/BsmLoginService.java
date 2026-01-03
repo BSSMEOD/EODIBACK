@@ -92,14 +92,14 @@ public class BsmLoginService {
                 throw new IllegalStateException("BSM resource에 email이 없습니다: " + resource);
             }
 
-            // id, userCode는 필수
-            String oauthId = firstText(userNode, "id", "userCode", "user_code");
+            // id는 필수 (OAuth scope에 id 요청)
+            String oauthId = firstText(userNode, "id");
             if (oauthId == null || oauthId.isBlank()) {
-                throw new IllegalStateException("BSM resource에 id/userCode가 없습니다: " + resource);
+                throw new IllegalStateException("BSM resource에 id가 없습니다: " + resource);
             }
 
-            // 이름 (nickname 또는 name, 없으면 email 사용)
-            String name = firstText(userNode, "nickname", "name");
+            // 이름 (name, 없으면 email 사용)
+            String name = firstText(userNode, "name");
             if (name == null || name.isBlank()) {
                 name = email;
             }
