@@ -90,7 +90,7 @@ public class DisposalReasonService {
         // 폐기 기간 연장 (보류 사유에 저장된 일수만큼 연장)
         item.extendDisposalDate(disposalReason.getExtensionDays());
 
-        return item.getDiscardedAtAsDate();
+        return item.getDiscardedAt();
     }
 
     public long countItemsToBeDiscarded() {

@@ -202,7 +202,7 @@ public class Item {
         }
     }
 
-    public String getDiscardedAtAsDate() {
+    public String getDiscardedAt() {
         return this.discardedAt.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
     }
 
