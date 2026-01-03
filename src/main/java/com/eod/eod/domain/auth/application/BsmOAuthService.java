@@ -54,8 +54,13 @@ public class BsmOAuthService {
     public String buildAuthorizeUrl(String state) {
         String encodedRedirectUri = URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
         String encodedState = URLEncoder.encode(state, StandardCharsets.UTF_8);
+        
+        // BSM OAuth scope: id는 필수, 나머지는 학생 정보
+        String scope = "id+email+name+isGraduate+grade+classNo+studentNo";
+        
         // 인증 시작 URL은 auth.bssm.app 사용
-        return String.format("https://auth.bssm.app/oauth?clientId=%s&redirectURI=%s&state=%s", clientId, encodedRedirectUri, encodedState);
+        return String.format("https://auth.bssm.app/oauth?clientId=%s&redirectURI=%s&state=%s&scope=%s", 
+                clientId, encodedRedirectUri, encodedState, scope);
     }
 
     /**
