@@ -242,7 +242,6 @@ class ItemQueryServiceTest {
                 .foundPlaceId(placeId)
                 .foundPlaceDetail("상세 위치")
                 .name("테스트 물품")
-                .reporterName("테스트 신고자")
                 .image("image.jpg")
                 .status(status)
                 .category(Item.ItemCategory.ETC)

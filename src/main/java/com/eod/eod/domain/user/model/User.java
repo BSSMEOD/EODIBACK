@@ -113,6 +113,13 @@ public class User {
         this.studentNo = studentNo;
     }
 
+    public Integer getStudentCode() {
+        if (grade == null || classNo == null || studentNo == null) {
+            return null;
+        }
+        return grade * 1000 + classNo * 100 + studentNo;
+    }
+
     // 사용자 역할 정의
     // ADMIN: 관리자, TEACHER: 교사, USER: 일반 사용자(학생)
     public enum Role {

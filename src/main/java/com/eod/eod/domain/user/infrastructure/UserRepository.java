@@ -11,4 +11,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByOauthProviderAndOauthId(String provider, String providerId);
 
     Optional<User> findByGradeAndClassNoAndStudentNo(Integer grade, Integer classNo, Integer studentNo);
+
+    Optional<User> findByGradeAndClassNoAndStudentNoAndName(Integer grade, Integer classNo, Integer studentNo, String name);
 }
