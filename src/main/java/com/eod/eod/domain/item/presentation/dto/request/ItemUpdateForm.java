@@ -22,6 +22,7 @@ public class ItemUpdateForm {
     @Schema(description = "신고자 학생 코드", example = "2109", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer reporterStudentCode;
 
+    @NotBlank(message = "필수 항목이 누락되었습니다.")
     @Size(max = 50, message = "신고자 이름은 최대 50자까지 입력 가능합니다.")
     @Schema(description = "신고자 이름", example = "홍길동", requiredMode = Schema.RequiredMode.REQUIRED)
     private String reporterName;
