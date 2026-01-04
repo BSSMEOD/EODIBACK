@@ -27,7 +27,7 @@ public class ItemRegistrationService {
     @RequireAdmin
     public Long registerItem(ItemRegistrationCommand command, User currentUser) {
         LocalDateTime foundAtDateTime = validateAndParseFoundAt(command.foundAt(), command.placeId());
-        User student = findStudentByCode(command.reporterStudentCode());
+        User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
 
         Item item = Item.registerLostItem(
                 currentUser,
@@ -35,7 +35,6 @@ public class ItemRegistrationService {
                 command.placeId(),
                 command.placeDetail(),
                 command.name(),
-                command.reporterName(),
                 command.imageUrl(),
                 command.category(),
                 foundAtDateTime
@@ -55,15 +54,15 @@ public class ItemRegistrationService {
     }
 
     /**
-     * 학생 코드로 학생 조회
+     * 학생 코드와 이름으로 학생 조회
      */
-    private User findStudentByCode(Integer reporterStudentCode) {
+    private User findStudentByCodeAndName(Integer reporterStudentCode, String reporterName) {
         int grade = reporterStudentCode / 1000;
         int classNo = (reporterStudentCode / 100) % 10;
         int studentNo = reporterStudentCode % 100;
 
-        return userRepository.findByGradeAndClassNoAndStudentNo(grade, classNo, studentNo)
-                .orElseThrow(() -> new IllegalArgumentException("신고자 학생 코드에 해당하는 학생을 찾을 수 없습니다."));
+        return userRepository.findByGradeAndClassNoAndStudentNoAndName(grade, classNo, studentNo, reporterName)
+                .orElseThrow(() -> new IllegalArgumentException("신고자 학생 코드와 이름이 일치하는 학생을 찾을 수 없습니다."));
     }
 
     private LocalDate parseDate(String rawDate) {
@@ -87,7 +86,7 @@ public class ItemRegistrationService {
     public void updateItem(Long itemId, ItemUpdateCommand command, User currentUser) {
         Item item = itemFacade.getItemById(itemId);
         LocalDateTime foundAtDateTime = validateAndParseFoundAt(command.foundAt(), command.placeId());
-        User student = findStudentByCode(command.reporterStudentCode());
+        User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
 
         item.updateItem(
                 currentUser,
@@ -95,7 +94,6 @@ public class ItemRegistrationService {
                 command.placeId(),
                 command.placeDetail(),
                 command.name(),
-                command.reporterName(),
                 command.imageUrl(),
                 command.category(),
                 foundAtDateTime
