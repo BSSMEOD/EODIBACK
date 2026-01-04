@@ -20,7 +20,8 @@ public class ItemRegistrationForm {
     private String name;
 
     @NotNull(message = "필수 항목이 누락되었습니다.")
-    @Size(min = 1101, max = 3417, message = "신고자 학생 코드는 1101에서 3417 사이여야 합니다.")
+    @Min(value = 1101, message = "신고자 학생 코드는 1101 이상이어야 합니다.")
+    @Max(value = 3417, message = "신고자 학생 코드는 3417 이하여야 합니다.")
     @Schema(description = "신고자 학생 코드", example = "2109", requiredMode = Schema.RequiredMode.REQUIRED)
     private Integer reporterStudentCode;
 
