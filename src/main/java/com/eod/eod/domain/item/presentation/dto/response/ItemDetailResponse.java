@@ -19,6 +19,9 @@ public class ItemDetailResponse {
     @Schema(description = "물품 이름", example = "무테 긱시크 안경")
     private String name;
 
+    @Schema(description = "신고자 학번", example = "1101")
+    private Integer reportStudentCode;
+
     @Schema(description = "신고자 이름", example = "홍길동")
     private String reporterName;
 
