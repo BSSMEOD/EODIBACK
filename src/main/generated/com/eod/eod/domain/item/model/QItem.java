@@ -48,7 +48,7 @@ public class QItem extends EntityPathBase<Item> {
 
     public final StringPath name = createString("name");
 
-    public final StringPath reporterName = createString("reporterName");
+    public final com.eod.eod.domain.user.model.QUser reporter;
 
     public final EnumPath<Item.ItemStatus> status = createEnum("status", Item.ItemStatus.class);
 
@@ -74,6 +74,7 @@ public class QItem extends EntityPathBase<Item> {
         super(type, metadata, inits);
         this.admin = inits.isInitialized("admin") ? new com.eod.eod.domain.user.model.QUser(forProperty("admin")) : null;
         this.approvedBy = inits.isInitialized("approvedBy") ? new com.eod.eod.domain.user.model.QUser(forProperty("approvedBy")) : null;
+        this.reporter = inits.isInitialized("reporter") ? new com.eod.eod.domain.user.model.QUser(forProperty("reporter")) : null;
         this.student = inits.isInitialized("student") ? new com.eod.eod.domain.user.model.QUser(forProperty("student")) : null;
     }
 

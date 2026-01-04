@@ -40,9 +40,6 @@ public class Item {
     @Column(name = "name", nullable = false, length = 100)
     private String name;
 
-    @Column(name = "reporter_name", length = 50)
-    private String reporterName;
-
     @Column(name = "image", nullable = false, columnDefinition = "TEXT")
     private String image;
 
@@ -76,13 +73,12 @@ public class Item {
 
     @Builder
     public Item(User student, User admin, Long foundPlaceId, String foundPlaceDetail,
-                String name, String reporterName, String image, ItemStatus status, ItemCategory category, LocalDateTime foundAt) {
+                String name, String image, ItemStatus status, ItemCategory category, LocalDateTime foundAt) {
         this.student = student;
         this.admin = admin;
         this.foundPlaceId = foundPlaceId;
         this.foundPlaceDetail = foundPlaceDetail;
         this.name = name;
-        this.reporterName = reporterName;
         this.image = image;
         this.status = status;
         this.category = category;
@@ -92,12 +88,11 @@ public class Item {
     }
 
     public static Item registerLostItem(User admin, User student, Long foundPlaceId, String foundPlaceDetail,
-                                        String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
+                                        String name, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
         ItemValidator.validateFoundAt(foundAt);
         ItemValidator.validateCategory(category);
         String sanitizedName = ItemSanitizer.sanitizeName(name);
         String sanitizedDetail = ItemSanitizer.sanitizeDetail(foundPlaceDetail);
-        String sanitizedReporterName = ItemSanitizer.sanitizeReporterName(reporterName);
 
         return Item.builder()
                 .student(student != null ? student : admin)
@@ -105,7 +100,6 @@ public class Item {
                 .foundPlaceId(ItemValidator.requirePlaceId(foundPlaceId))
                 .foundPlaceDetail(sanitizedDetail)
                 .name(sanitizedName)
-                .reporterName(sanitizedReporterName)
                 .image(imageUrl == null ? "" : imageUrl)
                 .status(ItemStatus.LOST)
                 .category(category)
@@ -115,7 +109,7 @@ public class Item {
 
     // 물품 정보 수정
     public void updateItem(User updater, User student, Long foundPlaceId, String foundPlaceDetail,
-                          String name, String reporterName, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
+                          String name, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
         ItemValidator.validateFoundAt(foundAt);
         ItemValidator.validateCategory(category);
 
@@ -123,7 +117,6 @@ public class Item {
         this.foundPlaceId = ItemValidator.requirePlaceId(foundPlaceId);
         this.foundPlaceDetail = ItemSanitizer.sanitizeDetail(foundPlaceDetail);
         this.name = ItemSanitizer.sanitizeName(name);
-        this.reporterName = ItemSanitizer.sanitizeReporterName(reporterName);
         this.image = imageUrl == null ? "" : imageUrl;
         this.category = category;
         this.foundAt = foundAt;

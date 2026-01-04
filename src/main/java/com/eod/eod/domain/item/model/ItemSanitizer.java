@@ -21,20 +21,6 @@ public final class ItemSanitizer {
     }
 
     /**
-     * 신고자 이름 정제
-     */
-    public static String sanitizeReporterName(String reporterName) {
-        if (reporterName == null || reporterName.trim().isEmpty()) {
-            return null;
-        }
-        String trimmed = reporterName.trim();
-        if (trimmed.length() > 50) {
-            throw new IllegalArgumentException("신고자 이름은 50자를 초과할 수 없습니다.");
-        }
-        return trimmed;
-    }
-
-    /**
      * 장소 설명 정제
      */
     public static String sanitizeDetail(String placeDetail) {
