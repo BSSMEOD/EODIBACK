@@ -5,8 +5,13 @@ WORKDIR /eod
 # Copy the prebuilt jar from the workflow
 COPY build/libs/*.jar app.jar
 
+# Create upload directory with proper permissions
+RUN mkdir -p /eod/uploads && \
+    groupadd -r spring && \
+    useradd -r -g spring spring && \
+    chown -R spring:spring /eod
+
 # Run as non-root user (Debian-based)
-RUN groupadd -r spring && useradd -r -g spring spring
 USER spring:spring
 
 ENTRYPOINT ["java", "-jar", "app.jar"]
