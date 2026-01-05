@@ -71,7 +71,7 @@ public class ItemController {
                 form.getReporterName(),
                 form.getFoundAt(),
                 form.getPlaceId(),
-                form.getPlaceDetail(),
+                form.getFoundPlaceDetail(),
                 form.getImageUrl(),
                 form.getCategory()
         );
@@ -169,7 +169,7 @@ public class ItemController {
                 form.getReporterName(),
                 form.getFoundAt(),
                 form.getPlaceId(),
-                form.getPlaceDetail(),
+                form.getFoundPlaceDetail(),
                 form.getImageUrl(),
                 form.getCategory()
         );

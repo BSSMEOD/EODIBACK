@@ -13,7 +13,7 @@ public record ItemRegistrationCommand(
         String reporterName,
         String foundAt,
         Long placeId,
-        String placeDetail,
+        String foundPlaceDetail,
         String imageUrl,
         Item.ItemCategory category
 ) {
