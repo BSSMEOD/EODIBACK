@@ -6,6 +6,7 @@ import com.eod.eod.common.validation.EnumValue;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import lombok.Data;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,15 +38,23 @@ public class ItemSearchRequest {
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private String status;
 
-    @JsonProperty("found_at_from")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @Schema(description = "습득일 시작 날짜 (선택 사항)", example = "2024-01-01",
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private LocalDate foundAtFrom;
 
-    @JsonProperty("found_at_to")
+    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @Schema(description = "습득일 종료 날짜 (선택 사항)", example = "2024-12-31",
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private LocalDate foundAtTo;
+
+    public void setFound_at_from(LocalDate foundAtFrom) {
+        this.foundAtFrom = foundAtFrom;
+    }
+
+    public void setFound_at_to(LocalDate foundAtTo) {
+        this.foundAtTo = foundAtTo;
+    }
 
     @com.eod.eod.common.validation.ItemCategoriesValue(
             message = "유효하지 않은 카테고리 값입니다.")
