@@ -42,7 +42,7 @@ public class ItemRegistrationForm {
     @NotBlank(message = "필수 항목이 누락되었습니다.")
     @Size(max = 255, message = "장소 설명은 최대 255자까지 입력 가능합니다.")
     @Schema(description = "구체적인 장소 설명", example = "본관 2층 로비", requiredMode = Schema.RequiredMode.REQUIRED)
-    private String placeDetail;
+    private String foundPlaceDetail;
 
     @Schema(description = "분실물 이미지 파일 (JPEG/PNG)")
     private String imageUrl;
