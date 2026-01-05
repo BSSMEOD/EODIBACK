@@ -151,6 +151,8 @@ public class ItemClaimController {
             @EnumValue(enumClass = ItemClaim.ClaimStatus.class, allowBlank = true,
                     message = "유효하지 않은 회수 상태 값입니다.")
             @RequestParam(required = false) String status,
+            @Parameter(description = "정렬 방식 (LATEST: 최신순, OLDEST: 오래된순, 기본값: LATEST)")
+            @RequestParam(required = false) String sort,
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
@@ -158,7 +160,7 @@ public class ItemClaimController {
             throw new IllegalStateException("ADMIN 권한이 필요합니다.");
         }
 
-        ClaimRequestsResponse response = itemClaimQueryService.getClaimRequests(page, size, status);
+        ClaimRequestsResponse response = itemClaimQueryService.getClaimRequests(page, size, status, sort);
         return ResponseEntity.ok(response);
     }
 

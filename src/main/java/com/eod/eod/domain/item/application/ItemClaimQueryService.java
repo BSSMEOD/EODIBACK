@@ -32,13 +32,14 @@ public class ItemClaimQueryService {
         return ClaimItemListResponse.of(items);
     }
 
-    public ClaimRequestsResponse getClaimRequests(Integer page, Integer size, String status) {
+    public ClaimRequestsResponse getClaimRequests(Integer page, Integer size, String status, String sort) {
         ItemClaim.ClaimStatus claimStatus = parseStatus(status);
+        Sort sortBy = parseSort(sort);
 
         Pageable pageable = PageRequest.of(
                 page - 1,
                 size,
-                Sort.by(Sort.Direction.DESC, "claimedAt")
+                sortBy
         );
 
         Page<ItemClaim> claimPage = itemClaimRepository.findByStatus(claimStatus, pageable);
@@ -51,5 +52,18 @@ public class ItemClaimQueryService {
             return ItemClaim.ClaimStatus.PENDING;
         }
         return ItemClaim.ClaimStatus.valueOf(status.toUpperCase());
+    }
+
+    private Sort parseSort(String sort) {
+        if (sort == null || sort.isBlank()) {
+            return Sort.by(Sort.Direction.DESC, "claimedAt"); // 기본값: 최신순
+        }
+
+        String upperSort = sort.trim().toUpperCase();
+        return switch (upperSort) {
+            case "LATEST" -> Sort.by(Sort.Direction.DESC, "claimedAt");
+            case "OLDEST" -> Sort.by(Sort.Direction.ASC, "claimedAt");
+            default -> throw new IllegalArgumentException("유효하지 않은 정렬 방식입니다: " + sort);
+        };
     }
 }
