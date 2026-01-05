@@ -48,10 +48,12 @@ public class ItemSearchRequest {
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
     private LocalDate foundAtTo;
 
+    @Schema(hidden = true)
     public void setFound_at_from(LocalDate foundAtFrom) {
         this.foundAtFrom = foundAtFrom;
     }
 
+    @Schema(hidden = true)
     public void setFound_at_to(LocalDate foundAtTo) {
         this.foundAtTo = foundAtTo;
     }
