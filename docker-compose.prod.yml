@@ -4,6 +4,7 @@ services:
     container_name: eod-app
     volumes:
       - /eod/logs:/logs
+      - /eod/uploads:/eod/uploads
     restart: always
     ports:
       - "8000:8080"
@@ -26,6 +27,8 @@ services:
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
       - BSM_REDIRECT_URI=${BSM_REDIRECT_URI}
+      - FILE_UPLOAD_DIR=/eod/uploads
+      - FILE_UPLOAD_BASE_URL=${FILE_UPLOAD_BASE_URL}
     depends_on:
       mysql:
         condition: service_healthy
