@@ -129,7 +129,7 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           BASE_URL=${{ secrets.PROD_BASE_URL }}
           FRONTEND_BASE_URL=${{ secrets.PROD_FRONTEND_BASE_URL }}
-          LOG_DIR=${{ secrets.PROD_LOG_DIR }}
+          LOG_DIR=/logs
           BSM_CLIENT_ID=${{ secrets.BSM_CLIENT_ID }}
           BSM_CLIENT_SECRET=${{ secrets.BSM_CLIENT_SECRET }}
           BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
@@ -153,6 +153,14 @@ jobs:
           else
             echo "✅ 볼륨이 이미 존재합니다: eod_mysql-data-prod"
           fi
+          echo "========================================="
+
+          # 로그 디렉토리 생성
+          echo "========================================="
+          echo "📁 로그 디렉토리 생성 중..."
+          mkdir -p /eod/prod/logs
+          mkdir -p /eod/uploads
+          echo "✅ 디렉토리 생성 완료"
           echo "========================================="
 
           # Docker Compose로 배포 (production 태그 사용)
