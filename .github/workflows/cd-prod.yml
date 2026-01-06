@@ -96,7 +96,7 @@ jobs:
       with:
         host: ${{ secrets.PROD_SSH_HOST }}
         username: ${{ secrets.PROD_SSH_USERNAME }}
-        key: ${{ secrets.PROD_SSH_KEY }}
+        key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.PROD_SSH_PORT || 22 }}
         script: |
           # 배포 디렉토리 생성 및 이동
@@ -185,7 +185,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.SSH_PORT || 22 }}
         script: |
-          cd ~/eod-prod
+          cd ~/eod/prod
           echo "========================================="
           echo "🚀 PRODUCTION 환경 배포 완료"
           echo "========================================="
@@ -221,5 +221,5 @@ jobs:
       run: |
         IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         echo "✅ PRODUCTION Docker Compose 배포 완료!"
-        echo "서버: ${{ secrets.PROD_SSH_HOST }}"
+        echo "서버: ${{ secrets.SSH_HOST }}"
         echo "이미지: ${{ env.REGISTRY }}/${IMAGE_NAME}:production"
