@@ -1,13 +1,13 @@
 services:
   app:
     image: ghcr.io/${GITHUB_REPOSITORY}:latest
-    container_name: eod-app
+    container_name: eod-app-dev
     volumes:
-      - /eod/prod/logs:/logs
+      - /eod/logs:/logs
       - /eod/uploads:/eod/uploads
     restart: always
     ports:
-      - "8020:8080"
+      - "8000:8080"
     environment:
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
@@ -28,11 +28,11 @@ services:
       mysql:
         condition: service_healthy
     networks:
-      - eod-network
+      - eod-network-dev
 
   mysql:
     image: mysql:8.0
-    container_name: eod-mysql
+    container_name: eod-mysql-dev
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
@@ -40,11 +40,11 @@ services:
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
-      - "3307:3306"
+      - "3306:3306"
     volumes:
-      - mysql-data-prod:/var/lib/mysql
+      - mysql-data-dev:/var/lib/mysql
     networks:
-      - eod-network
+      - eod-network-dev
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
       interval: 10s
@@ -52,10 +52,10 @@ services:
       retries: 10
 
 volumes:
-  mysql-data-prod:
+  mysql-data-dev:
     external: true
-    name: eod_mysql-data-prod
+    name: eod_mysql-data-dev
 
 networks:
-  eod-network:
+  eod-network-dev:
     driver: bridge

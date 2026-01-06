@@ -1,9 +1,15 @@
-name: CD - Docker Build & Deploy
+name: CD - Production Deploy
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [production]
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: '운영 배포를 진행하시겠습니까?'
+        required: true
+        type: boolean
+        default: false
 
 env:
   REGISTRY: ghcr.io
@@ -60,9 +66,8 @@ jobs:
       with:
         images: ${{ env.REGISTRY }}/${{ steps.image_name.outputs.name }}
         tags: |
-          type=ref,event=branch
-          type=sha,prefix={{branch}}-
-          type=raw,value=latest,enable={{is_default_branch}}
+          type=raw,value=production
+          type=sha,prefix=prod-
 
     - name: Docker 이미지 빌드 및 푸시
       uses: docker/build-push-action@v5
@@ -73,8 +78,8 @@ jobs:
         platforms: linux/arm64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha,scope=eod-build
-        cache-to: type=gha,scope=eod-build,mode=max
+        cache-from: type=gha,scope=eod-prod-build
+        cache-to: type=gha,scope=eod-prod-build,mode=max
         build-args: |
           BUILDKIT_INLINE_CACHE=1
 
@@ -84,49 +89,47 @@ jobs:
   deploy:
     needs: build-and-push
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     
     steps:
     - name: 서버에 SSH 접속 및 Docker Compose 배포
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
-        key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SSH_PORT || 22 }}
+        host: ${{ secrets.PROD_SSH_HOST }}
+        username: ${{ secrets.PROD_SSH_USERNAME }}
+        key: ${{ secrets.PROD_SSH_KEY }}
+        port: ${{ secrets.PROD_SSH_PORT || 22 }}
         script: |
           # 배포 디렉토리 생성 및 이동
-          mkdir -p ~/eod
-          cd ~/eod
+          mkdir -p ~/eod-prod
+          cd ~/eod-prod
           
           # GitHub Repository Clone 또는 Pull
           if [ -d ".git" ]; then
             echo "기존 저장소 업데이트 중..."
-            git fetch origin main
-            git reset --hard origin/main
+            git fetch origin production
+            git reset --hard origin/production
           else
             echo "저장소 복제 중..."
             rm -rf * .* 2>/dev/null || true
-            git clone https://github.com/${{ github.repository }}.git .
+            git clone -b production https://github.com/${{ github.repository }}.git .
           fi
           
           # .env 파일 생성 (GitHub Secrets 사용)
           REPO_LOWERCASE=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
           cat > .env << EOF
           GITHUB_REPOSITORY=${REPO_LOWERCASE}
-          SPRING_DATASOURCE_URL=${{ secrets.DB_URL }}
-          SPRING_DATASOURCE_USERNAME=${{ secrets.DB_USERNAME }}
-          SPRING_DATASOURCE_PASSWORD=${{ secrets.DB_PASSWORD }}
-          MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}
-          MYSQL_USER=${{ secrets.DB_USERNAME }}
-          MYSQL_PASSWORD=${{ secrets.DB_PASSWORD }}
-          GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
-          GOOGLE_CLIENT_SECRET=${{ secrets.GOOGLE_CLIENT_SECRET }}
+          DOCKER_IMAGE_TAG=production
+          SPRING_DATASOURCE_URL=${{ secrets.PROD_DB_URL }}
+          SPRING_DATASOURCE_USERNAME=${{ secrets.PROD_DB_USERNAME }}
+          SPRING_DATASOURCE_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD=${{ secrets.PROD_MYSQL_ROOT_PASSWORD }}
+          MYSQL_DATABASE=${{ secrets.PROD_MYSQL_DATABASE }}
+          MYSQL_USER=${{ secrets.PROD_DB_USERNAME }}
+          MYSQL_PASSWORD=${{ secrets.PROD_DB_PASSWORD }}
           JWT_SECRET=${{ secrets.JWT_SECRET }}
-          BASE_URL=${{ secrets.BASE_URL }}
-          FRONTEND_BASE_URL=${{ secrets.FRONTEND_BASE_URL }}
-          LOG_DIR=${{ secrets.LOG_DIR }}
+          BASE_URL=${{ secrets.PROD_BASE_URL }}
+          FRONTEND_BASE_URL=${{ secrets.PROD_FRONTEND_BASE_URL }}
+          LOG_DIR=${{ secrets.PROD_LOG_DIR }}
           BSM_CLIENT_ID=${{ secrets.BSM_CLIENT_ID }}
           BSM_CLIENT_SECRET=${{ secrets.BSM_CLIENT_SECRET }}
           BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
@@ -140,10 +143,11 @@ jobs:
           # 환경 변수 확인 (디버깅)
           echo "GITHUB_REPOSITORY (소문자): ${REPO_LOWERCASE}"
 
-          # Docker Compose로 배포
-          docker compose -f docker-compose.yml pull
-          docker compose -f docker-compose.yml down
-          docker compose -f docker-compose.yml up -d
+          # Docker Compose로 배포 (production 태그 사용)
+          export DOCKER_IMAGE_TAG=production
+          docker compose -f docker-compose.prod.yml pull
+          docker compose -f docker-compose.prod.yml down
+          docker compose -f docker-compose.prod.yml up -d
 
           # 컨테이너 시작 대기
           echo "컨테이너 시작 대기 중..."
@@ -155,27 +159,29 @@ jobs:
     - name: 배포 상태 확인
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
+        host: ${{ secrets.PROD_SSH_HOST }}
+        username: ${{ secrets.PROD_SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SSH_PORT || 22 }}
+        port: ${{ secrets.PROD_SSH_PORT || 22 }}
         script: |
-          cd ~/eod
+          cd ~/eod-prod
+          echo "========================================="
+          echo "🚀 PRODUCTION 환경 배포 완료"
           echo "========================================="
           echo "📋 환경 변수 확인 (민감 정보 마스킹):"
-          cat .env | sed 's/PASSWORD=.*/PASSWORD=***/g'
+          cat .env | sed 's/PASSWORD=.*/PASSWORD=***/g' | sed 's/SECRET=.*/SECRET=***/g'
           echo "========================================="
           echo "🐳 컨테이너 실행 상태:"
-          docker compose -f docker-compose.yml ps
+          docker compose -f docker-compose.prod.yml ps
           echo "========================================="
           echo "📊 Docker 이미지 확인:"
           docker images | grep eod
           echo "========================================="
           echo "📝 MySQL 로그 (최근 20줄):"
-          docker compose -f docker-compose.yml logs --tail=20 mysql
+          docker compose -f docker-compose.prod.yml logs --tail=20 mysql
           echo "========================================="
           echo "📝 애플리케이션 로그 (최근 50줄):"
-          docker compose -f docker-compose.yml logs --tail=50 app
+          docker compose -f docker-compose.prod.yml logs --tail=50 app
           echo "========================================="
           echo "🔍 포트 사용 확인:"
           netstat -tuln | grep -E ':(8000|3306)'
@@ -184,6 +190,6 @@ jobs:
       if: success()
       run: |
         IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-        echo "✅ Docker Compose 배포 완료!"
-        echo "서버: ${{ secrets.SSH_HOST }}"
-        echo "이미지: ${{ env.REGISTRY }}/${IMAGE_NAME}:latest"
+        echo "✅ PRODUCTION Docker Compose 배포 완료!"
+        echo "서버: ${{ secrets.PROD_SSH_HOST }}"
+        echo "이미지: ${{ env.REGISTRY }}/${IMAGE_NAME}:production"
