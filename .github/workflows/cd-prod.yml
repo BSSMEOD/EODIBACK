@@ -143,6 +143,18 @@ jobs:
           # 환경 변수 확인 (디버깅)
           echo "GITHUB_REPOSITORY (소문자): ${REPO_LOWERCASE}"
 
+          # MySQL 볼륨 존재 여부 확인 및 생성
+          echo "========================================="
+          echo "📦 MySQL 볼륨 확인 중..."
+          if ! docker volume inspect eod_mysql-data-prod >/dev/null 2>&1; then
+            echo "⚠️  볼륨이 존재하지 않습니다. 새로 생성합니다..."
+            docker volume create eod_mysql-data-prod
+            echo "✅ 볼륨 생성 완료: eod_mysql-data-prod"
+          else
+            echo "✅ 볼륨이 이미 존재합니다: eod_mysql-data-prod"
+          fi
+          echo "========================================="
+
           # Docker Compose로 배포 (production 태그 사용)
           echo "========================================="
           echo "🚀 PRODUCTION Docker Compose 배포 시작"
