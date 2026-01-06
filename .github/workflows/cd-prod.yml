@@ -100,8 +100,8 @@ jobs:
         port: ${{ secrets.PROD_SSH_PORT || 22 }}
         script: |
           # 배포 디렉토리 생성 및 이동
-          mkdir -p ~/eod-prod
-          cd ~/eod-prod
+          mkdir -p ~/eod/prod
+          cd ~/eod/prod
           
           # GitHub Repository Clone 또는 Pull
           if [ -d ".git" ]; then
