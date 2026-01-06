@@ -144,10 +144,19 @@ jobs:
           echo "GITHUB_REPOSITORY (소문자): ${REPO_LOWERCASE}"
 
           # Docker Compose로 배포 (production 태그 사용)
+          echo "========================================="
+          echo "🚀 PRODUCTION Docker Compose 배포 시작"
+          echo "========================================="
           export DOCKER_IMAGE_TAG=production
           docker compose -f docker-compose.prod.yml pull
           docker compose -f docker-compose.prod.yml down
-          docker compose -f docker-compose.prod.yml up -d
+          docker compose -f docker-compose.prod.yml up -d --remove-orphans
+
+          # 배포 직후 상태 확인
+          echo "========================================="
+          echo "📊 배포 직후 컨테이너 상태:"
+          docker compose -f docker-compose.prod.yml ps
+          echo "========================================="
 
           # 컨테이너 시작 대기
           echo "컨테이너 시작 대기 중..."
@@ -173,18 +182,27 @@ jobs:
           echo "========================================="
           echo "🐳 컨테이너 실행 상태:"
           docker compose -f docker-compose.prod.yml ps
+
+          # 컨테이너 실행 검증 (app 컨테이너가 반드시 떠있어야 함)
+          if ! docker compose -f docker-compose.prod.yml ps | grep -q "eod-app.*Up"; then
+            echo "❌ ERROR: app 컨테이너가 실행되지 않았습니다!"
+            docker compose -f docker-compose.prod.yml logs --tail=100 app
+            exit 1
+          fi
+          echo "✅ app 컨테이너 정상 실행 확인"
+
           echo "========================================="
           echo "📊 Docker 이미지 확인:"
-          docker images | grep eod
+          docker images | grep eod || true
           echo "========================================="
           echo "📝 MySQL 로그 (최근 20줄):"
-          docker compose -f docker-compose.prod.yml logs --tail=20 mysql
+          docker compose -f docker-compose.prod.yml logs --tail=20 mysql || true
           echo "========================================="
           echo "📝 애플리케이션 로그 (최근 50줄):"
-          docker compose -f docker-compose.prod.yml logs --tail=50 app
+          docker compose -f docker-compose.prod.yml logs --tail=50 app || true
           echo "========================================="
           echo "🔍 포트 사용 확인:"
-          netstat -tuln | grep -E ':(8000|3306)'
+          netstat -tuln | grep -E ':(8020|3307)' || true
           
     - name: 배포 완료 알림
       if: success()
