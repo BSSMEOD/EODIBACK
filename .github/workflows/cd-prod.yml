@@ -159,10 +159,10 @@ jobs:
     - name: 배포 상태 확인
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.PROD_SSH_HOST }}
-        username: ${{ secrets.PROD_SSH_USERNAME }}
+        host: ${{ secrets.SSH_HOST }}
+        username: ${{ secrets.SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.PROD_SSH_PORT || 22 }}
+        port: ${{ secrets.SSH_PORT || 22 }}
         script: |
           cd ~/eod-prod
           echo "========================================="
