@@ -54,9 +54,23 @@ public class ItemRegistrationService {
     }
 
     /**
-     * 학생 코드와 이름으로 학생 조회
+     * 학생 코드와 이름으로 학생 조회 (선택적)
+     *
+     * @param reporterStudentCode 신고자 학생 코드 (null 가능)
+     * @param reporterName 신고자 이름 (null 가능)
+     * @return 학생 정보 또는 null (둘 다 null인 경우)
      */
     private User findStudentByCodeAndName(Integer reporterStudentCode, String reporterName) {
+        // 둘 다 null이면 신고자 정보 없음
+        if (reporterStudentCode == null && (reporterName == null || reporterName.isBlank())) {
+            return null;
+        }
+
+        // 둘 중 하나만 있으면 에러
+        if (reporterStudentCode == null || reporterName == null || reporterName.isBlank()) {
+            throw new IllegalArgumentException("신고자 학생 코드와 이름은 함께 입력해야 합니다.");
+        }
+
         int grade = reporterStudentCode / 1000;
         int classNo = (reporterStudentCode / 100) % 10;
         int studentNo = reporterStudentCode % 100;
