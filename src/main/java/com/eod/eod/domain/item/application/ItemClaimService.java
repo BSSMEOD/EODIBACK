@@ -66,16 +66,5 @@ public class ItemClaimService {
         }
     }
 
-    /**
-     * 소유권 주장 거절
-     */
-    @RequireAdmin
-    public void rejectClaim(Long claimId, User currentUser) {
-        // 소유권 주장 조회
-        ItemClaim claim = itemClaimRepository.findById(claimId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 소유권 주장을 찾을 수 없습니다."));
 
-        // 거절 처리
-        claim.reject();
-    }
 }
