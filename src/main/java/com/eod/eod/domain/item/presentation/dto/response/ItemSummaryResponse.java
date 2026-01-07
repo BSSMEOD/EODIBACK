@@ -1,14 +1,11 @@
 package com.eod.eod.domain.item.presentation.dto.response;
 
 import com.eod.eod.domain.item.model.Item;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -25,9 +22,8 @@ public class ItemSummaryResponse {
     private String reporterName;
 
     @JsonProperty("foundAt")
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     @Schema(description = "습득 날짜", example = "2025-07-01")
-    private LocalDateTime foundAt;
+    private String foundAt;
 
     @JsonProperty("foundPlace")
     @Schema(description = "습득 장소", example = "SRC")

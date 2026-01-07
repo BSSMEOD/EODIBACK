@@ -27,8 +27,8 @@ public class ItemUpdateForm {
     private String reporterName;
 
     @NotBlank(message = "필수 항목이 누락되었습니다.")
-    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}$", message = "습득 일자는 yyyy-MM-dd 형식이어야 합니다.")
-    @Schema(description = "습득 일자(yyyy-MM-dd)", example = "2025-01-12", requiredMode = Schema.RequiredMode.REQUIRED)
+    @Pattern(regexp = "^\\d{4}(-\\d{2}(-\\d{2})?)?$", message = "습득 일자는 yyyy, yyyy-MM, 또는 yyyy-MM-dd 형식이어야 합니다.")
+    @Schema(description = "습득 일자 (yyyy, yyyy-MM, yyyy-MM-dd)", example = "2025-01-12", requiredMode = Schema.RequiredMode.REQUIRED)
     private String foundAt;
 
     @NotNull(message = "필수 항목이 누락되었습니다.")

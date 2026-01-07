@@ -1,13 +1,10 @@
 package com.eod.eod.domain.item.presentation.dto.response;
 
 import com.eod.eod.domain.item.model.Item;
-import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Builder;
 import lombok.Getter;
-
-import java.time.LocalDateTime;
 
 @Getter
 @Builder
@@ -30,9 +27,8 @@ public class ItemDetailResponse {
     private String imageUrl;
 
     @JsonProperty("foundAt")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
-    @Schema(description = "습득 일자 및 시간", example = "2025-06-19 12:20")
-    private LocalDateTime foundAt;
+    @Schema(description = "습득 일자", example = "2025-06-19")
+    private String foundAt;
 
     @JsonProperty("foundPlace")
     @Schema(description = "습득 장소", example = "기타")
