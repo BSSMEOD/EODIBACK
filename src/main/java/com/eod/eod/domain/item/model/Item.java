@@ -54,6 +54,10 @@ public class Item {
     @Column(name = "found_at", nullable = false)
     private LocalDateTime foundAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "found_at_precision", nullable = false, length = 20)
+    private DatePrecision foundAtPrecision;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -73,7 +77,7 @@ public class Item {
 
     @Builder
     public Item(User student, User admin, Long foundPlaceId, String foundPlaceDetail,
-                String name, String image, ItemStatus status, ItemCategory category, LocalDateTime foundAt) {
+                String name, String image, ItemStatus status, ItemCategory category, LocalDateTime foundAt, DatePrecision foundAtPrecision) {
         this.student = student;
         this.admin = admin;
         this.foundPlaceId = foundPlaceId;
@@ -83,12 +87,13 @@ public class Item {
         this.status = status;
         this.category = category;
         this.foundAt = foundAt;
+        this.foundAtPrecision = foundAtPrecision != null ? foundAtPrecision : DatePrecision.DAY;
         this.createdAt = LocalDateTime.now();
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
     public static Item registerLostItem(User admin, User student, Long foundPlaceId, String foundPlaceDetail,
-                                        String name, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
+                                        String name, String imageUrl, ItemCategory category, LocalDateTime foundAt, DatePrecision foundAtPrecision) {
         ItemValidator.validateFoundAt(foundAt);
         ItemValidator.validateCategory(category);
         String sanitizedName = ItemSanitizer.sanitizeName(name);
@@ -104,12 +109,13 @@ public class Item {
                 .status(ItemStatus.LOST)
                 .category(category)
                 .foundAt(foundAt)
+                .foundAtPrecision(foundAtPrecision)
                 .build();
     }
 
     // 물품 정보 수정
     public void updateItem(User updater, User student, Long foundPlaceId, String foundPlaceDetail,
-                          String name, String imageUrl, ItemCategory category, LocalDateTime foundAt) {
+                          String name, String imageUrl, ItemCategory category, LocalDateTime foundAt, DatePrecision foundAtPrecision) {
         ItemValidator.validateFoundAt(foundAt);
         ItemValidator.validateCategory(category);
 
@@ -120,6 +126,7 @@ public class Item {
         this.image = imageUrl == null ? "" : imageUrl;
         this.category = category;
         this.foundAt = foundAt;
+        this.foundAtPrecision = foundAtPrecision != null ? foundAtPrecision : DatePrecision.DAY;
     }
 
     // 물품 지급 처리
@@ -171,15 +178,15 @@ public class Item {
     }
 
     /**
-     * 물품을 폐기 예정 상태로 변경 (습득일로부터 6개월 후 폐기 예정)
+     * 물품을 폐기 예정 상태로 변경 (등록일로부터 6개월 후 폐기 예정)
      */
     public void markAsToBeDiscarded() {
         if (this.status != ItemStatus.LOST) {
             throw new IllegalStateException("분실물 상태의 물품만 폐기 예정으로 변경할 수 있습니다.");
         }
         this.status = ItemStatus.TO_BE_DISCARDED;
-        // 습득일로부터 6개월 후를 폐기 예정일로 설정
-        this.discardedAt = this.foundAt.plusMonths(6);
+        // 등록일로부터 6개월 후를 폐기 예정일로 설정
+        this.discardedAt = this.createdAt.plusMonths(6);
     }
 
     /**
@@ -207,6 +214,10 @@ public class Item {
 
     public enum ApprovalStatus {
         PENDING, APPROVED, REJECTED
+    }
+
+    public enum DatePrecision {
+        YEAR, MONTH, DAY
     }
 
     public enum ItemCategory {

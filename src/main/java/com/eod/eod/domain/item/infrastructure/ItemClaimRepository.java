@@ -5,6 +5,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.List;
+
 public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, ItemClaimRepositoryCustom {
 
     // 특정 사용자가 특정 아이템에 대해 이미 소유권 주장을 했는지 확인
@@ -15,4 +17,7 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
 
     // 특정 상태의 회수 요청 목록 조회 (페이지네이션)
     Page<ItemClaim> findByStatus(ItemClaim.ClaimStatus status, Pageable pageable);
+
+    // 특정 물품에 대한 특정 상태의 소유권 주장 목록 조회
+    List<ItemClaim> findByItemIdAndStatus(Long itemId, ItemClaim.ClaimStatus status);
 }

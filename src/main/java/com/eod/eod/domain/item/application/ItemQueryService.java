@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.common.util.DatePrecisionFormatter;
 import com.eod.eod.domain.item.infrastructure.ItemRepositoryCustom;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.presentation.dto.request.ItemSearchSort;
@@ -37,13 +38,18 @@ public class ItemQueryService {
         Place place = placeRepository.findById(item.getFoundPlaceId())
                 .orElseThrow(() -> new IllegalArgumentException("등록되지 않은 장소입니다."));
 
+        String formattedFoundAt = DatePrecisionFormatter.format(
+                item.getFoundAt(),
+                item.getFoundAtPrecision()
+        );
+
         return ItemDetailResponse.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .reportStudentCode(item.getStudent() != null ? item.getStudent().getStudentCode() : null)
                 .reporterName(item.getStudent() != null ? item.getStudent().getName() : null)
                 .imageUrl(item.getImage())
-                .foundAt(item.getFoundAt())
+                .foundAt(formattedFoundAt)
                 .foundPlace(place.getPlace())
                 .foundPlaceDetail(item.getFoundPlaceDetail())
                 .category(item.getCategory())
@@ -120,11 +126,16 @@ public class ItemQueryService {
 
 
     private ItemSummaryResponse toSummaryDto(Item item, Map<Long, String> placeMap) {
+        String formattedFoundAt = DatePrecisionFormatter.format(
+                item.getFoundAt(),
+                item.getFoundAtPrecision()
+        );
+
         return ItemSummaryResponse.builder()
                 .id(item.getId())
                 .name(item.getName())
                 .reporterName(item.getStudent() != null ? item.getStudent().getName() : null)
-                .foundAt(item.getFoundAt())
+                .foundAt(formattedFoundAt)
                 .foundPlace(placeMap.getOrDefault(item.getFoundPlaceId(), ""))
                 .placeDetail(item.getFoundPlaceDetail())
                 .imageUrl(item.getImage())

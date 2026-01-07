@@ -33,7 +33,6 @@ public class ItemClaimQueryService {
     }
 
     public ClaimRequestsResponse getClaimRequests(Integer page, Integer size, String status, String sort) {
-        ItemClaim.ClaimStatus claimStatus = parseStatus(status);
         Sort sortBy = parseSort(sort);
 
         Pageable pageable = PageRequest.of(
@@ -42,7 +41,15 @@ public class ItemClaimQueryService {
                 sortBy
         );
 
-        Page<ItemClaim> claimPage = itemClaimRepository.findByStatus(claimStatus, pageable);
+        Page<ItemClaim> claimPage;
+
+        // status가 null이거나 비어있으면 전체 조회
+        if (status == null || status.isBlank()) {
+            claimPage = itemClaimRepository.findAll(pageable);
+        } else {
+            ItemClaim.ClaimStatus claimStatus = ItemClaim.ClaimStatus.valueOf(status.toUpperCase());
+            claimPage = itemClaimRepository.findByStatus(claimStatus, pageable);
+        }
 
         return ClaimRequestsResponse.from(claimPage, page);
     }

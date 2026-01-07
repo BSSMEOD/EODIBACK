@@ -13,7 +13,7 @@ public interface ItemRepository extends JpaRepository<Item, Long>, ItemRepositor
     List<Item> findByStatusAndDiscardedAtBefore(Item.ItemStatus status, LocalDateTime dateTime);
 
     // 장기 방치된 분실물 조회 (자동 폐기 예정 전환용)
-    List<Item> findByStatusAndFoundAtBefore(Item.ItemStatus status, LocalDateTime dateTime);
+    List<Item> findByStatusAndCreatedAtBefore(Item.ItemStatus status, LocalDateTime dateTime);
 
     // 특정 상태의 물품 개수 조회
     long countByStatus(Item.ItemStatus status);
