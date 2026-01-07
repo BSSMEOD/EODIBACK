@@ -32,8 +32,8 @@ public class ItemFacade {
         return itemRepository.countByStatus(status);
     }
 
-    public List<Item> findByStatusAndFoundAtBefore(Item.ItemStatus status, LocalDateTime threshold) {
-        return itemRepository.findByStatusAndFoundAtBefore(status, threshold);
+    public List<Item> findByStatusAndCreatedAtBefore(Item.ItemStatus status, LocalDateTime threshold) {
+        return itemRepository.findByStatusAndCreatedAtBefore(status, threshold);
     }
 
     public List<Item> findByStatusAndDiscardedAtBefore(Item.ItemStatus status, LocalDateTime threshold) {
