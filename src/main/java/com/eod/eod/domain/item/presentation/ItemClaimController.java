@@ -200,4 +200,70 @@ public class ItemClaimController {
         ClaimItemListResponse response = itemClaimQueryService.getPendingClaimItems();
         return ResponseEntity.ok(response);
     }
+
+    @Operation(summary = "소유권 주장 승인", description = "관리자가 소유권 주장을 승인합니다. 같은 물품에 대한 다른 PENDING 주장들은 자동으로 거절됩니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "승인 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"소유권 주장이 승인되었습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 처리된 주장)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"대기 중인 소유권 주장만 승인할 수 있습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "소유권 주장을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"해당 소유권 주장을 찾을 수 없습니다.\"}")
+                    ))
+    })
+    @PostMapping("/claims/{claimId}/approve")
+    public ResponseEntity<Void> approveClaim(
+            @PathVariable Long claimId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        itemClaimService.approveClaim(claimId, currentUser);
+        return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "소유권 주장 거절", description = "관리자가 소유권 주장을 거절합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "거절 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"소유권 주장이 거절되었습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 처리된 주장)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"대기 중인 소유권 주장만 거절할 수 있습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "소유권 주장을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"해당 소유권 주장을 찾을 수 없습니다.\"}")
+                    ))
+    })
+    @PostMapping("/claims/{claimId}/reject")
+    public ResponseEntity<Void> rejectClaim(
+            @PathVariable Long claimId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        itemClaimService.rejectClaim(claimId, currentUser);
+        return ResponseEntity.ok().build();
+    }
 }
