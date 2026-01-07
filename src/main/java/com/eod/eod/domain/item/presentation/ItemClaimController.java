@@ -147,7 +147,7 @@ public class ItemClaimController {
             @RequestParam(defaultValue = "1") Integer page,
             @Parameter(description = "페이지당 항목 수 (기본값: 10)")
             @RequestParam(defaultValue = "10") Integer size,
-            @Parameter(description = "회수 요청 상태 (PENDING, APPROVED, REJECTED, 기본값: PENDING)")
+            @Parameter(description = "회수 요청 상태 (PENDING, APPROVED, REJECTED, null일 경우 전체 조회)")
             @EnumValue(enumClass = ItemClaim.ClaimStatus.class, allowBlank = true,
                     message = "유효하지 않은 회수 상태 값입니다.")
             @RequestParam(required = false) String status,
