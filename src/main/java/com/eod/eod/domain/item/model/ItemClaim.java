@@ -46,6 +46,26 @@ public class ItemClaim {
         this.claimedAt = LocalDateTime.now();
     }
 
+    /**
+     * 소유권 주장 승인
+     */
+    public void approve() {
+        if (this.status != ClaimStatus.PENDING) {
+            throw new IllegalStateException("대기 중인 소유권 주장만 승인할 수 있습니다.");
+        }
+        this.status = ClaimStatus.APPROVED;
+    }
+
+    /**
+     * 소유권 주장 거절
+     */
+    public void reject() {
+        if (this.status != ClaimStatus.PENDING) {
+            throw new IllegalStateException("대기 중인 소유권 주장만 거절할 수 있습니다.");
+        }
+        this.status = ClaimStatus.REJECTED;
+    }
+
     public enum ClaimStatus {
         PENDING, APPROVED, REJECTED
     }
