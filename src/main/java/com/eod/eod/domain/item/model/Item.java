@@ -178,15 +178,15 @@ public class Item {
     }
 
     /**
-     * 물품을 폐기 예정 상태로 변경 (습득일로부터 6개월 후 폐기 예정)
+     * 물품을 폐기 예정 상태로 변경 (등록일로부터 6개월 후 폐기 예정)
      */
     public void markAsToBeDiscarded() {
         if (this.status != ItemStatus.LOST) {
             throw new IllegalStateException("분실물 상태의 물품만 폐기 예정으로 변경할 수 있습니다.");
         }
         this.status = ItemStatus.TO_BE_DISCARDED;
-        // 습득일로부터 6개월 후를 폐기 예정일로 설정
-        this.discardedAt = this.foundAt.plusMonths(6);
+        // 등록일로부터 6개월 후를 폐기 예정일로 설정
+        this.discardedAt = this.createdAt.plusMonths(6);
     }
 
     /**
