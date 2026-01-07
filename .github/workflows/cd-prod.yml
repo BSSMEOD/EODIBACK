@@ -130,10 +130,10 @@ jobs:
           BASE_URL=${{ secrets.PROD_BASE_URL }}
           FRONTEND_BASE_URL=${{ secrets.PROD_FRONTEND_BASE_URL }}
           LOG_DIR=/logs
-          BSM_CLIENT_ID=${{ secrets.BSM_CLIENT_ID }}
-          BSM_CLIENT_SECRET=${{ secrets.BSM_CLIENT_SECRET }}
+          BSM_CLIENT_ID=${{ secrets.PROD_BSM_CLIENT_ID }}
+          BSM_CLIENT_SECRET=${{ secrets.PROD_BSM_CLIENT_SECRET }}
           BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
-          BSM_REDIRECT_URI=${{ secrets.BSM_REDIRECT_URI }}
+          BSM_REDIRECT_URI=${{ secrets.PROD_BSM_REDIRECT_URI }}
           FILE_UPLOAD_BASE_URL=${{ secrets.FILE_UPLOAD_BASE_URL }}
           EOF
           
