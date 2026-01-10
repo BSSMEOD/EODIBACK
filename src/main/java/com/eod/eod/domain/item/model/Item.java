@@ -221,13 +221,9 @@ public class Item {
     }
 
     public enum ItemCategory {
-        SCHOOL_UNIFORM("교복"),
-        GYM_UNIFORM("체육복"),
-        GROUP_UNIFORM("단체복"),
-        CASUAL_CLOTHES("사복"),
-        WIRELESS_EARBUDS("무선 이어폰"),
         ELECTRONICS("전자기기"),
-        GLASSES("안경"),
+        SCHOOL_UNIFORM("의류"),
+        ACCESSORIES("액세서리"),
         ETC("기타");
 
         private final String koreanName;
