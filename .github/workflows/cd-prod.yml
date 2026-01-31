@@ -129,7 +129,7 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           BASE_URL=${{ secrets.PROD_BASE_URL }}
           FRONTEND_BASE_URL=${{ secrets.PROD_FRONTEND_BASE_URL }}
-          LOG_DIR=/logs
+          LOG_DIR=${{ secrets.PROD_LOG_DIR }}
           BSM_CLIENT_ID=${{ secrets.PROD_BSM_CLIENT_ID }}
           BSM_CLIENT_SECRET=${{ secrets.PROD_BSM_CLIENT_SECRET }}
           BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
