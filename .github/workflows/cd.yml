@@ -35,7 +35,7 @@ jobs:
     - name: QEMU 설정 (ARM64 크로스 컴파일)
       uses: docker/setup-qemu-action@v3
       with:
-        platforms: arm64
+        platforms: linux/amd64
 
     - name: 이미지 이름 소문자 변환
       id: image_name
@@ -70,7 +70,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        platforms: linux/arm64
+        platforms: linux/amd64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha,scope=eod-build
