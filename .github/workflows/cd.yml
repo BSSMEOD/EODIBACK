@@ -35,7 +35,7 @@ jobs:
     - name: QEMU 설정 (ARM64 크로스 컴파일)
       uses: docker/setup-qemu-action@v3
       with:
-        platforms: arm64
+        platforms: linux/amd64
 
     - name: 이미지 이름 소문자 변환
       id: image_name
@@ -70,7 +70,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        platforms: linux/arm64
+        platforms: linux/amd64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha,scope=eod-build
@@ -156,7 +156,12 @@ jobs:
           echo "========================================="
           echo "🚀 Docker Compose 배포 시작"
           echo "========================================="
-          docker compose -f docker-compose.yml pull
+          for i in 1 2 3; do
+            echo "Docker 이미지 pull 시도 ${i}/3..."
+            docker compose -f docker-compose.yml pull && break
+            echo "Pull 실패, 30초 후 재시도..."
+            [ $i -lt 3 ] && sleep 30 || { echo "❌ Pull 최종 실패"; exit 1; }
+          done
           docker compose -f docker-compose.yml down
           docker compose -f docker-compose.yml up -d --remove-orphans
 

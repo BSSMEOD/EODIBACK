@@ -41,7 +41,7 @@ jobs:
     - name: QEMU 설정 (ARM64 크로스 컴파일)
       uses: docker/setup-qemu-action@v3
       with:
-        platforms: arm64
+        platforms: amd64
 
     - name: 이미지 이름 소문자 변환
       id: image_name
@@ -75,7 +75,7 @@ jobs:
         context: .
         file: ./Dockerfile
         push: true
-        platforms: linux/arm64
+        platforms: linux/amd64
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
         cache-from: type=gha,scope=eod-prod-build
@@ -129,7 +129,7 @@ jobs:
           JWT_SECRET=${{ secrets.JWT_SECRET }}
           BASE_URL=${{ secrets.PROD_BASE_URL }}
           FRONTEND_BASE_URL=${{ secrets.PROD_FRONTEND_BASE_URL }}
-          LOG_DIR=/logs
+          LOG_DIR=${{ secrets.PROD_LOG_DIR }}
           BSM_CLIENT_ID=${{ secrets.PROD_BSM_CLIENT_ID }}
           BSM_CLIENT_SECRET=${{ secrets.PROD_BSM_CLIENT_SECRET }}
           BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
@@ -160,6 +160,7 @@ jobs:
           echo "📁 로그 디렉토리 생성 중..."
           mkdir -p /eod/prod/logs
           mkdir -p /eod/uploads
+          chmod 777 /eod/uploads
           echo "✅ 디렉토리 생성 완료"
           echo "========================================="
 
@@ -168,7 +169,12 @@ jobs:
           echo "🚀 PRODUCTION Docker Compose 배포 시작"
           echo "========================================="
           export DOCKER_IMAGE_TAG=production
-          docker compose -f docker-compose.prod.yml pull
+          for i in 1 2 3; do
+            echo "Docker 이미지 pull 시도 ${i}/3..."
+            docker compose -f docker-compose.prod.yml pull && break
+            echo "Pull 실패, 30초 후 재시도..."
+            [ $i -lt 3 ] && sleep 30 || { echo "❌ Pull 최종 실패"; exit 1; }
+          done
           docker compose -f docker-compose.prod.yml down
           docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
