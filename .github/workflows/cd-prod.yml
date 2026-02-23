@@ -169,7 +169,12 @@ jobs:
           echo "🚀 PRODUCTION Docker Compose 배포 시작"
           echo "========================================="
           export DOCKER_IMAGE_TAG=production
-          docker compose -f docker-compose.prod.yml pull
+          for i in 1 2 3; do
+            echo "Docker 이미지 pull 시도 ${i}/3..."
+            docker compose -f docker-compose.prod.yml pull && break
+            echo "Pull 실패, 30초 후 재시도..."
+            [ $i -lt 3 ] && sleep 30 || { echo "❌ Pull 최종 실패"; exit 1; }
+          done
           docker compose -f docker-compose.prod.yml down
           docker compose -f docker-compose.prod.yml up -d --remove-orphans
 
