@@ -18,6 +18,9 @@ public interface RewardRecordRepository extends JpaRepository<RewardRecord, Long
             "WHERE r.student.id = :studentId")
     List<RewardRecord> findByStudentId(@Param("studentId") Long studentId);
 
+    // 물품 ID로 상점 지급 중복 여부 확인
+    boolean existsByItemId(Long itemId);
+
     // 날짜, 학년, 반으로 상점 지급 이력 조회 (N+1 방지: item, teacher fetch join)
     @Query("SELECT r FROM RewardRecord r " +
             "JOIN FETCH r.student s " +

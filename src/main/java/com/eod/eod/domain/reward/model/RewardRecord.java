@@ -38,7 +38,7 @@ public class RewardRecord {
     @Builder
     public RewardRecord(User student, Item item, User teacher) {
         validateTeacherRole(teacher);
-        validateItemNotGiven(item);
+        validateItemGiven(item);
         this.student = student;
         this.item = item;
         this.teacher = teacher;
@@ -52,10 +52,10 @@ public class RewardRecord {
         }
     }
 
-    // 물품이 이미 지급되지 않았는지 검증
-    private void validateItemNotGiven(Item item) {
-        if (item.isGiven()) {
-            throw new IllegalStateException("이미 지급된 물품입니다.");
+    // 물품이 지급 완료 상태인지 검증
+    private void validateItemGiven(Item item) {
+        if (!item.isGiven()) {
+            throw new IllegalStateException("지급 처리되지 않은 물품입니다.");
         }
     }
 }
