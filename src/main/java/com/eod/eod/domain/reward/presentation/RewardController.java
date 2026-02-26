@@ -4,6 +4,7 @@ import com.eod.eod.domain.reward.application.RewardGiveService;
 import com.eod.eod.domain.reward.application.RewardQueryService;
 import com.eod.eod.domain.reward.presentation.dto.request.RewardGiveRequest;
 import com.eod.eod.domain.reward.presentation.dto.request.RewardHistoryRequest;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardEligibleCountResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardEligibleResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveResponse;
@@ -67,6 +68,34 @@ public class RewardController {
     ) {
         rewardGiveService.giveRewardToStudent(request.getStudentId(), request.getItemId(), currentUser);
         return ResponseEntity.ok(RewardGiveResponse.success());
+    }
+
+    @Operation(summary = "상점 지급 가능 여부 조회", description = "특정 물품의 상점 지급 현황을 조회합니다. (교사/관리자 전용)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = RewardEligibleResponse.class))),
+            @ApiResponse(responseCode = "404", description = "물품을 찾을 수 없음")
+    })
+    @GetMapping("/eligible/{itemId}")
+    public ResponseEntity<RewardEligibleResponse> getRewardEligible(
+            @PathVariable Long itemId,
+            @Parameter(hidden = true) @AuthenticationPrincipal User currentUser
+    ) {
+        RewardEligibleResponse response = rewardQueryService.getRewardEligible(itemId, currentUser);
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "상점 지급 대기 건수 조회", description = "지급 완료된 물품 중 습득 신고자가 있고 아직 상점이 지급되지 않은 건수를 조회합니다. (교사/관리자 전용)")
+    @ApiResponse(responseCode = "200", description = "조회 성공",
+            content = @Content(mediaType = "application/json",
+                    schema = @Schema(implementation = RewardEligibleCountResponse.class)))
+    @GetMapping("/eligible/count")
+    public ResponseEntity<RewardEligibleCountResponse> getRewardEligibleCount(
+            @Parameter(hidden = true) @AuthenticationPrincipal User currentUser
+    ) {
+        long count = rewardQueryService.countRewardEligibleItems(currentUser);
+        return ResponseEntity.ok(RewardEligibleCountResponse.of(count));
     }
 
     @Operation(summary = "상점 지급 이력 검색",
