@@ -144,6 +144,7 @@ public class Item {
 
         if (approvalStatus == ApprovalStatus.APPROVED) {
             this.approvalStatus = ApprovalStatus.APPROVED;
+            this.status = ItemStatus.GIVEN;
         } else if (approvalStatus == ApprovalStatus.REJECTED) {
             this.approvalStatus = ApprovalStatus.REJECTED;
         } else {

@@ -1,7 +1,9 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.domain.item.infrastructure.GiveRecordRepository;
 import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
+import com.eod.eod.domain.item.model.GiveRecord;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
@@ -19,6 +21,7 @@ public class ItemClaimService {
 
     private final ItemFacade itemFacade;
     private final ItemClaimRepository itemClaimRepository;
+    private final GiveRecordRepository giveRecordRepository;
 
     public ItemClaimResponse claimItem(Long itemId, String claimReason, User currentUser) {
         // 아이템 존재 여부 확인
@@ -54,8 +57,20 @@ public class ItemClaimService {
         // 승인 처리
         claim.approve();
 
+        // 물품 승인 처리 (소유권 승인 시 물품도 함께 승인)
+        Item item = claim.getItem();
+        item.processApproval(Item.ApprovalStatus.APPROVED, currentUser);
+
+        // 지급 기록 생성 (수령자: 소유권 주장자, 지급자: 관리자)
+        GiveRecord giveRecord = GiveRecord.builder()
+                .item(item)
+                .giver(currentUser)
+                .receiver(claim.getClaimant())
+                .build();
+        giveRecordRepository.save(giveRecord);
+
         // 같은 물품에 대한 다른 PENDING 상태의 주장들을 모두 거절
-        Long itemId = claim.getItem().getId();
+        Long itemId = item.getId();
         List<ItemClaim> otherPendingClaims = itemClaimRepository
                 .findByItemIdAndStatus(itemId, ItemClaim.ClaimStatus.PENDING);
 
