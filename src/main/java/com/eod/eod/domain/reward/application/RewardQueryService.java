@@ -1,9 +1,12 @@
 package com.eod.eod.domain.reward.application;
 
+import com.eod.eod.domain.item.infrastructure.ItemRepository;
+import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.reward.infrastructure.RewardRecordRepository;
 import com.eod.eod.domain.reward.infrastructure.RewardRecordSpecification;
 import com.eod.eod.domain.reward.model.RewardRecord;
 import com.eod.eod.domain.reward.presentation.dto.request.RewardHistoryRequest;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardEligibleResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
@@ -18,6 +21,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +31,7 @@ public class RewardQueryService {
 
     private final RewardRecordRepository rewardRecordRepository;
     private final UserRepository userRepository;
+    private final ItemRepository itemRepository;
 
     private static final DateTimeFormatter DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
@@ -73,6 +78,33 @@ public class RewardQueryService {
 
         // Response 변환
         return RewardHistoryResponse.from(userId, records);
+    }
+
+    // 특정 물품의 상점 지급 가능 여부 및 현황 조회
+    public RewardEligibleResponse getRewardEligible(Long itemId, User currentUser) {
+        if (!currentUser.isTeacherOrAdmin()) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+
+        Item item = itemRepository.findById(itemId)
+                .orElseThrow(() -> new IllegalArgumentException("물품을 찾을 수 없습니다."));
+
+        Optional<RewardRecord> record = rewardRecordRepository.findByItemId(itemId);
+
+        return new RewardEligibleResponse(
+                item.getStudent().getId(),
+                itemId,
+                record.map(RewardRecord::getId).orElse(null),
+                record.map(RewardRecord::getCreatedAt).orElse(null)
+        );
+    }
+
+    // 상점 지급 대기 건수: 지급 완료(GIVEN) + 학생 신고자 있음 + 상점 미지급
+    public long countRewardEligibleItems(User currentUser) {
+        if (!currentUser.isTeacherOrAdmin()) {
+            throw new AccessDeniedException("접근 권한이 없습니다.");
+        }
+        return rewardRecordRepository.countRewardEligibleItems(Item.ItemStatus.GIVEN, User.Role.USER);
     }
 
     // 날짜, 학년, 반별 지급 내역 조회
