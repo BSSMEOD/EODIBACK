@@ -134,6 +134,7 @@ public class Item {
         if (this.status == ItemStatus.GIVEN) {
             throw new IllegalStateException("해당 물품은 이미 지급 처리되었습니다.");
         }
+        this.student = receiver;
         this.status = ItemStatus.GIVEN;
     }
 
