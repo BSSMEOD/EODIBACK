@@ -45,9 +45,9 @@ public class RewardRecord {
         this.createdAt = LocalDateTime.now();
     }
 
-    // 교사 권한 검증
+    // 교사/관리자 권한 검증
     private void validateTeacherRole(User user) {
-        if (!user.isTeacher()) {
+        if (!user.isTeacherOrAdmin()) {
             throw new IllegalStateException("상점을 지급할 권한이 없습니다.");
         }
     }
