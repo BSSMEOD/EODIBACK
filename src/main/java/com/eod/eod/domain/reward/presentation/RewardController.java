@@ -66,11 +66,11 @@ public class RewardController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        rewardGiveService.giveRewardToStudent(request.getStudentId(), request.getItemId(), currentUser);
+        rewardGiveService.giveRewardToStudent(request.getItemId(), currentUser);
         return ResponseEntity.ok(RewardGiveResponse.success());
     }
 
-    @Operation(summary = "상점 지급 가능 여부 조회", description = "특정 물품의 상점 지급 현황을 조회합니다. (교사/관리자 전용)")
+    @Operation(summary = "상점 지급 가능 여부 조회", description = "특정 물품의 습득 신고자 정보 및 상점 지급 현황을 조회합니다. (교사 전용)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(mediaType = "application/json",
@@ -86,7 +86,7 @@ public class RewardController {
         return ResponseEntity.ok(response);
     }
 
-    @Operation(summary = "상점 지급 대기 건수 조회", description = "지급 완료된 물품 중 습득 신고자가 있고 아직 상점이 지급되지 않은 건수를 조회합니다. (교사/관리자 전용)")
+    @Operation(summary = "상점 지급 대기 건수 조회", description = "지급 완료된 물품 중 습득 신고자가 있고 아직 상점이 지급되지 않은 건수를 조회합니다. 상점 지급 시 자동 차감됩니다. (교사 전용)")
     @ApiResponse(responseCode = "200", description = "조회 성공",
             content = @Content(mediaType = "application/json",
                     schema = @Schema(implementation = RewardEligibleCountResponse.class)))
