@@ -41,7 +41,7 @@ public class RewardQueryService {
      */
     public RewardHistoryResponse searchRewardHistory(RewardHistoryRequest request, User currentUser) {
         // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능) - 테스트를 위해 임시로 null 체크 추가
-        if (currentUser != null && !currentUser.isTeacherOrAdmin()) {
+        if (currentUser != null && !currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
@@ -64,8 +64,8 @@ public class RewardQueryService {
 
     // 상점 지급 이력 조회
     public RewardHistoryResponse getRewardHistory(Long userId, User currentUser) {
-        // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능)
-        if (!currentUser.isTeacherOrAdmin()) {
+        // 권한 검증 (교사만 조회 가능)
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
@@ -112,8 +112,8 @@ public class RewardQueryService {
 
     // 날짜, 학년, 반별 지급 내역 조회
     public RewardGiveHistoryResponse getGiveHistoryByDateAndClass(LocalDate date, Integer grade, Integer classNumber, User currentUser) {
-        // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능)
-        if (!currentUser.isTeacherOrAdmin()) {
+        // 권한 검증 (교사만 조회 가능)
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
