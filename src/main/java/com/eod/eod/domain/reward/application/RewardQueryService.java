@@ -82,26 +82,29 @@ public class RewardQueryService {
 
     // 특정 물품의 상점 지급 가능 여부 및 현황 조회
     public RewardEligibleResponse getRewardEligible(Long itemId, User currentUser) {
-        if (!currentUser.isTeacherOrAdmin()) {
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("물품을 찾을 수 없습니다."));
 
+        User finder = item.getStudent();
         Optional<RewardRecord> record = rewardRecordRepository.findByItemId(itemId);
 
         return new RewardEligibleResponse(
-                item.getStudent().getId(),
+                finder.getId(),
+                finder.getName(),
+                finder.getStudentCode(),
                 itemId,
-                record.map(RewardRecord::getId).orElse(null),
+                record.isPresent(),
                 record.map(RewardRecord::getCreatedAt).orElse(null)
         );
     }
 
     // 상점 지급 대기 건수: 지급 완료(GIVEN) + 학생 신고자 있음 + 상점 미지급
     public long countRewardEligibleItems(User currentUser) {
-        if (!currentUser.isTeacherOrAdmin()) {
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
         return rewardRecordRepository.countRewardEligibleItems(Item.ItemStatus.GIVEN, User.Role.USER);
