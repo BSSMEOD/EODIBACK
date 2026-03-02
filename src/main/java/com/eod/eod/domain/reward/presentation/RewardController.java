@@ -66,7 +66,7 @@ public class RewardController {
             @Parameter(hidden = true)
             @AuthenticationPrincipal User currentUser
     ) {
-        rewardGiveService.giveRewardToStudent(request.getStudentId(), request.getItemId(), currentUser);
+        rewardGiveService.giveRewardToStudent(request.getItemId(), currentUser);
         return ResponseEntity.ok(RewardGiveResponse.success());
     }
 
