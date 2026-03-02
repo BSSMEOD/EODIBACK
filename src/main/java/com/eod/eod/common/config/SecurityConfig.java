@@ -110,8 +110,8 @@ public class SecurityConfig {
                         // 나머지 items API는 인증된 사용자 (학생/선생님/관리자 공통)
                         .requestMatchers("/items/**").hasAnyRole("USER", "TEACHER", "ADMIN")
 
-                        // 상점 API는 교사 또는 관리자만 접근
-                        .requestMatchers("/rewards/**").hasAnyRole("TEACHER", "ADMIN")
+                        // 상점 API는 교사만 접근
+                        .requestMatchers("/rewards/**").hasRole("TEACHER")
                         // Place-Controller는 모두 허용
                         .requestMatchers("/places/**").permitAll()
                         // 소개 페이지 조회는 공개, 수정은 관리자만

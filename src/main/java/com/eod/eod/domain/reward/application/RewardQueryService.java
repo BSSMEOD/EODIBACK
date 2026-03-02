@@ -41,7 +41,7 @@ public class RewardQueryService {
      */
     public RewardHistoryResponse searchRewardHistory(RewardHistoryRequest request, User currentUser) {
         // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능) - 테스트를 위해 임시로 null 체크 추가
-        if (currentUser != null && !currentUser.isTeacherOrAdmin()) {
+        if (currentUser != null && !currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
@@ -64,8 +64,8 @@ public class RewardQueryService {
 
     // 상점 지급 이력 조회
     public RewardHistoryResponse getRewardHistory(Long userId, User currentUser) {
-        // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능)
-        if (!currentUser.isTeacherOrAdmin()) {
+        // 권한 검증 (교사만 조회 가능)
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
@@ -82,26 +82,29 @@ public class RewardQueryService {
 
     // 특정 물품의 상점 지급 가능 여부 및 현황 조회
     public RewardEligibleResponse getRewardEligible(Long itemId, User currentUser) {
-        if (!currentUser.isTeacherOrAdmin()) {
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
         Item item = itemRepository.findById(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("물품을 찾을 수 없습니다."));
 
+        User finder = item.getStudent();
         Optional<RewardRecord> record = rewardRecordRepository.findByItemId(itemId);
 
         return new RewardEligibleResponse(
-                item.getStudent().getId(),
+                finder.getId(),
+                finder.getName(),
+                finder.getStudentCode(),
                 itemId,
-                record.map(RewardRecord::getId).orElse(null),
+                record.isPresent(),
                 record.map(RewardRecord::getCreatedAt).orElse(null)
         );
     }
 
     // 상점 지급 대기 건수: 지급 완료(GIVEN) + 학생 신고자 있음 + 상점 미지급
     public long countRewardEligibleItems(User currentUser) {
-        if (!currentUser.isTeacherOrAdmin()) {
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
         return rewardRecordRepository.countRewardEligibleItems(Item.ItemStatus.GIVEN, User.Role.USER);
@@ -109,8 +112,8 @@ public class RewardQueryService {
 
     // 날짜, 학년, 반별 지급 내역 조회
     public RewardGiveHistoryResponse getGiveHistoryByDateAndClass(LocalDate date, Integer grade, Integer classNumber, User currentUser) {
-        // 권한 검증 (TEACHER 또는 ADMIN만 조회 가능)
-        if (!currentUser.isTeacherOrAdmin()) {
+        // 권한 검증 (교사만 조회 가능)
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("접근 권한이 없습니다.");
         }
 
