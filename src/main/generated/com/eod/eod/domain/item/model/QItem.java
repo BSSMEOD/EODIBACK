@@ -34,9 +34,13 @@ public class QItem extends EntityPathBase<Item> {
 
     public final DateTimePath<java.time.LocalDateTime> createdAt = createDateTime("createdAt", java.time.LocalDateTime.class);
 
+    public final DateTimePath<java.time.LocalDateTime> deletedAt = createDateTime("deletedAt", java.time.LocalDateTime.class);
+
     public final DateTimePath<java.time.LocalDateTime> discardedAt = createDateTime("discardedAt", java.time.LocalDateTime.class);
 
     public final DateTimePath<java.time.LocalDateTime> foundAt = createDateTime("foundAt", java.time.LocalDateTime.class);
+
+    public final EnumPath<Item.DatePrecision> foundAtPrecision = createEnum("foundAtPrecision", Item.DatePrecision.class);
 
     public final StringPath foundPlaceDetail = createString("foundPlaceDetail");
 

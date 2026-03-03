@@ -20,7 +20,7 @@ public class RewardGiveService {
     // 상점 지급 처리
     public void giveRewardToStudent(Long itemId, User currentUser) {
         // 물품 존재 여부 확인
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdAndDeletedAtIsNull(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("물품을 찾을 수 없습니다."));
 
         // 습득 신고자(item.student)를 상점 수령인으로 사용

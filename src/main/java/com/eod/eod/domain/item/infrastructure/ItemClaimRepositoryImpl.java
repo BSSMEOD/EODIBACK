@@ -40,6 +40,7 @@ public class ItemClaimRepositoryImpl implements ItemClaimRepositoryCustom {
                 .join(place).on(place.id.eq(item.foundPlaceId))
                 .where(
                         claim.status.eq(ItemClaim.ClaimStatus.PENDING),
+                        item.deletedAt.isNull(),
                         item.status.notIn(Item.ItemStatus.DISCARDED, Item.ItemStatus.GIVEN)
                 )
                 .groupBy(item.id, item.name, item.foundAt, place.place, item.image)

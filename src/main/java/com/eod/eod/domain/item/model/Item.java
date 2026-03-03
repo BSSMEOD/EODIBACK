@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Date;
 
 @Entity
 @Table(name = "items")
@@ -60,6 +59,9 @@ public class Item {
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(name = "deleted_at")
+    private LocalDateTime deletedAt;
 
     @Column(name = "discarded_at")
     private LocalDateTime discardedAt;
@@ -164,6 +166,16 @@ public class Item {
     // 지급 여부 확인
     public boolean isGiven() {
         return this.status == ItemStatus.GIVEN;
+    }
+
+    public void softDelete() {
+        if (this.deletedAt == null) {
+            this.deletedAt = LocalDateTime.now();
+        }
+    }
+
+    public boolean isDeleted() {
+        return this.deletedAt != null;
     }
 
     /**

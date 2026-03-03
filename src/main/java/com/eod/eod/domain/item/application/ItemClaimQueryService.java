@@ -23,7 +23,7 @@ public class ItemClaimQueryService {
     private final ItemClaimRepository itemClaimRepository;
 
     public long countPendingClaims() {
-        return itemClaimRepository.countByStatus(ItemClaim.ClaimStatus.PENDING);
+        return itemClaimRepository.countByStatusAndItemDeletedAtIsNull(ItemClaim.ClaimStatus.PENDING);
     }
 
     public ClaimItemListResponse getPendingClaimItems() {
@@ -45,10 +45,10 @@ public class ItemClaimQueryService {
 
         // status가 null이거나 비어있으면 전체 조회
         if (status == null || status.isBlank()) {
-            claimPage = itemClaimRepository.findAll(pageable);
+            claimPage = itemClaimRepository.findByItemDeletedAtIsNull(pageable);
         } else {
             ItemClaim.ClaimStatus claimStatus = ItemClaim.ClaimStatus.valueOf(status.toUpperCase());
-            claimPage = itemClaimRepository.findByStatus(claimStatus, pageable);
+            claimPage = itemClaimRepository.findByStatusAndItemDeletedAtIsNull(claimStatus, pageable);
         }
 
         return ClaimRequestsResponse.from(claimPage, page);
