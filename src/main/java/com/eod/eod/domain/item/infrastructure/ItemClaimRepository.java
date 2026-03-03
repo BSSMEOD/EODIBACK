@@ -13,10 +13,13 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
     boolean existsByItemIdAndClaimantId(Long itemId, Long claimantId);
 
     // 특정 상태의 회수 신청 개수 조회
-    long countByStatus(ItemClaim.ClaimStatus status);
+    long countByStatusAndItemDeletedAtIsNull(ItemClaim.ClaimStatus status);
 
     // 특정 상태의 회수 요청 목록 조회 (페이지네이션)
-    Page<ItemClaim> findByStatus(ItemClaim.ClaimStatus status, Pageable pageable);
+    Page<ItemClaim> findByStatusAndItemDeletedAtIsNull(ItemClaim.ClaimStatus status, Pageable pageable);
+
+    // 삭제되지 않은 물품의 회수 요청 목록 조회 (페이지네이션)
+    Page<ItemClaim> findByItemDeletedAtIsNull(Pageable pageable);
 
     // 특정 물품에 대한 특정 상태의 소유권 주장 목록 조회
     List<ItemClaim> findByItemIdAndStatus(Long itemId, ItemClaim.ClaimStatus status);
