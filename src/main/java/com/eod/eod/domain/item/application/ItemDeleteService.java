@@ -19,7 +19,7 @@ public class ItemDeleteService {
         // 물품 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
 
-        // 물품 삭제
-        itemFacade.delete(item);
+        // 물품 논리 삭제
+        item.softDelete();
     }
 }
