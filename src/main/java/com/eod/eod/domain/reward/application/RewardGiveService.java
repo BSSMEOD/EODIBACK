@@ -26,7 +26,7 @@ public class RewardGiveService {
                 .orElseThrow(() -> new IllegalArgumentException("학생을 찾을 수 없습니다."));
 
         // 물품 존재 여부 확인
-        Item item = itemRepository.findById(itemId)
+        Item item = itemRepository.findByIdAndDeletedAtIsNull(itemId)
                 .orElseThrow(() -> new IllegalArgumentException("물품을 찾을 수 없습니다."));
 
         // 상점 지급 기록 생성 (RewardRecord 도메인에서 권한 및 검증 처리)
