@@ -46,7 +46,7 @@ public class ItemQueryService {
         return ItemDetailResponse.builder()
                 .id(item.getId())
                 .name(item.getName())
-                .reportStudentCode(item.getStudent() != null ? item.getStudent().getStudentCode() : null)
+                .reporterStudentCode(item.getStudent() != null ? item.getStudent().getStudentCode() : null)
                 .reporterName(item.getStudent() != null ? item.getStudent().getName() : null)
                 .imageUrl(item.getImage())
                 .foundAt(formattedFoundAt)
