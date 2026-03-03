@@ -17,7 +17,7 @@ public class ItemDetailResponse {
     private String name;
 
     @Schema(description = "신고자 학번", example = "1101")
-    private Integer reportStudentCode;
+    private Integer reporterStudentCode;
 
     @Schema(description = "신고자 이름", example = "홍길동")
     private String reporterName;
