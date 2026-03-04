@@ -25,7 +25,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
     private final EntityManager entityManager;
 
     @Override
-    public Page<Item> searchItems(String trimmedQuery, List<Long> placeIds, Item.ItemStatus status,
+    public Page<Item> searchItems(String trimmedQuery, List<Long> placeIds, List<Item.ItemStatus> statuses,
                                    LocalDate foundAtFrom, LocalDate foundAtTo,
                                    List<Item.ItemCategory> categories, Pageable pageable) {
         JPAQueryFactory queryFactory = new JPAQueryFactory(entityManager);
@@ -48,8 +48,14 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
             }
         }
 
-        if (status != null) {
-            builder.and(item.status.eq(status));
+        if (statuses != null) {
+            List<Item.ItemStatus> filteredStatuses = statuses.stream()
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            if (!filteredStatuses.isEmpty()) {
+                builder.and(item.status.in(filteredStatuses));
+            }
         }
 
         if (foundAtFrom != null) {

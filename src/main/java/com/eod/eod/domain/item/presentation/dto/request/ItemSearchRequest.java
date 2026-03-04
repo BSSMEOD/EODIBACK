@@ -2,6 +2,7 @@ package com.eod.eod.domain.item.presentation.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.eod.eod.common.validation.EnumValue;
+import com.eod.eod.common.validation.ItemStatusesValue;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
@@ -31,12 +32,11 @@ public class ItemSearchRequest {
     @Schema(description = "장소 ID 리스트 (선택 사항)", example = "[2,3]")
     private List<Long> placeIds;
 
-    @EnumValue(enumClass = com.eod.eod.domain.item.model.Item.ItemStatus.class,
-            message = "유효하지 않은 상태 값입니다.", allowBlank = true)
-    @Schema(description = "물품 상태 (LOST, TO_BE_DISCARDED, DISCARDED, GIVEN) - 선택 사항",
-            example = "LOST",
+    @ItemStatusesValue(message = "유효하지 않은 상태 값입니다.")
+    @Schema(description = "물품 상태 리스트 (LOST, TO_BE_DISCARDED, DISCARDED, GIVEN) - 선택 사항, 다중 선택 가능",
+            example = "[\"LOST\", \"GIVEN\"]",
             requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    private String status;
+    private List<String> status;
 
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     @Schema(description = "습득일 시작 날짜 (선택 사항)", example = "2024-01-01",

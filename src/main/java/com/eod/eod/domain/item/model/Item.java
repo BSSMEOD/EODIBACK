@@ -23,7 +23,7 @@ public class Item {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "student_id", nullable = false)
+    @JoinColumn(name = "student_id")
     private User student;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -102,7 +102,7 @@ public class Item {
         String sanitizedDetail = ItemSanitizer.sanitizeDetail(foundPlaceDetail);
 
         return Item.builder()
-                .student(student != null ? student : admin)
+                .student(student)
                 .admin(admin)
                 .foundPlaceId(ItemValidator.requirePlaceId(foundPlaceId))
                 .foundPlaceDetail(sanitizedDetail)

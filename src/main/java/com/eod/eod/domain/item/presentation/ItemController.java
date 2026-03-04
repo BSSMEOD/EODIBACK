@@ -80,7 +80,7 @@ public class ItemController {
                 .body(ItemCreateResponse.success(itemId));
     }
 
-    @Operation(summary = "분실물 검색", description = "장소 ID 리스트, 상태, 습득일 기간, 카테고리로 분실물을 검색합니다. 페이징을 지원합니다.")
+    @Operation(summary = "분실물 검색", description = "장소 ID 리스트, 상태 리스트, 습득일 기간, 카테고리로 분실물을 검색합니다. 페이징을 지원합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "검색 성공",
                     content = @Content(

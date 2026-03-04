@@ -18,8 +18,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -56,17 +58,17 @@ public class ItemQueryService {
                 .build();
     }
 
-    public ItemSearchResponse searchItems(String query, List<Long> placeIds, String status,
+    public ItemSearchResponse searchItems(String query, List<Long> placeIds, List<String> statuses,
                                           LocalDate foundAtFrom, LocalDate foundAtTo,
                                           List<String> categories, String sort, int page, int size) {
         Sort sortBy = parseSort(sort);
         Pageable pageable = PageRequest.of(page - 1, size, sortBy);
 
-        Item.ItemStatus itemStatus = parseStatus(status);
+        List<Item.ItemStatus> itemStatuses = parseStatuses(statuses);
         List<Item.ItemCategory> itemCategories = parseCategories(categories);
         String trimmedQuery = parseQuery(query);
 
-        Page<Item> itemPage = itemRepository.searchItems(trimmedQuery, placeIds, itemStatus,
+        Page<Item> itemPage = itemRepository.searchItems(trimmedQuery, placeIds, itemStatuses,
                                                           foundAtFrom, foundAtTo,
                                                           itemCategories, pageable);
 
@@ -77,11 +79,21 @@ public class ItemQueryService {
         return ItemSearchResponse.from(dtoPage);
     }
 
-    private Item.ItemStatus parseStatus(String status) {
-        if (status == null || status.isBlank()) {
+    private List<Item.ItemStatus> parseStatuses(List<String> statuses) {
+        if (statuses == null || statuses.isEmpty()) {
             return null;
         }
-        return Item.ItemStatus.valueOf(status.toUpperCase());
+
+        List<Item.ItemStatus> parsedStatuses = statuses.stream()
+                .filter(Objects::nonNull)
+                .flatMap(status -> Arrays.stream(status.split(",")))
+                .map(String::trim)
+                .filter(status -> !status.isEmpty())
+                .map(status -> Item.ItemStatus.valueOf(status.toUpperCase()))
+                .distinct()
+                .toList();
+
+        return parsedStatuses.isEmpty() ? null : parsedStatuses;
     }
 
     private List<Item.ItemCategory> parseCategories(List<String> categories) {
