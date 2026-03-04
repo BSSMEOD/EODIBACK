@@ -4,6 +4,7 @@ import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -52,6 +53,13 @@ public class ItemClaimQueryService {
         }
 
         return ClaimRequestsResponse.from(claimPage, page);
+    }
+
+    public List<ClaimRequestResponse> getClaimsByItemId(Long itemId) {
+        return itemClaimRepository.findByItemIdAndItemDeletedAtIsNull(itemId)
+                .stream()
+                .map(ClaimRequestResponse::from)
+                .toList();
     }
 
     private ItemClaim.ClaimStatus parseStatus(String status) {
