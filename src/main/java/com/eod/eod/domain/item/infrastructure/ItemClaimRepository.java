@@ -23,4 +23,7 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
 
     // 특정 물품에 대한 특정 상태의 소유권 주장 목록 조회
     List<ItemClaim> findByItemIdAndStatus(Long itemId, ItemClaim.ClaimStatus status);
+
+    // 특정 물품에 대한 전체 소유권 주장 목록 조회 (삭제된 물품 제외)
+    List<ItemClaim> findByItemIdAndItemDeletedAtIsNull(Long itemId);
 }

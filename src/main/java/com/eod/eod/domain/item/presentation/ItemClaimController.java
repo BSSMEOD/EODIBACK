@@ -7,6 +7,7 @@ import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.request.ItemClaimRequest;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimCountResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
+import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
@@ -23,6 +24,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 import org.springframework.validation.annotation.Validated;
 
 @RestController
@@ -198,6 +201,29 @@ public class ItemClaimController {
         }
 
         ClaimItemListResponse response = itemClaimQueryService.getPendingClaimItems();
+        return ResponseEntity.ok(response);
+    }
+
+    @Operation(summary = "물건별 소유권 주장 목록 조회", description = "특정 물건에 대해 소유권을 주장한 사람들의 목록을 조회합니다. ADMIN 권한이 필요합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공"),
+            @ApiResponse(responseCode = "403", description = "ADMIN 권한 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"ADMIN 권한이 필요합니다.\"}")
+                    ))
+    })
+    @GetMapping("/{itemId}/claims")
+    public ResponseEntity<List<ClaimRequestResponse>> getClaimsByItem(
+            @PathVariable Long itemId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        if (!currentUser.isAdmin()) {
+            throw new IllegalStateException("ADMIN 권한이 필요합니다.");
+        }
+
+        List<ClaimRequestResponse> response = itemClaimQueryService.getClaimsByItemId(itemId);
         return ResponseEntity.ok(response);
     }
 
