@@ -53,17 +53,17 @@ class ItemQueryServiceTest {
         ReflectionTestUtils.setField(place, "place", "도서관");
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
-        when(itemRepository.searchItems(isNull(), anyList(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(), anyList(), eq(List.of(Item.ItemStatus.LOST)), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 5, Sort.by(Sort.Direction.DESC, "foundAt")), 1));
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(null, placeIds, "LOST", null, null, null, null, 1, 5);
+        ItemSearchResponse response = itemQueryService.searchItems(null, placeIds, List.of("LOST"), null, null, null, null, 1, 5);
 
         // then
         ArgumentCaptor<List<Long>> placeIdsCaptor = ArgumentCaptor.forClass(List.class);
         ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
 
-        verify(itemRepository).searchItems(isNull(), placeIdsCaptor.capture(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), pageableCaptor.capture());
+        verify(itemRepository).searchItems(isNull(), placeIdsCaptor.capture(), eq(List.of(Item.ItemStatus.LOST)), isNull(), isNull(), isNull(), pageableCaptor.capture());
 
         // Repository는 null 필터링을 직접 처리하므로 원본 리스트가 전달됨
         assertThat(placeIdsCaptor.getValue()).containsExactly(1L, null, 2L);
@@ -153,7 +153,7 @@ class ItemQueryServiceTest {
                 .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
 
         // when
-        ItemSearchResponse response = itemQueryService.searchItems(null, null, "   ", null, null, null, null, 1, 10);
+        ItemSearchResponse response = itemQueryService.searchItems(null, null, List.of("   "), null, null, null, null, 1, 10);
 
         // then
         verify(itemRepository).searchItems(isNull(), isNull(), isNull(), isNull(), isNull(), isNull(), any(Pageable.class));
@@ -168,7 +168,7 @@ class ItemQueryServiceTest {
     void status_소문자도_ENUM으로_파싱된다() {
         // given
         Item item = createItem(1L, Item.ItemStatus.LOST);
-        when(itemRepository.searchItems(isNull(), isNull(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class)))
+        when(itemRepository.searchItems(isNull(), isNull(), eq(List.of(Item.ItemStatus.LOST)), isNull(), isNull(), isNull(), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(item), PageRequest.of(0, 10), 1));
         Place place = new Place();
         ReflectionTestUtils.setField(place, "id", 1L);
@@ -176,11 +176,33 @@ class ItemQueryServiceTest {
         when(placeRepository.findAllById(any())).thenReturn(List.of(place));
 
         // when
-        itemQueryService.searchItems(null, null, "lost", null, null, null, null, 1, 10);
+        itemQueryService.searchItems(null, null, List.of("lost"), null, null, null, null, 1, 10);
 
         // then
-        verify(itemRepository).searchItems(isNull(), isNull(), eq(Item.ItemStatus.LOST), isNull(), isNull(), isNull(), any(Pageable.class));
+        verify(itemRepository).searchItems(isNull(), isNull(), eq(List.of(Item.ItemStatus.LOST)), isNull(), isNull(), isNull(), any(Pageable.class));
         verify(placeRepository).findAllById(any());
+    }
+
+    @Test
+    void status_콤마구분_여러값도_ENUM_리스트로_파싱된다() {
+        // given
+        when(itemRepository.searchItems(isNull(), isNull(), eq(List.of(Item.ItemStatus.LOST, Item.ItemStatus.GIVEN)), isNull(), isNull(), isNull(), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(), PageRequest.of(0, 10), 0));
+
+        // when
+        itemQueryService.searchItems(null, null, List.of("lost,given"), null, null, null, null, 1, 10);
+
+        // then
+        verify(itemRepository).searchItems(
+                isNull(),
+                isNull(),
+                eq(List.of(Item.ItemStatus.LOST, Item.ItemStatus.GIVEN)),
+                isNull(),
+                isNull(),
+                isNull(),
+                any(Pageable.class)
+        );
+        verifyNoInteractions(placeRepository);
     }
 
     @Test
