@@ -4,7 +4,6 @@ import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
-import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -15,7 +14,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
-
 @Service
 @RequiredArgsConstructor
 @Transactional(readOnly = true)
@@ -33,7 +31,7 @@ public class ItemClaimQueryService {
         return ClaimItemListResponse.of(items);
     }
 
-    public ClaimRequestsResponse getClaimRequests(Integer page, Integer size, String status, String sort) {
+    public ClaimRequestsResponse getClaimRequests(Long itemId, Integer page, Integer size, String status, String sort) {
         Sort sortBy = parseSort(sort);
 
         Pageable pageable = PageRequest.of(
@@ -44,8 +42,14 @@ public class ItemClaimQueryService {
 
         Page<ItemClaim> claimPage;
 
-        // status가 null이거나 비어있으면 전체 조회
-        if (status == null || status.isBlank()) {
+        if (itemId != null) {
+            if (status == null || status.isBlank()) {
+                claimPage = itemClaimRepository.findByItemIdAndItemDeletedAtIsNull(itemId, pageable);
+            } else {
+                ItemClaim.ClaimStatus claimStatus = ItemClaim.ClaimStatus.valueOf(status.toUpperCase());
+                claimPage = itemClaimRepository.findByItemIdAndStatusAndItemDeletedAtIsNull(itemId, claimStatus, pageable);
+            }
+        } else if (status == null || status.isBlank()) {
             claimPage = itemClaimRepository.findByItemDeletedAtIsNull(pageable);
         } else {
             ItemClaim.ClaimStatus claimStatus = ItemClaim.ClaimStatus.valueOf(status.toUpperCase());
@@ -53,13 +57,6 @@ public class ItemClaimQueryService {
         }
 
         return ClaimRequestsResponse.from(claimPage, page);
-    }
-
-    public List<ClaimRequestResponse> getClaimsByItemId(Long itemId) {
-        return itemClaimRepository.findByItemIdAndItemDeletedAtIsNull(itemId)
-                .stream()
-                .map(ClaimRequestResponse::from)
-                .toList();
     }
 
     private ItemClaim.ClaimStatus parseStatus(String status) {
