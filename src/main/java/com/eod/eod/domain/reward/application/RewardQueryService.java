@@ -9,6 +9,7 @@ import com.eod.eod.domain.reward.presentation.dto.request.RewardHistoryRequest;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardEligibleResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardRequestListResponse;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -100,6 +102,20 @@ public class RewardQueryService {
                 record.isPresent(),
                 record.map(RewardRecord::getCreatedAt).orElse(null)
         );
+    }
+
+    // 상점 지급 리스트: 주인에게 지급된 물품 + 습득 신고자 있음 + 상점 지급 여부 포함
+    public RewardRequestListResponse getRewardRequestList(User currentUser) {
+        if (!currentUser.isAdmin()) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
+        List<Item> items = itemRepository.findRewardRequestList(Item.ItemStatus.GIVEN, User.Role.USER);
+        List<Long> itemIds = items.stream().map(Item::getId).collect(Collectors.toList());
+        Map<Long, RewardRecord> rewardMap = itemIds.isEmpty()
+                ? Map.of()
+                : rewardRecordRepository.findByItemIds(itemIds).stream()
+                        .collect(Collectors.toMap(r -> r.getItem().getId(), r -> r));
+        return RewardRequestListResponse.from(items, rewardMap);
     }
 
     // 상점 지급 대기 건수: 지급 완료(GIVEN) + 학생 신고자 있음 + 상점 미지급
