@@ -6,6 +6,11 @@ import com.eod.eod.domain.auth.application.TokenService;
 import com.eod.eod.domain.auth.presentation.dto.response.TokenResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
@@ -27,6 +32,17 @@ public class AuthController {
 
     @PostMapping("/refresh")
     @Operation(summary = "Access Token 및 Refresh Token 갱신", description = "Cookie의 Refresh Token을 사용하여 새로운 Access Token과 Refresh Token을 발급받습니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "토큰 갱신 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TokenResponse.class))),
+            @ApiResponse(responseCode = "400", description = "Refresh Token 없음",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"Refresh Token이 없습니다.\"}"))),
+            @ApiResponse(responseCode = "401", description = "유효하지 않은 Refresh Token",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"유효하지 않은 Refresh Token입니다.\"}")))
+    })
     public ResponseEntity<TokenResponse> refreshToken(HttpServletRequest request, HttpServletResponse response) {
         // Cookie에서 Refresh Token 추출
         String refreshToken = cookieUtil.getCookie(request, "refreshToken")
@@ -53,6 +69,12 @@ public class AuthController {
 
     @PostMapping("/logout")
     @Operation(summary = "로그아웃", description = "Refresh Token을 삭제하여 로그아웃합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "로그아웃 성공"),
+            @ApiResponse(responseCode = "401", description = "인증 실패",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"인증에 실패했습니다.\"}")))
+    })
     public ResponseEntity<Void> logout(
             @AuthenticationPrincipal User user,
             HttpServletRequest request,
