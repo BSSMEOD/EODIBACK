@@ -33,7 +33,8 @@ public class ItemClaimRepositoryImpl implements ItemClaimRepositoryCustom {
                         item.foundAt,
                         place.place,
                         item.image,
-                        claim.id.count()
+                        claim.id.count(),
+                        claim.visitDate.min()
                 ))
                 .from(item)
                 .join(claim).on(claim.item.id.eq(item.id))

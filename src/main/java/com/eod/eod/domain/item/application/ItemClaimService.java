@@ -8,6 +8,7 @@ import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
+import java.time.LocalDate;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ public class ItemClaimService {
     private final ItemClaimRepository itemClaimRepository;
     private final GiveRecordRepository giveRecordRepository;
 
-    public ItemClaimResponse claimItem(Long itemId, String claimReason, User currentUser) {
+    public ItemClaimResponse claimItem(Long itemId, String claimReason, LocalDate visitDate, User currentUser) {
         // 아이템 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
 
@@ -37,6 +38,7 @@ public class ItemClaimService {
                 .item(item)
                 .claimant(currentUser)
                 .claimReason(claimReason)
+                .visitDate(visitDate)
                 .build();
 
         itemClaimRepository.save(claim);
