@@ -4,6 +4,8 @@ import com.eod.eod.common.util.CookieUtil;
 import com.eod.eod.domain.auth.application.BsmLoginService;
 import com.eod.eod.domain.auth.application.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -38,6 +40,10 @@ public class BsmOAuthCallbackController {
 
     @GetMapping("/oauth/bsm")
     @Operation(summary = "BSM OAuth 콜백", description = "BSM에서 전달된 code를 교환해 JWT를 발급하고 프론트로 리다이렉트합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "302", description = "로그인 성공 - 프론트엔드로 Access Token과 함께 리다이렉트"),
+            @ApiResponse(responseCode = "302", description = "로그인 실패 - 프론트엔드로 에러 정보와 함께 리다이렉트")
+    })
     public void callback(
             @RequestParam("code") String code,
             @RequestParam(value = "state", required = false) String state,

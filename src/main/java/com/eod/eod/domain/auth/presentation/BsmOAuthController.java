@@ -3,6 +3,8 @@ package com.eod.eod.domain.auth.presentation;
 import com.eod.eod.common.util.CookieUtil;
 import com.eod.eod.domain.auth.application.BsmOAuthService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +30,9 @@ public class BsmOAuthController {
 
     @GetMapping("/authorize")
     @Operation(summary = "BSM 로그인 시작", description = "state를 설정하고 BSM 로그인 페이지로 리다이렉트합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "302", description = "BSM 로그인 페이지로 리다이렉트")
+    })
     public void authorize(HttpServletResponse response) {
         String state = generateState();
         cookieUtil.addTokenCookie(response, STATE_COOKIE_NAME, state, STATE_COOKIE_MAX_AGE_MILLIS, CookieUtil.SameSitePolicy.LAX);
