@@ -34,6 +34,10 @@ public interface RewardRecordRepository extends JpaRepository<RewardRecord, Long
             "AND NOT EXISTS (SELECT r FROM RewardRecord r WHERE r.item = i)")
     long countRewardEligibleItems(@Param("status") Item.ItemStatus status, @Param("role") User.Role role);
 
+    // 여러 물품 ID로 상점 지급 기록 배치 조회
+    @Query("SELECT r FROM RewardRecord r WHERE r.item.id IN :itemIds")
+    List<RewardRecord> findByItemIds(@Param("itemIds") List<Long> itemIds);
+
     // 날짜, 학년, 반으로 상점 지급 이력 조회 (N+1 방지: item, teacher fetch join)
     @Query("SELECT r FROM RewardRecord r " +
             "JOIN FETCH r.student s " +

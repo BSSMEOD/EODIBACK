@@ -9,6 +9,7 @@ import com.eod.eod.domain.reward.presentation.dto.response.RewardEligibleRespons
 import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveHistoryResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardGiveResponse;
 import com.eod.eod.domain.reward.presentation.dto.response.RewardHistoryResponse;
+import com.eod.eod.domain.reward.presentation.dto.response.RewardRequestListResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -68,6 +69,22 @@ public class RewardController {
     ) {
         rewardGiveService.giveRewardToStudent(request.getItemId(), currentUser);
         return ResponseEntity.ok(RewardGiveResponse.success());
+    }
+
+    @Operation(summary = "상점 지급 리스트 조회", description = "주인이 찾아간 분실물 중 상점 지급 여부를 리스트로 반환합니다. (ADMIN 전용)")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = RewardRequestListResponse.class))),
+            @ApiResponse(responseCode = "403", description = "권한이 없습니다.",
+                    content = @Content(mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"권한이 없습니다.\"}")))
+    })
+    @GetMapping("/request")
+    public ResponseEntity<RewardRequestListResponse> getRewardRequestList(
+            @Parameter(hidden = true) @AuthenticationPrincipal User currentUser
+    ) {
+        return ResponseEntity.ok(rewardQueryService.getRewardRequestList(currentUser));
     }
 
     @Operation(summary = "상점 지급 가능 여부 조회", description = "특정 물품의 습득 신고자 정보 및 상점 지급 현황을 조회합니다. (교사 전용)")
