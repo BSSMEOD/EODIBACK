@@ -2,9 +2,11 @@ package com.eod.eod.domain.item.presentation.dto.response;
 
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.user.model.User;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Builder;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -21,6 +23,9 @@ public class ClaimRequestResponse {
     private LocalDateTime requestedAt;
     private String status;
 
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    private LocalDate visitDate;
+
     public static ClaimRequestResponse from(ItemClaim claim) {
         return ClaimRequestResponse.builder()
                 .requestId(claim.getId())
@@ -32,6 +37,7 @@ public class ClaimRequestResponse {
                 .requesterType(mapRoleToRequesterType(claim.getClaimant()))
                 .requestedAt(claim.getClaimedAt())
                 .status(claim.getStatus().name())
+                .visitDate(claim.getVisitDate())
                 .build();
     }
 

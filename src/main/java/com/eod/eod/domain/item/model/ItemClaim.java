@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -30,6 +31,9 @@ public class ItemClaim {
     @Column(name = "claim_reason", nullable = false, columnDefinition = "TEXT")
     private String claimReason;
 
+    @Column(name = "visit_date", nullable = false)
+    private LocalDate visitDate;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false)
     private ClaimStatus status;
@@ -38,10 +42,11 @@ public class ItemClaim {
     private LocalDateTime claimedAt;
 
     @Builder
-    public ItemClaim(Item item, User claimant, String claimReason) {
+    public ItemClaim(Item item, User claimant, String claimReason, LocalDate visitDate) {
         this.item = item;
         this.claimant = claimant;
         this.claimReason = claimReason;
+        this.visitDate = visitDate;
         this.status = ClaimStatus.PENDING;
         this.claimedAt = LocalDateTime.now();
     }

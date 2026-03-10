@@ -6,6 +6,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Getter
@@ -33,4 +34,9 @@ public class ClaimItemResponse {
 
     @Schema(description = "회수 신청 건수", example = "1")
     private Long requestCount;
+
+    @JsonProperty("visitDate")
+    @JsonFormat(pattern = "yyyy-MM-dd")
+    @Schema(description = "가장 이른 방문 예정 날짜 (시간은 13:10 고정)", example = "2025-03-12")
+    private LocalDate visitDate;
 }
