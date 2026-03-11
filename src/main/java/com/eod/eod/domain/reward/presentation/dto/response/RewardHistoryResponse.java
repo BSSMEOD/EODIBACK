@@ -70,6 +70,18 @@ public class RewardHistoryResponse {
         @Schema(description = "물품 상세 정보")
         private ItemInfo item;
 
+        @JsonProperty("studentName")
+        @Schema(description = "상점을 받은 학생 이름", example = "홍길동")
+        private String studentName;
+
+        @JsonProperty("grade")
+        @Schema(description = "학생 학년", example = "3")
+        private Integer grade;
+
+        @JsonProperty("classNo")
+        @Schema(description = "학생 반", example = "2")
+        private Integer classNo;
+
         @JsonProperty("givenBy")
         @Schema(description = "상점을 지급한 교사 이름", example = "김선생")
         private String givenBy;
@@ -84,6 +96,9 @@ public class RewardHistoryResponse {
                     .itemId(record.getItem().getId())
                     .itemName(record.getItem().getName())
                     .item(ItemInfo.from(record.getItem()))
+                    .studentName(record.getStudent().getName())
+                    .grade(record.getStudent().getGrade())
+                    .classNo(record.getStudent().getClassNo())
                     .givenBy(record.getTeacher().getName())
                     .givenAt(formatDate(record.getCreatedAt()))
                     .build();
