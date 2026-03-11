@@ -31,7 +31,7 @@ public class ItemClaim {
     @Column(name = "claim_reason", nullable = false, columnDefinition = "TEXT")
     private String claimReason;
 
-    @Column(name = "visit_date", nullable = false)
+    @Column(name = "visit_date")
     private LocalDate visitDate;
 
     @Enumerated(EnumType.STRING)
