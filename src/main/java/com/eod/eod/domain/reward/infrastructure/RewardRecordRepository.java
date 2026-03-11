@@ -14,11 +14,12 @@ import java.util.Optional;
 
 public interface RewardRecordRepository extends JpaRepository<RewardRecord, Long>, JpaSpecificationExecutor<RewardRecord> {
 
-    // 학생 ID로 상점 지급 이력 조회 (N+1 방지: item, teacher fetch join)
+    // 학생 ID로 상점 지급 이력 조회 (N+1 방지: student, item, teacher fetch join)
     @Query("SELECT r FROM RewardRecord r " +
+            "JOIN FETCH r.student s " +
             "JOIN FETCH r.item i " +
             "JOIN FETCH r.teacher t " +
-            "WHERE r.student.id = :studentId")
+            "WHERE s.id = :studentId")
     List<RewardRecord> findByStudentId(@Param("studentId") Long studentId);
 
     // 물품 ID로 상점 지급 중복 여부 확인
