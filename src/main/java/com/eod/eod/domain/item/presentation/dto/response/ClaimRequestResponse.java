@@ -17,7 +17,6 @@ public class ClaimRequestResponse {
     private Long itemId;
     private String itemName;
     private String imageUrl;
-    private String requestMessage;
     private String requesterName;
     private String requesterType;
     private LocalDateTime requestedAt;
@@ -32,7 +31,6 @@ public class ClaimRequestResponse {
                 .itemId(claim.getItem().getId())
                 .itemName(claim.getItem().getName())
                 .imageUrl(claim.getItem().getImage())
-                .requestMessage(claim.getClaimReason())
                 .requesterName(claim.getClaimant().getName())
                 .requesterType(mapRoleToRequesterType(claim.getClaimant()))
                 .requestedAt(claim.getClaimedAt())

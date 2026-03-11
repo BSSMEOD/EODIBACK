@@ -28,9 +28,6 @@ public class ItemClaim {
     @JoinColumn(name = "user_id", nullable = false)
     private User claimant;
 
-    @Column(name = "claim_reason", nullable = false, columnDefinition = "TEXT")
-    private String claimReason;
-
     @Column(name = "visit_date")
     private LocalDate visitDate;
 
@@ -42,10 +39,9 @@ public class ItemClaim {
     private LocalDateTime claimedAt;
 
     @Builder
-    public ItemClaim(Item item, User claimant, String claimReason, LocalDate visitDate) {
+    public ItemClaim(Item item, User claimant, LocalDate visitDate) {
         this.item = item;
         this.claimant = claimant;
-        this.claimReason = claimReason;
         this.visitDate = visitDate;
         this.status = ClaimStatus.PENDING;
         this.claimedAt = LocalDateTime.now();

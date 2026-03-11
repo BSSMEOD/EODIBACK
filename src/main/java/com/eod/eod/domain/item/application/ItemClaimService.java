@@ -24,7 +24,7 @@ public class ItemClaimService {
     private final ItemClaimRepository itemClaimRepository;
     private final GiveRecordRepository giveRecordRepository;
 
-    public ItemClaimResponse claimItem(Long itemId, String claimReason, LocalDate visitDate, User currentUser) {
+    public ItemClaimResponse claimItem(Long itemId, LocalDate visitDate, User currentUser) {
         // 아이템 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
 
@@ -37,7 +37,6 @@ public class ItemClaimService {
         ItemClaim claim = ItemClaim.builder()
                 .item(item)
                 .claimant(currentUser)
-                .claimReason(claimReason)
                 .visitDate(visitDate)
                 .build();
 
