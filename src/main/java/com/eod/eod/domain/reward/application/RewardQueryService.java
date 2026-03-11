@@ -106,7 +106,7 @@ public class RewardQueryService {
 
     // 상점 지급 리스트: 주인에게 지급된 물품 + 습득 신고자 있음 + 상점 지급 여부 포함
     public RewardRequestListResponse getRewardRequestList(User currentUser) {
-        if (!currentUser.isAdmin()) {
+        if (!currentUser.isTeacher()) {
             throw new AccessDeniedException("권한이 없습니다.");
         }
         List<Item> items = itemRepository.findRewardRequestList(Item.ItemStatus.GIVEN, User.Role.USER);
