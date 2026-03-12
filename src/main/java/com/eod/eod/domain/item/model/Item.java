@@ -91,6 +91,7 @@ public class Item {
         this.foundAt = foundAt;
         this.foundAtPrecision = foundAtPrecision != null ? foundAtPrecision : DatePrecision.DAY;
         this.createdAt = LocalDateTime.now();
+        this.discardedAt = this.createdAt.plusMonths(6);
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
@@ -197,8 +198,6 @@ public class Item {
             throw new IllegalStateException("분실물 상태의 물품만 폐기 예정으로 변경할 수 있습니다.");
         }
         this.status = ItemStatus.TO_BE_DISCARDED;
-        // 등록일로부터 6개월 후를 폐기 예정일로 설정
-        this.discardedAt = this.createdAt.plusMonths(6);
     }
 
     /**
