@@ -187,7 +187,10 @@ public class Item {
         if (extensionDays <= 0) {
             throw new IllegalArgumentException("연장 일수는 양수여야 합니다.");
         }
-        this.discardedAt = discardedAt.plusDays(extensionDays);
+        if (this.discardedAt == null) {
+            this.discardedAt = this.createdAt.plusMonths(6);
+        }
+        this.discardedAt = this.discardedAt.plusDays(extensionDays);
     }
 
     /**
