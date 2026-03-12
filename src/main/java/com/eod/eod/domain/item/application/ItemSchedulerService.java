@@ -20,25 +20,20 @@ public class ItemSchedulerService {
 
     private final ItemFacade itemFacade;
 
-    // 분실물 보관 기간 (6개월)
-    private static final int RETENTION_MONTHS = 6;
     // 폐기 유예 기간 (2주)
     private static final int GRACE_PERIOD_WEEKS = 2;
 
     /**
-     * 매일 자정(00:00)에 실행되어 장기 방치된 분실물을 폐기 예정 상태로 변경
-     * 등록일로부터 (6개월 - 2주) 지난 분실물을 TO_BE_DISCARDED로 변경하고, 등록일 + 6개월을 폐기 예정일로 설정
+     * 매일 자정(00:00)에 실행되어 폐기일이 2주 이내로 남은 분실물을 폐기 예정 상태로 변경
      */
     @Scheduled(cron = "0 0 0 * * *")
     @Transactional
     public void autoMarkItemsAsToBeDiscarded() {
-        LocalDateTime thresholdDate = LocalDateTime.now()
-                .minusMonths(RETENTION_MONTHS)
-                .plusWeeks(GRACE_PERIOD_WEEKS);
+        LocalDateTime twoWeeksLater = LocalDateTime.now().plusWeeks(GRACE_PERIOD_WEEKS);
 
         processScheduledTask(
                 "폐기 예정 전환",
-                () -> itemFacade.findByStatusAndCreatedAtBefore(Item.ItemStatus.LOST, thresholdDate),
+                () -> itemFacade.findByStatusAndDiscardedAtBefore(Item.ItemStatus.LOST, twoWeeksLater),
                 Item::markAsToBeDiscarded,
                 item -> String.format("ID: %d, 이름: %s, 등록일: %s, 폐기 예정일: %s",
                         item.getId(), item.getName(), item.getCreatedAt(), item.getDiscardedAt())
