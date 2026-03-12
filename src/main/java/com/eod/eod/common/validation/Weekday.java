@@ -12,10 +12,10 @@ import static java.lang.annotation.ElementType.PARAMETER;
 import static java.lang.annotation.RetentionPolicy.RUNTIME;
 
 @Documented
-@Constraint(validatedBy = VisitDateValidator.class)
+@Constraint(validatedBy = WeekdayValidator.class)
 @Target({FIELD, PARAMETER})
 @Retention(RUNTIME)
-public @interface ValidVisitDate {
+public @interface Weekday {
 
     String message() default "주말 또는 공휴일에는 방문 날짜를 지정할 수 없습니다.";
 
