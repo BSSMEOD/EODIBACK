@@ -91,6 +91,7 @@ public class Item {
         this.foundAt = foundAt;
         this.foundAtPrecision = foundAtPrecision != null ? foundAtPrecision : DatePrecision.DAY;
         this.createdAt = LocalDateTime.now();
+        this.discardedAt = this.createdAt.plusMonths(6);
         this.approvalStatus = ApprovalStatus.PENDING;
     }
 
@@ -186,7 +187,15 @@ public class Item {
         if (extensionDays <= 0) {
             throw new IllegalArgumentException("연장 일수는 양수여야 합니다.");
         }
-        this.discardedAt = discardedAt.plusDays(extensionDays);
+        if (this.discardedAt == null) {
+            this.discardedAt = this.createdAt.plusMonths(6);
+        }
+        this.discardedAt = this.discardedAt.plusDays(extensionDays);
+
+        // 폐기일이 2주 이상 남아있으면 LOST 상태로 복구
+        if (this.discardedAt.isAfter(LocalDateTime.now().plusWeeks(2))) {
+            this.status = ItemStatus.LOST;
+        }
     }
 
     /**
@@ -197,8 +206,6 @@ public class Item {
             throw new IllegalStateException("분실물 상태의 물품만 폐기 예정으로 변경할 수 있습니다.");
         }
         this.status = ItemStatus.TO_BE_DISCARDED;
-        // 등록일로부터 6개월 후를 폐기 예정일로 설정
-        this.discardedAt = this.createdAt.plusMonths(6);
     }
 
     /**
