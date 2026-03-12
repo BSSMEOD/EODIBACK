@@ -26,8 +26,6 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-import java.util.HashMap;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestControllerAdvice
@@ -85,14 +83,11 @@ public class GlobalExceptionHandler {
 
     // 요청 데이터 검증 실패 (400)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException methodArgumentNotValidException) {
-        Map<String, String> errors = new HashMap<>();
-        methodArgumentNotValidException.getBindingResult().getAllErrors().forEach((error) -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    public ResponseEntity<ErrorResponse> handleValidationExceptions(MethodArgumentNotValidException methodArgumentNotValidException) {
+        String message = methodArgumentNotValidException.getBindingResult().getAllErrors().stream()
+                .map(error -> ((FieldError) error).getDefaultMessage())
+                .collect(Collectors.joining(", "));
+        return buildResponse(HttpStatus.BAD_REQUEST, message);
     }
 
     // 지원하지 않는 HTTP Method (405)
