@@ -33,6 +33,11 @@ public class ItemClaimService {
             throw new IllegalStateException("이미 해당 분실물에 대해 소유권을 주장하셨습니다.");
         }
 
+        // 과거 날짜 검증 (중복 신청 확인 이후에 수행)
+        if (visitDate.isBefore(LocalDate.now())) {
+            throw new IllegalStateException("방문 날짜는 오늘 이전일 수 없습니다.");
+        }
+
         // 소유권 주장 생성
         ItemClaim claim = ItemClaim.builder()
                 .item(item)
