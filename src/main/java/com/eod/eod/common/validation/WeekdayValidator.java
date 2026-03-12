@@ -6,7 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 
 import java.time.LocalDate;
 
-public class VisitDateValidator implements ConstraintValidator<ValidVisitDate, LocalDate> {
+public class WeekdayValidator implements ConstraintValidator<Weekday, LocalDate> {
 
     @Override
     public boolean isValid(LocalDate date, ConstraintValidatorContext context) {
