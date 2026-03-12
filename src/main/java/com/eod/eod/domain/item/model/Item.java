@@ -191,6 +191,11 @@ public class Item {
             this.discardedAt = this.createdAt.plusMonths(6);
         }
         this.discardedAt = this.discardedAt.plusDays(extensionDays);
+
+        // 폐기일이 2주 이상 남아있으면 LOST 상태로 복구
+        if (this.discardedAt.isAfter(LocalDateTime.now().plusWeeks(2))) {
+            this.status = ItemStatus.LOST;
+        }
     }
 
     /**
