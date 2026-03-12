@@ -11,7 +11,10 @@ public class VisitDateValidator implements ConstraintValidator<ValidVisitDate, L
     @Override
     public boolean isValid(LocalDate date, ConstraintValidatorContext context) {
         if (date == null) {
-            return false;
+            return true; // @NotNull이 처리
+        }
+        if (!date.isAfter(LocalDate.now())) {
+            return true; // @Future가 처리
         }
         return !KoreanHolidayChecker.isHoliday(date);
     }
