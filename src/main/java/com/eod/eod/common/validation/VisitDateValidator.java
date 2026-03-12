@@ -13,8 +13,8 @@ public class VisitDateValidator implements ConstraintValidator<ValidVisitDate, L
         if (date == null) {
             return true; // @NotNull이 처리
         }
-        if (!date.isAfter(LocalDate.now())) {
-            return true; // @Future가 처리
+        if (date.isBefore(LocalDate.now())) {
+            return true; // @FutureOrPresent가 처리
         }
         return !KoreanHolidayChecker.isHoliday(date);
     }
