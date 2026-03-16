@@ -55,6 +55,7 @@ public class ItemQueryService {
                 .foundPlace(place.getPlace())
                 .foundPlaceDetail(item.getFoundPlaceDetail())
                 .category(item.getCategory())
+                .disposalDate(item.getDiscardedAt())
                 .build();
     }
 
