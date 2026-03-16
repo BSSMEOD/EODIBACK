@@ -40,4 +40,7 @@ public class ItemDetailResponse {
 
     @Schema(description = "물품 카테고리", example = "전자기기")
     private Item.ItemCategory category;
+
+    @Schema(description = "폐기 예정일", example = "2026-01-01")
+    private String disposalDate;
 }
