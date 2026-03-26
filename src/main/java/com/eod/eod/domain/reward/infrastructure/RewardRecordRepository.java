@@ -32,6 +32,7 @@ public interface RewardRecordRepository extends JpaRepository<RewardRecord, Long
     @Query("SELECT COUNT(i) FROM Item i " +
             "WHERE i.status = :status " +
             "AND i.student.role = :role " +
+            "AND i.deletedAt IS NULL " +
             "AND NOT EXISTS (SELECT r FROM RewardRecord r WHERE r.item = i)")
     long countRewardEligibleItems(@Param("status") Item.ItemStatus status, @Param("role") User.Role role);
 
