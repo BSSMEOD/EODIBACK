@@ -111,7 +111,7 @@ public class SecurityConfig {
                         .requestMatchers("/items/**").hasAnyRole("USER", "TEACHER", "ADMIN")
 
                         // 상점 지급 리스트는 교사 전용
-                        .requestMatchers(HttpMethod.GET, "/rewards/**").hasRole("TEACHER")
+                        .requestMatchers(HttpMethod.GET, "/rewards", "/rewards/**").hasRole("TEACHER")
                         // Place-Controller는 모두 허용
                         .requestMatchers("/places/**").permitAll()
                         // 소개 페이지 조회는 공개, 수정은 관리자만
