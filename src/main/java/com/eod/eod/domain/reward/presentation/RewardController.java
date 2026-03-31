@@ -80,7 +80,7 @@ public class RewardController {
                     content = @Content(mediaType = "application/json",
                             examples = @ExampleObject(value = "{\"message\": \"권한이 없습니다.\"}")))
     })
-    @GetMapping("/request")
+    @GetMapping
     public ResponseEntity<RewardRequestListResponse> getRewardRequestList(
             @Parameter(hidden = true) @AuthenticationPrincipal User currentUser
     ) {
