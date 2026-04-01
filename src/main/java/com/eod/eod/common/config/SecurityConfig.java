@@ -100,6 +100,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/items").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/items/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/items/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/items/*").hasRole("ADMIN")
 
                         // 물품 지급은 관리자만
                         .requestMatchers(HttpMethod.POST, "/items/*/give").hasRole("ADMIN")
