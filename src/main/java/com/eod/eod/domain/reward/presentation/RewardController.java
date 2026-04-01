@@ -71,7 +71,7 @@ public class RewardController {
         return ResponseEntity.ok(RewardGiveResponse.success());
     }
 
-    @Operation(summary = "상점 지급 리스트 조회", description = "주인이 찾아간 분실물 중 상점 지급 여부를 리스트로 반환합니다. (ADMIN 전용)")
+    @Operation(summary = "상점 지급 리스트 조회", description = "주인이 찾아간 분실물 중 상점 지급 여부를 리스트로 반환합니다. (TEACHER 전용)")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "조회 성공",
                     content = @Content(mediaType = "application/json",
