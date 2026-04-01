@@ -105,7 +105,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/items/*/give").hasRole("ADMIN")
 
                         // 승인/거절은 관리자만
-                        .requestMatchers(HttpMethod.PATCH, "/items/*/approval").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/items/*/approve").hasRole("ADMIN")
 
                         // 나머지 items API는 인증된 사용자 (학생/선생님/관리자 공통)
                         .requestMatchers("/items/**").hasAnyRole("USER", "TEACHER", "ADMIN")
