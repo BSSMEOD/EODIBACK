@@ -100,18 +100,19 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/items").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PATCH, "/items/*").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/items/*").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT, "/items/*").hasRole("ADMIN")
 
                         // 물품 지급은 관리자만
                         .requestMatchers(HttpMethod.POST, "/items/*/give").hasRole("ADMIN")
 
                         // 승인/거절은 관리자만
-                        .requestMatchers(HttpMethod.PATCH, "/items/*/approval").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PATCH, "/items/*/approve").hasRole("ADMIN")
 
                         // 나머지 items API는 인증된 사용자 (학생/선생님/관리자 공통)
                         .requestMatchers("/items/**").hasAnyRole("USER", "TEACHER", "ADMIN")
 
                         // 상점 지급 리스트는 교사 전용
-                        .requestMatchers(HttpMethod.GET, "/rewards/**").hasRole("TEACHER")
+                        .requestMatchers(HttpMethod.GET, "/rewards", "/rewards/**").hasRole("TEACHER")
                         // Place-Controller는 모두 허용
                         .requestMatchers("/places/**").permitAll()
                         // 소개 페이지 조회는 공개, 수정은 관리자만
