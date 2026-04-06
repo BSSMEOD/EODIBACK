@@ -1,6 +1,7 @@
 package com.eod.eod.common.exception;
 
 import com.eod.eod.domain.item.exception.InvalidParameterException;
+import com.eod.eod.domain.item.exception.ItemException;
 import com.eod.eod.domain.image.exception.ImageException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -38,15 +39,20 @@ public class GlobalExceptionHandler {
         return buildResponse(HttpStatus.BAD_REQUEST, invalidParameterException.getMessage());
     }
 
+    @ExceptionHandler(ItemException.class)
+    public ResponseEntity<ErrorResponse> handleItemException(ItemException itemException) {
+        return buildResponse(itemException.getStatus(), itemException.getMessage());
+    }
+
     @ExceptionHandler(ImageException.class)
     public ResponseEntity<ErrorResponse> handleImageException(ImageException imageException) {
         return buildResponse(imageException.getErrorCode().getStatus(), imageException.getErrorCode().getMessage());
     }
 
-    // 물품을 찾을 수 없는 경우 (404)
+    // 잘못된 요청 값 (400)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException illegalArgumentException) {
-        return buildResponse(HttpStatus.NOT_FOUND, illegalArgumentException.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, illegalArgumentException.getMessage());
     }
 
     // 이미 지급된 물품인 경우 (400)

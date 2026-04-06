@@ -1,5 +1,7 @@
 package com.eod.eod.domain.item.model;
 
+import com.eod.eod.domain.item.exception.ItemBadRequestException;
+import com.eod.eod.domain.item.exception.ItemConflictException;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonValue;
@@ -135,7 +137,7 @@ public class Item {
     // 물품 지급 처리
     public void giveToStudent(User receiver, User giver) {
         if (this.status == ItemStatus.GIVEN) {
-            throw new IllegalStateException("해당 물품은 이미 지급 처리되었습니다.");
+            throw new ItemConflictException("해당 물품은 이미 지급 처리되었습니다.");
         }
         this.status = ItemStatus.GIVEN;
     }
@@ -150,7 +152,7 @@ public class Item {
         } else if (approvalStatus == ApprovalStatus.REJECTED) {
             this.approvalStatus = ApprovalStatus.REJECTED;
         } else {
-            throw new IllegalArgumentException("잘못된 승인 요청입니다.");
+            throw new ItemBadRequestException("잘못된 승인 요청입니다.");
         }
 
         this.approvedBy = approver;
@@ -160,7 +162,7 @@ public class Item {
     // 승인 처리 가능 여부 검증
     private void validateApprovalNotProcessed() {
         if (this.approvalStatus != ApprovalStatus.PENDING) {
-            throw new IllegalStateException("이미 처리된 승인 요청입니다.");
+            throw new ItemConflictException("이미 처리된 승인 요청입니다.");
         }
     }
 
@@ -171,8 +173,15 @@ public class Item {
 
     public void validateClaimRequestable() {
         if (this.approvalStatus == ApprovalStatus.REJECTED) {
-            throw new IllegalStateException("반려된 물품은 다시 회수 요청할 수 없습니다.");
+            throw new ItemConflictException("반려된 물품은 다시 회수 요청할 수 없습니다.");
         }
+    }
+
+    public void validateClaimableBy(User claimant) {
+        if (this.student != null && this.student.getId() != null && this.student.getId().equals(claimant.getId())) {
+            throw new ItemConflictException("분실물 습득자는 본인 물품에 대해 소유권을 주장할 수 없습니다.");
+        }
+        validateClaimRequestable();
     }
 
     public void softDelete() {
@@ -191,7 +200,7 @@ public class Item {
      */
     public void extendDisposalDate(int extensionDays) {
         if (extensionDays <= 0) {
-            throw new IllegalArgumentException("연장 일수는 양수여야 합니다.");
+            throw new ItemBadRequestException("연장 일수는 양수여야 합니다.");
         }
         if (this.discardedAt == null) {
             this.discardedAt = this.createdAt.plusMonths(6);
@@ -204,12 +213,30 @@ public class Item {
         }
     }
 
+    public void extendDisposalDateWith(DisposalReason disposalReason) {
+        if (this.status != ItemStatus.TO_BE_DISCARDED) {
+            throw new ItemConflictException("폐기 예정 상태의 물품만 기간을 연장할 수 있습니다.");
+        }
+        validateSameItem(disposalReason);
+        extendDisposalDate(disposalReason.getExtensionDays());
+    }
+
+    private void validateSameItem(DisposalReason disposalReason) {
+        if (disposalReason == null || disposalReason.getItem() == null) {
+            throw new ItemBadRequestException("해당 보류 사유는 이 물품의 것이 아닙니다.");
+        }
+        Long disposalReasonItemId = disposalReason.getItem().getId();
+        if (this.id == null || disposalReasonItemId == null || !this.id.equals(disposalReasonItemId)) {
+            throw new ItemBadRequestException("해당 보류 사유는 이 물품의 것이 아닙니다.");
+        }
+    }
+
     /**
      * 물품을 폐기 예정 상태로 변경 (등록일로부터 6개월 후 폐기 예정)
      */
     public void markAsToBeDiscarded() {
         if (this.status != ItemStatus.LOST) {
-            throw new IllegalStateException("분실물 상태의 물품만 폐기 예정으로 변경할 수 있습니다.");
+            throw new ItemConflictException("분실물 상태의 물품만 폐기 예정으로 변경할 수 있습니다.");
         }
         this.status = ItemStatus.TO_BE_DISCARDED;
     }
@@ -219,7 +246,7 @@ public class Item {
      */
     public void discard() {
         if (this.status != ItemStatus.TO_BE_DISCARDED) {
-            throw new IllegalStateException("폐기 예정 상태의 물품만 폐기할 수 있습니다.");
+            throw new ItemConflictException("폐기 예정 상태의 물품만 폐기할 수 있습니다.");
         }
         this.status = ItemStatus.DISCARDED;
         if (this.discardedAt == null) {
@@ -269,7 +296,7 @@ public class Item {
                     return category;
                 }
             }
-            throw new IllegalArgumentException("유효하지 않은 카테고리입니다: " + koreanName);
+            throw new ItemBadRequestException("유효하지 않은 카테고리입니다: " + koreanName);
         }
     }
 }

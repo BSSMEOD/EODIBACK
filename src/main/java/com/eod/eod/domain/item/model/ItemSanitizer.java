@@ -1,5 +1,7 @@
 package com.eod.eod.domain.item.model;
 
+import com.eod.eod.domain.item.exception.ItemBadRequestException;
+
 /**
  * Item 엔티티의 입력값 정제 로직을 담당하는 유틸리티 클래스
  */
@@ -15,7 +17,7 @@ public final class ItemSanitizer {
     public static String sanitizeName(String name) {
         String trimmed = ItemValidator.requireText(name, "물품 이름은 필수입니다.");
         if (trimmed.length() > 100) {
-            throw new IllegalArgumentException("물품 이름은 100자를 초과할 수 없습니다.");
+            throw new ItemBadRequestException("물품 이름은 100자를 초과할 수 없습니다.");
         }
         return trimmed;
     }
@@ -26,7 +28,7 @@ public final class ItemSanitizer {
     public static String sanitizeDetail(String placeDetail) {
         String trimmed = ItemValidator.requireText(placeDetail, "장소 설명은 필수입니다.");
         if (trimmed.length() > 255) {
-            throw new IllegalArgumentException("장소 설명은 255자를 초과할 수 없습니다.");
+            throw new ItemBadRequestException("장소 설명은 255자를 초과할 수 없습니다.");
         }
         return trimmed;
     }

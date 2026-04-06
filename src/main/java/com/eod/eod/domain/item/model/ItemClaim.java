@@ -1,5 +1,7 @@
 package com.eod.eod.domain.item.model;
 
+import com.eod.eod.domain.item.exception.ItemBadRequestException;
+import com.eod.eod.domain.item.exception.ItemConflictException;
 import com.eod.eod.domain.user.model.User;
 import jakarta.persistence.*;
 import lombok.AccessLevel;
@@ -40,6 +42,7 @@ public class ItemClaim {
 
     @Builder
     public ItemClaim(Item item, User claimant, LocalDate visitDate) {
+        validateVisitDate(visitDate);
         this.item = item;
         this.claimant = claimant;
         this.visitDate = visitDate;
@@ -52,7 +55,7 @@ public class ItemClaim {
      */
     public void approve() {
         if (this.status != ClaimStatus.PENDING) {
-            throw new IllegalStateException("대기 중인 소유권 주장만 승인할 수 있습니다.");
+            throw new ItemConflictException("대기 중인 소유권 주장만 승인할 수 있습니다.");
         }
         this.status = ClaimStatus.APPROVED;
     }
@@ -62,9 +65,18 @@ public class ItemClaim {
      */
     public void reject() {
         if (this.status != ClaimStatus.PENDING) {
-            throw new IllegalStateException("대기 중인 소유권 주장만 거절할 수 있습니다.");
+            throw new ItemConflictException("대기 중인 소유권 주장만 거절할 수 있습니다.");
         }
         this.status = ClaimStatus.REJECTED;
+    }
+
+    private static void validateVisitDate(LocalDate visitDate) {
+        if (visitDate == null) {
+            throw new ItemBadRequestException("방문 날짜는 필수입니다.");
+        }
+        if (visitDate.isBefore(LocalDate.now())) {
+            throw new ItemBadRequestException("방문 날짜는 오늘 이전일 수 없습니다.");
+        }
     }
 
     public enum ClaimStatus {

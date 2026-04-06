@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.ItemRepository;
 import com.eod.eod.domain.item.model.Item;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,7 @@ public class ItemFacade {
     // ID로 Item 조회 (존재하지 않으면 예외 발생)
     public Item getItemById(Long itemId) {
         return itemRepository.findByIdAndDeletedAtIsNull(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 물품을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 물품을 찾을 수 없습니다."));
     }
 
     public Item save(Item item) {
