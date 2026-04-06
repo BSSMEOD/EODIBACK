@@ -49,10 +49,10 @@ public class GlobalExceptionHandler {
         return buildResponse(imageException.getErrorCode().getStatus(), imageException.getErrorCode().getMessage());
     }
 
-    // 물품을 찾을 수 없는 경우 (404)
+    // 잘못된 요청 값 (400)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ErrorResponse> handleIllegalArgumentException(IllegalArgumentException illegalArgumentException) {
-        return buildResponse(HttpStatus.NOT_FOUND, illegalArgumentException.getMessage());
+        return buildResponse(HttpStatus.BAD_REQUEST, illegalArgumentException.getMessage());
     }
 
     // 이미 지급된 물품인 경우 (400)
