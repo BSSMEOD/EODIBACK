@@ -6,7 +6,7 @@ import com.eod.eod.common.util.DatePrecisionParser.ParsedDate;
 import com.eod.eod.domain.item.application.command.ItemRegistrationCommand;
 import com.eod.eod.domain.item.application.command.ItemUpdateCommand;
 import com.eod.eod.domain.item.exception.ItemBadRequestException;
-import com.eod.eod.domain.item.exception.ItemNotFoundException;
+import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.place.infrastructure.PlaceRepository;
 import com.eod.eod.domain.user.model.User;
@@ -75,7 +75,7 @@ public class ItemRegistrationService {
         int studentNo = reporterStudentCode % 100;
 
         return userRepository.findByGradeAndClassNoAndStudentNoAndName(grade, classNo, studentNo, reporterName)
-                .orElseThrow(() -> new ItemNotFoundException("신고자 학생 코드와 이름이 일치하는 학생을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemResourceNotFoundException("신고자 학생 코드와 이름이 일치하는 학생을 찾을 수 없습니다."));
     }
 
     private void ensurePlaceExists(Long placeId) {
@@ -83,7 +83,7 @@ public class ItemRegistrationService {
             throw new ItemBadRequestException("필수 항목이 누락되었습니다.");
         }
         if (!placeRepository.existsById(placeId)) {
-            throw new ItemNotFoundException("등록되지 않은 장소입니다.");
+            throw new ItemResourceNotFoundException("등록되지 않은 장소입니다.");
         }
     }
 

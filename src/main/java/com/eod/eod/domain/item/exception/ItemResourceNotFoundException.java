@@ -2,9 +2,9 @@ package com.eod.eod.domain.item.exception;
 
 import org.springframework.http.HttpStatus;
 
-public class ItemNotFoundException extends ItemException {
+public class ItemResourceNotFoundException extends ItemException {
 
-    public ItemNotFoundException(String message) {
+    public ItemResourceNotFoundException(String message) {
         super(HttpStatus.NOT_FOUND, message);
     }
 }

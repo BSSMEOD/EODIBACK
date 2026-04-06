@@ -1,7 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.util.DatePrecisionFormatter;
-import com.eod.eod.domain.item.exception.ItemNotFoundException;
+import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.ItemRepositoryCustom;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.presentation.dto.request.ItemSearchSort;
@@ -39,7 +39,7 @@ public class ItemQueryService {
         Item item = itemFacade.getItemById(itemId);
 
         Place place = placeRepository.findById(item.getFoundPlaceId())
-                .orElseThrow(() -> new ItemNotFoundException("등록되지 않은 장소입니다."));
+                .orElseThrow(() -> new ItemResourceNotFoundException("등록되지 않은 장소입니다."));
 
         String formattedFoundAt = DatePrecisionFormatter.format(
                 item.getFoundAt(),
