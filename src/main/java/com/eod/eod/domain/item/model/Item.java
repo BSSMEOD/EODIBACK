@@ -217,10 +217,18 @@ public class Item {
         if (this.status != ItemStatus.TO_BE_DISCARDED) {
             throw new ItemConflictException("폐기 예정 상태의 물품만 기간을 연장할 수 있습니다.");
         }
-        if (!this.equals(disposalReason.getItem())) {
+        validateSameItem(disposalReason);
+        extendDisposalDate(disposalReason.getExtensionDays());
+    }
+
+    private void validateSameItem(DisposalReason disposalReason) {
+        if (disposalReason == null || disposalReason.getItem() == null) {
             throw new ItemBadRequestException("해당 보류 사유는 이 물품의 것이 아닙니다.");
         }
-        extendDisposalDate(disposalReason.getExtensionDays());
+        Long disposalReasonItemId = disposalReason.getItem().getId();
+        if (this.id == null || disposalReasonItemId == null || !this.id.equals(disposalReasonItemId)) {
+            throw new ItemBadRequestException("해당 보류 사유는 이 물품의 것이 아닙니다.");
+        }
     }
 
     /**
