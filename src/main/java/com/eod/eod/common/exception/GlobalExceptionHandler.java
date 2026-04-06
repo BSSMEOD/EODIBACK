@@ -1,6 +1,7 @@
 package com.eod.eod.common.exception;
 
 import com.eod.eod.domain.item.exception.InvalidParameterException;
+import com.eod.eod.domain.item.exception.ItemException;
 import com.eod.eod.domain.image.exception.ImageException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
@@ -36,6 +37,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(InvalidParameterException.class)
     public ResponseEntity<ErrorResponse> handleInvalidParameterException(InvalidParameterException invalidParameterException) {
         return buildResponse(HttpStatus.BAD_REQUEST, invalidParameterException.getMessage());
+    }
+
+    @ExceptionHandler(ItemException.class)
+    public ResponseEntity<ErrorResponse> handleItemException(ItemException itemException) {
+        return buildResponse(itemException.getStatus(), itemException.getMessage());
     }
 
     @ExceptionHandler(ImageException.class)
