@@ -9,6 +9,7 @@ import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
 import java.time.LocalDate;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,6 +28,11 @@ public class ItemClaimService {
     public ItemClaimResponse claimItem(Long itemId, LocalDate visitDate, User currentUser) {
         // 아이템 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
+
+        // 분실물 습득자는 본인 물품에 대해 소유권 주장을 할 수 없음
+        if (item.getStudent() != null && Objects.equals(item.getStudent().getId(), currentUser.getId())) {
+            throw new IllegalStateException("분실물 습득자는 본인 물품에 대해 소유권을 주장할 수 없습니다.");
+        }
 
         // 중복 주장 확인
         if (itemClaimRepository.existsByItemIdAndClaimantId(itemId, currentUser.getId())) {
