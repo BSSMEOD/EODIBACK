@@ -33,6 +33,8 @@ public class ItemClaimService {
         if (item.getStudent() != null && Objects.equals(item.getStudent().getId(), currentUser.getId())) {
             throw new IllegalStateException("분실물 습득자는 본인 물품에 대해 소유권을 주장할 수 없습니다.");
         }
+        // 반려된 물품은 회수 요청 불가
+        item.validateClaimRequestable();
 
         // 중복 주장 확인
         if (itemClaimRepository.existsByItemIdAndClaimantId(itemId, currentUser.getId())) {
