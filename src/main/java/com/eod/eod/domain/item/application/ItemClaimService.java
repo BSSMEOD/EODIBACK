@@ -28,6 +28,9 @@ public class ItemClaimService {
         // 아이템 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
 
+        // 반려된 물품은 회수 요청 불가
+        item.validateClaimRequestable();
+
         // 중복 주장 확인
         if (itemClaimRepository.existsByItemIdAndClaimantId(itemId, currentUser.getId())) {
             throw new IllegalStateException("이미 해당 분실물에 대해 소유권을 주장하셨습니다.");

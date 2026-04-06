@@ -169,6 +169,12 @@ public class Item {
         return this.status == ItemStatus.GIVEN;
     }
 
+    public void validateClaimRequestable() {
+        if (this.approvalStatus == ApprovalStatus.REJECTED) {
+            throw new IllegalStateException("반려된 물품은 다시 회수 요청할 수 없습니다.");
+        }
+    }
+
     public void softDelete() {
         if (this.deletedAt == null) {
             this.deletedAt = LocalDateTime.now();
