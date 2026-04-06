@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 
 import java.time.LocalDateTime;
 
@@ -66,7 +67,7 @@ public class DisposalReason {
 
     private static void validateTeacherRole(User user) {
         if (!user.isTeacherOrAdmin()) {
-            throw new ItemConflictException("선생님 또는 관리자 권한이 필요합니다.");
+            throw new AccessDeniedException("선생님 또는 관리자 권한이 필요합니다.");
         }
     }
 
