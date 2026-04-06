@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.domain.item.exception.ItemConflictException;
+import com.eod.eod.domain.item.exception.ItemNotFoundException;
 import com.eod.eod.domain.item.infrastructure.GiveRecordRepository;
 import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
 import com.eod.eod.domain.item.model.GiveRecord;
@@ -9,7 +11,6 @@ import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
 import java.time.LocalDate;
-import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,21 +30,12 @@ public class ItemClaimService {
         // 아이템 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
 
-        // 분실물 습득자는 본인 물품에 대해 소유권 주장을 할 수 없음
-        if (item.getStudent() != null && Objects.equals(item.getStudent().getId(), currentUser.getId())) {
-            throw new IllegalStateException("분실물 습득자는 본인 물품에 대해 소유권을 주장할 수 없습니다.");
-        }
-        // 반려된 물품은 회수 요청 불가
-        item.validateClaimRequestable();
+        // 소유권 주장 가능 여부 검증은 도메인에서 처리
+        item.validateClaimableBy(currentUser);
 
         // 중복 주장 확인
         if (itemClaimRepository.existsByItemIdAndClaimantId(itemId, currentUser.getId())) {
-            throw new IllegalStateException("이미 해당 분실물에 대해 소유권을 주장하셨습니다.");
-        }
-
-        // 과거 날짜 검증 (중복 신청 확인 이후에 수행)
-        if (visitDate.isBefore(LocalDate.now())) {
-            throw new IllegalStateException("방문 날짜는 오늘 이전일 수 없습니다.");
+            throw new ItemConflictException("이미 해당 분실물에 대해 소유권을 주장하셨습니다.");
         }
 
         // 소유권 주장 생성
@@ -66,7 +58,7 @@ public class ItemClaimService {
     public void approveClaim(Long claimId, User currentUser) {
         // 소유권 주장 조회
         ItemClaim claim = itemClaimRepository.findById(claimId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 소유권 주장을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemNotFoundException("해당 소유권 주장을 찾을 수 없습니다."));
 
         // 승인 처리
         claim.approve();
@@ -102,7 +94,7 @@ public class ItemClaimService {
     public void rejectClaim(Long claimId, User currentUser) {
         // 소유권 주장 조회
         ItemClaim claim = itemClaimRepository.findById(claimId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 소유권 주장을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemNotFoundException("해당 소유권 주장을 찾을 수 없습니다."));
 
         // 거절 처리
         claim.reject();
