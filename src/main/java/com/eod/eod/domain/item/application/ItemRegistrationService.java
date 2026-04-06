@@ -5,6 +5,8 @@ import com.eod.eod.common.util.DatePrecisionParser;
 import com.eod.eod.common.util.DatePrecisionParser.ParsedDate;
 import com.eod.eod.domain.item.application.command.ItemRegistrationCommand;
 import com.eod.eod.domain.item.application.command.ItemUpdateCommand;
+import com.eod.eod.domain.item.exception.ItemBadRequestException;
+import com.eod.eod.domain.item.exception.ItemNotFoundException;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.place.infrastructure.PlaceRepository;
 import com.eod.eod.domain.user.model.User;
@@ -12,9 +14,6 @@ import com.eod.eod.domain.user.infrastructure.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -68,7 +67,7 @@ public class ItemRegistrationService {
 
         // 둘 중 하나만 있으면 에러
         if (reporterStudentCode == null || reporterName == null || reporterName.isBlank()) {
-            throw new IllegalArgumentException("신고자 학생 코드와 이름은 함께 입력해야 합니다.");
+            throw new ItemBadRequestException("신고자 학생 코드와 이름은 함께 입력해야 합니다.");
         }
 
         int grade = reporterStudentCode / 1000;
@@ -76,15 +75,15 @@ public class ItemRegistrationService {
         int studentNo = reporterStudentCode % 100;
 
         return userRepository.findByGradeAndClassNoAndStudentNoAndName(grade, classNo, studentNo, reporterName)
-                .orElseThrow(() -> new IllegalArgumentException("신고자 학생 코드와 이름이 일치하는 학생을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemNotFoundException("신고자 학생 코드와 이름이 일치하는 학생을 찾을 수 없습니다."));
     }
 
     private void ensurePlaceExists(Long placeId) {
         if (placeId == null) {
-            throw new IllegalStateException("필수 항목이 누락되었습니다.");
+            throw new ItemBadRequestException("필수 항목이 누락되었습니다.");
         }
         if (!placeRepository.existsById(placeId)) {
-            throw new IllegalArgumentException("등록되지 않은 장소입니다.");
+            throw new ItemNotFoundException("등록되지 않은 장소입니다.");
         }
     }
 

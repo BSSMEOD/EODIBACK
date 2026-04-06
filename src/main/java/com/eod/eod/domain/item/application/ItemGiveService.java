@@ -1,6 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.domain.item.exception.ItemNotFoundException;
 import com.eod.eod.domain.item.infrastructure.GiveRecordRepository;
 import com.eod.eod.domain.item.model.GiveRecord;
 import com.eod.eod.domain.item.model.Item;
@@ -27,7 +28,7 @@ public class ItemGiveService {
 
         // 지급받을 학생 확인
         User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 학생을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemNotFoundException("해당 학생을 찾을 수 없습니다."));
 
         // 물품 지급 처리
         item.giveToStudent(receiver, currentUser);

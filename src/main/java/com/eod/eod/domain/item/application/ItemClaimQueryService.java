@@ -1,5 +1,6 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.domain.item.exception.ItemBadRequestException;
 import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
 import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemResponse;
@@ -75,7 +76,7 @@ public class ItemClaimQueryService {
         return switch (upperSort) {
             case "LATEST" -> Sort.by(Sort.Direction.DESC, "claimedAt");
             case "OLDEST" -> Sort.by(Sort.Direction.ASC, "claimedAt");
-            default -> throw new IllegalArgumentException("유효하지 않은 정렬 방식입니다: " + sort);
+            default -> throw new ItemBadRequestException("유효하지 않은 정렬 방식입니다: " + sort);
         };
     }
 }
