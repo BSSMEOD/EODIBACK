@@ -66,6 +66,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // CORS Preflight OPTIONS 요청 전역 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Prometheus 수집 엔드포인트는 인증 없이 허용
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         // Swagger 경로 허용
                         .requestMatchers(
                                 "/swagger-ui/**",
