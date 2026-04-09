@@ -20,6 +20,7 @@ services:
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
       - BSM_REDIRECT_URI=${BSM_REDIRECT_URI}
+      - MANAGEMENT_SERVER_PORT=${MANAGEMENT_SERVER_PORT:-8081}
       - FILE_UPLOAD_DIR=/eod/uploads
       - FILE_UPLOAD_BASE_URL=${FILE_UPLOAD_BASE_URL}
     depends_on:
@@ -54,9 +55,29 @@ services:
     container_name: eod-prometheus
     restart: always
     ports:
-      - "9091:9090"
+      - "127.0.0.1:9091:9090"
     volumes:
       - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts:/etc/prometheus/alerts:ro
+    depends_on:
+      app:
+        condition: service_started
+      alertmanager:
+        condition: service_started
+    networks:
+      - eod-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: eod-alertmanager
+    restart: always
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --config.expand-env
+    environment:
+      - ALERTMANAGER_WEBHOOK_URL=${ALERTMANAGER_WEBHOOK_URL:?ALERTMANAGER_WEBHOOK_URL is required}
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     networks:
       - eod-network
 
@@ -65,10 +86,10 @@ services:
     container_name: eod-grafana
     restart: always
     ports:
-      - "3002:3000"
+      - "127.0.0.1:3002:3000"
     environment:
-      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:-admin}
-      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:-admin}
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is required}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
