@@ -269,4 +269,33 @@ public class ItemClaimController {
         itemClaimService.rejectClaim(claimId, currentUser);
         return ResponseEntity.ok().build();
     }
+
+    @Operation(summary = "소유권 주장 취소", description = "소유권을 주장한 본인이 승인 전 주장을 취소합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "취소 성공"),
+            @ApiResponse(responseCode = "400", description = "잘못된 요청 (이미 처리된 주장)",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"대기 중인 소유권 주장만 취소할 수 있습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "403", description = "본인의 소유권 주장이 아님",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"본인의 소유권 주장만 취소할 수 있습니다.\"}")
+                    )),
+            @ApiResponse(responseCode = "404", description = "소유권 주장을 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"message\": \"해당 소유권 주장을 찾을 수 없습니다.\"}")
+                    ))
+    })
+    @DeleteMapping("/claims/{claimId}")
+    public ResponseEntity<Void> cancelClaim(
+            @PathVariable Long claimId,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        itemClaimService.cancelClaim(claimId, currentUser);
+        return ResponseEntity.ok().build();
+    }
 }

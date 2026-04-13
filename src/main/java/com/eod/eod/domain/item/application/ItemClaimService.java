@@ -2,6 +2,7 @@ package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
 import com.eod.eod.domain.item.exception.ItemConflictException;
+import com.eod.eod.domain.item.exception.ItemForbiddenException;
 import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.GiveRecordRepository;
 import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
@@ -33,8 +34,8 @@ public class ItemClaimService {
         // 소유권 주장 가능 여부 검증은 도메인에서 처리
         item.validateClaimableBy(currentUser);
 
-        // 중복 주장 확인
-        if (itemClaimRepository.existsByItemIdAndClaimantId(itemId, currentUser.getId())) {
+        // 중복 주장 확인 (PENDING 상태인 주장이 있는 경우에만 중복으로 간주)
+        if (itemClaimRepository.existsByItemIdAndClaimantIdAndStatus(itemId, currentUser.getId(), ItemClaim.ClaimStatus.PENDING)) {
             throw new ItemConflictException("이미 해당 분실물에 대해 소유권을 주장하셨습니다.");
         }
 
@@ -98,5 +99,22 @@ public class ItemClaimService {
 
         // 거절 처리
         claim.reject();
+    }
+
+    /**
+     * 소유권 주장 취소 (본인만 가능, 관리자 승인 전에만 가능)
+     */
+    public void cancelClaim(Long claimId, User currentUser) {
+        // 소유권 주장 조회
+        ItemClaim claim = itemClaimRepository.findById(claimId)
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 소유권 주장을 찾을 수 없습니다."));
+
+        // 본인 확인
+        if (!claim.getClaimant().getId().equals(currentUser.getId())) {
+            throw new ItemForbiddenException("본인의 소유권 주장만 취소할 수 있습니다.");
+        }
+
+        // 취소 처리
+        claim.cancel();
     }
 }
