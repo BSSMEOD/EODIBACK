@@ -94,6 +94,7 @@ public class SecurityConfig {
 
                         // Claim 관련 API
                         .requestMatchers(HttpMethod.POST, "/items/*/claims").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/items/claims/*").hasRole("USER")
                         .requestMatchers(HttpMethod.GET, "/items/claims/**").hasRole("ADMIN")
 
                         // 물품 등록/수정/삭제는 관리자만

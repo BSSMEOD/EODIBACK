@@ -70,6 +70,16 @@ public class ItemClaim {
         this.status = ClaimStatus.REJECTED;
     }
 
+    /**
+     * 소유권 주장 취소 (본인만 가능)
+     */
+    public void cancel() {
+        if (this.status != ClaimStatus.PENDING) {
+            throw new ItemConflictException("대기 중인 소유권 주장만 취소할 수 있습니다.");
+        }
+        this.status = ClaimStatus.CANCELLED;
+    }
+
     private static void validateVisitDate(LocalDate visitDate) {
         if (visitDate == null) {
             throw new ItemBadRequestException("방문 날짜는 필수입니다.");
@@ -80,6 +90,6 @@ public class ItemClaim {
     }
 
     public enum ClaimStatus {
-        PENDING, APPROVED, REJECTED
+        PENDING, APPROVED, REJECTED, CANCELLED
     }
 }
