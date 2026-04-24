@@ -6,6 +6,7 @@ import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
+import com.eod.eod.domain.item.presentation.dto.response.MyClaimsResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -58,6 +59,17 @@ public class ItemClaimQueryService {
         }
 
         return ClaimRequestsResponse.from(claimPage, page);
+    }
+
+    public MyClaimsResponse getMyClaims(Long userId, Integer page, Integer size) {
+        Pageable pageable = PageRequest.of(
+                page - 1,
+                size,
+                Sort.by(Sort.Direction.DESC, "claimedAt")
+        );
+
+        Page<ItemClaim> claimPage = itemClaimRepository.findByClaimantIdAndItemDeletedAtIsNull(userId, pageable);
+        return MyClaimsResponse.from(claimPage, page);
     }
 
     private ItemClaim.ClaimStatus parseStatus(String status) {
