@@ -17,7 +17,7 @@ public class MyClaimResponse {
     private String imageUrl;
 
     @JsonFormat(pattern = "yyyy-MM-dd")
-    private LocalDate claimedAt;
+    private LocalDate requestedAt;
 
     private String status;
 
@@ -27,7 +27,7 @@ public class MyClaimResponse {
                 .itemId(claim.getItem().getId())
                 .itemName(claim.getItem().getName())
                 .imageUrl(claim.getItem().getImage())
-                .claimedAt(claim.getClaimedAt().toLocalDate())
+                .requestedAt(claim.getClaimedAt().toLocalDate())
                 .status(claim.getStatus().name())
                 .build();
     }

@@ -281,7 +281,7 @@ public class ItemClaimController {
             @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
                     content = @Content(
                             mediaType = "application/json",
-                            examples = @ExampleObject(value = "{\"error\": \"인증이 필요합니다.\"}")
+                            examples = @ExampleObject(value = "{\"message\": \"인증이 필요합니다. 로그인 후 다시 시도해주세요.\", \"status\": 401, \"error\": \"Unauthorized\", \"path\": \"/items/claims/my\", \"timestamp\": \"2024-01-01T00:00:00\"}")
                     ))
     })
     @GetMapping("/claims/my")
