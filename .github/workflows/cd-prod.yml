@@ -105,7 +105,7 @@ jobs:
           if docker info >/dev/null 2>&1; then
             DOCKER_CMD="docker"
           elif sudo -n docker info >/dev/null 2>&1; then
-            DOCKER_CMD="sudo docker"
+            DOCKER_CMD="sudo -n docker"
           else
             echo "❌ Docker 데몬 접근 권한이 없습니다. SSH 사용자의 docker 그룹 권한 또는 sudo 설정을 확인하세요."
             exit 1
@@ -217,7 +217,7 @@ jobs:
           if docker info >/dev/null 2>&1; then
             DOCKER_CMD="docker"
           elif sudo -n docker info >/dev/null 2>&1; then
-            DOCKER_CMD="sudo docker"
+            DOCKER_CMD="sudo -n docker"
           else
             echo "❌ Docker 데몬 접근 권한이 없습니다. SSH 사용자의 docker 그룹 권한 또는 sudo 설정을 확인하세요."
             exit 1
