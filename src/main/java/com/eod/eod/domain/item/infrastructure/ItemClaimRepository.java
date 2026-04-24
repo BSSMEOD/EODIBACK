@@ -3,7 +3,6 @@ package com.eod.eod.domain.item.infrastructure;
 import com.eod.eod.domain.item.model.ItemClaim;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -36,4 +35,7 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
 
     // 특정 물품의 특정 상태 회수 요청 목록 조회 (페이지네이션)
     Page<ItemClaim> findByItemIdAndStatusAndItemDeletedAtIsNull(Long itemId, ItemClaim.ClaimStatus status, Pageable pageable);
+
+    // 특정 사용자의 회수 요청 목록 조회 (삭제된 물품 제외, 페이지네이션)
+    Page<ItemClaim> findByClaimantIdAndItemDeletedAtIsNull(Long claimantId, Pageable pageable);
 }

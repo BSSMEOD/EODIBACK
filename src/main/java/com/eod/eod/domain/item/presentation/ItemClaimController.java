@@ -9,6 +9,7 @@ import com.eod.eod.domain.item.presentation.dto.response.ClaimCountResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimItemListResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ClaimRequestsResponse;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
+import com.eod.eod.domain.item.presentation.dto.response.MyClaimsResponse;
 import com.eod.eod.domain.user.model.User;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -268,6 +269,32 @@ public class ItemClaimController {
     ) {
         itemClaimService.rejectClaim(claimId, currentUser);
         return ResponseEntity.ok().build();
+    }
+
+    @Operation(summary = "내 회수 요청 내역 조회", description = "로그인한 사용자 본인의 회수 요청 내역을 최신순으로 조회합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "조회 성공",
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = MyClaimsResponse.class)
+                    )),
+            @ApiResponse(responseCode = "401", description = "인증되지 않은 사용자",
+                    content = @Content(
+                            mediaType = "application/json",
+                            examples = @ExampleObject(value = "{\"error\": \"인증이 필요합니다.\"}")
+                    ))
+    })
+    @GetMapping("/claims/my")
+    public ResponseEntity<MyClaimsResponse> getMyClaims(
+            @Parameter(description = "페이지 번호 (기본값: 1)")
+            @RequestParam(defaultValue = "1") Integer page,
+            @Parameter(description = "페이지당 항목 수 (기본값: 10)")
+            @RequestParam(defaultValue = "10") Integer size,
+            @Parameter(hidden = true)
+            @AuthenticationPrincipal User currentUser
+    ) {
+        MyClaimsResponse response = itemClaimQueryService.getMyClaims(currentUser.getId(), page, size);
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "소유권 주장 취소", description = "소유권을 주장한 본인이 승인 전 주장을 취소합니다.")
