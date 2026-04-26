@@ -84,7 +84,7 @@ services:
     container_name: eod-grafana
     restart: always
     ports:
-      - "127.0.0.1:3002:3000"
+      - "3002:3000"
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is required}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
