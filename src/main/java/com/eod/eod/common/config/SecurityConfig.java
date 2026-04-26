@@ -66,6 +66,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // CORS Preflight OPTIONS 요청 전역 허용
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Prometheus 수집 엔드포인트는 인증 없이 허용하되,
+                        // 운영에서는 전용 management 포트를 호스트에 publish 하지 않고 내부 네트워크에서만 scrape 한다.
+                        .requestMatchers("/actuator/prometheus").permitAll()
                         // Swagger 경로 허용
                         .requestMatchers(
                                 "/swagger-ui/**",
