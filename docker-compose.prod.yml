@@ -74,8 +74,7 @@ services:
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
     volumes:
-      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
-      - ./monitoring/alertmanager/secrets/discord_webhook_url:/etc/alertmanager/secrets/discord_webhook_url:ro
+      - ./monitoring/alertmanager/generated/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
     networks:
       - eod-network
 
