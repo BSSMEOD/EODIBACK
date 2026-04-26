@@ -170,9 +170,10 @@ jobs:
           # 로그 디렉토리 생성
           echo "========================================="
           echo "📁 로그 디렉토리 생성 중..."
-          mkdir -p /eod/prod/logs
-          mkdir -p /eod/uploads
-          chmod 777 /eod/uploads
+          docker run --rm \
+            -v /eod:/host/eod \
+            alpine:3.20 \
+            sh -c 'mkdir -p /host/eod/prod/logs /host/eod/uploads && chmod 777 /host/eod/prod/logs /host/eod/uploads'
           echo "✅ 디렉토리 생성 완료"
           echo "========================================="
 
