@@ -73,11 +73,9 @@ services:
     restart: always
     command:
       - --config.file=/etc/alertmanager/alertmanager.yml
-      - --config.expand-env
-    environment:
-      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:?DISCORD_WEBHOOK_URL is required}
     volumes:
       - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - ./monitoring/alertmanager/secrets/discord_webhook_url:/etc/alertmanager/secrets/discord_webhook_url:ro
     networks:
       - eod-network
 

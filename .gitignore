@@ -39,6 +39,7 @@ out/
 
 ### Environment Variables ###
 .env
+monitoring/alertmanager/secrets/
 
 CLAUDE.md
 .serena/
