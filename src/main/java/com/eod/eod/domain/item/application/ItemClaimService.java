@@ -114,7 +114,12 @@ public class ItemClaimService {
             throw new ItemForbiddenException("본인의 소유권 주장만 취소할 수 있습니다.");
         }
 
-        // 취소 처리
-        claim.cancel();
+        // PENDING 상태인지 확인
+        if (claim.getStatus() != ItemClaim.ClaimStatus.PENDING) {
+            throw new ItemConflictException("대기 중인 소유권 주장만 취소할 수 있습니다.");
+        }
+
+        // 취소 처리 - 레코드 삭제
+        itemClaimRepository.delete(claim);
     }
 }
