@@ -99,6 +99,8 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         port: ${{ secrets.PROD_SSH_PORT || 22 }}
         script: |
+          set -e
+
           # 배포 디렉토리 생성 및 이동
           mkdir -p ~/eod/prod
           cd ~/eod/prod
@@ -135,6 +137,9 @@ jobs:
           BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
           BSM_REDIRECT_URI=${{ secrets.PROD_BSM_REDIRECT_URI }}
           FILE_UPLOAD_BASE_URL=${{ secrets.FILE_UPLOAD_BASE_URL }}
+          GRAFANA_ADMIN_USER=${{ secrets.PROD_GRAFANA_ADMIN_USER }}
+          GRAFANA_ADMIN_PASSWORD=${{ secrets.PROD_GRAFANA_ADMIN_PASSWORD }}
+          DISCORD_WEBHOOK_URL=${{ secrets.PROD_DISCORD_WEBHOOK_URL }}
           EOF
           
           # GitHub Container Registry 로그인
@@ -142,6 +147,13 @@ jobs:
           
           # 환경 변수 확인 (디버깅)
           echo "GITHUB_REPOSITORY (소문자): ${REPO_LOWERCASE}"
+
+          # Docker 데몬 접근 권한 확인
+          echo "========================================="
+          echo "🐳 Docker 데몬 접근 권한 확인 중..."
+          docker info >/dev/null
+          echo "✅ Docker 데몬 접근 가능"
+          echo "========================================="
 
           # MySQL 볼륨 존재 여부 확인 및 생성
           echo "========================================="
@@ -194,17 +206,23 @@ jobs:
     - name: 배포 상태 확인
       uses: appleboy/ssh-action@v1.0.3
       with:
-        host: ${{ secrets.SSH_HOST }}
-        username: ${{ secrets.SSH_USERNAME }}
+        host: ${{ secrets.PROD_SSH_HOST }}
+        username: ${{ secrets.PROD_SSH_USERNAME }}
         key: ${{ secrets.SSH_KEY }}
-        port: ${{ secrets.SSH_PORT || 22 }}
+        port: ${{ secrets.PROD_SSH_PORT || 22 }}
         script: |
+          set -e
+
           cd ~/eod/prod
           echo "========================================="
           echo "🚀 PRODUCTION 환경 배포 완료"
           echo "========================================="
           echo "📋 환경 변수 확인 (민감 정보 마스킹):"
           cat .env | sed 's/PASSWORD=.*/PASSWORD=***/g' | sed 's/SECRET=.*/SECRET=***/g'
+          echo "========================================="
+          echo "🐳 Docker 데몬 접근 권한 확인 중..."
+          docker info >/dev/null
+          echo "✅ Docker 데몬 접근 가능"
           echo "========================================="
           echo "🐳 컨테이너 실행 상태:"
           docker compose -f docker-compose.prod.yml ps
@@ -235,5 +253,5 @@ jobs:
       run: |
         IMAGE_NAME=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
         echo "✅ PRODUCTION Docker Compose 배포 완료!"
-        echo "서버: ${{ secrets.SSH_HOST }}"
+        echo "서버: ${{ secrets.PROD_SSH_HOST }}"
         echo "이미지: ${{ env.REGISTRY }}/${IMAGE_NAME}:production"
