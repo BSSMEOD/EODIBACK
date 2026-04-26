@@ -142,14 +142,23 @@ jobs:
           DISCORD_WEBHOOK_URL=${{ secrets.PROD_DISCORD_WEBHOOK_URL }}
           EOF
 
-          # Alertmanager Discord webhook secret 파일 생성
+          # Alertmanager Discord webhook 설정 파일 생성
           if [ -z "${{ secrets.PROD_DISCORD_WEBHOOK_URL }}" ]; then
             echo "❌ PROD_DISCORD_WEBHOOK_URL secret이 설정되지 않았습니다."
             exit 1
           fi
-          mkdir -p monitoring/alertmanager/secrets
-          printf '%s' '${{ secrets.PROD_DISCORD_WEBHOOK_URL }}' > monitoring/alertmanager/secrets/discord_webhook_url
-          chmod 644 monitoring/alertmanager/secrets/discord_webhook_url
+          mkdir -p monitoring/alertmanager/generated
+          ALERTMANAGER_DISCORD_WEBHOOK_URL='${{ secrets.PROD_DISCORD_WEBHOOK_URL }}' python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          source = Path("monitoring/alertmanager/alertmanager.yml")
+          target = Path("monitoring/alertmanager/generated/alertmanager.yml")
+          text = source.read_text()
+          text = text.replace("${DISCORD_WEBHOOK_URL}", os.environ["ALERTMANAGER_DISCORD_WEBHOOK_URL"])
+          target.write_text(text)
+          PY
+          chmod 644 monitoring/alertmanager/generated/alertmanager.yml
           
           # GitHub Container Registry 로그인
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
