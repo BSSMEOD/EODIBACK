@@ -149,7 +149,7 @@ jobs:
           fi
           mkdir -p monitoring/alertmanager/secrets
           printf '%s' '${{ secrets.PROD_DISCORD_WEBHOOK_URL }}' > monitoring/alertmanager/secrets/discord_webhook_url
-          chmod 600 monitoring/alertmanager/secrets/discord_webhook_url
+          chmod 644 monitoring/alertmanager/secrets/discord_webhook_url
           
           # GitHub Container Registry 로그인
           echo ${{ secrets.GITHUB_TOKEN }} | docker login ghcr.io -u ${{ github.actor }} --password-stdin
