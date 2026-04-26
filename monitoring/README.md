@@ -25,4 +25,4 @@ The baseline alert rules cover:
 - HTTP p95 latency above 1 second for 10 minutes
 - JVM heap usage above 90% for 15 minutes
 
-These rules are defined in `monitoring/prometheus/alerts/eod-alerts.yml` and routed through Alertmanager using the Discord webhook from `DISCORD_WEBHOOK_URL`. During production deployment, the workflow writes that secret to `monitoring/alertmanager/secrets/discord_webhook_url`, which is mounted into Alertmanager and read through `webhook_url_file`.
+These rules are defined in `monitoring/prometheus/alerts/eod-alerts.yml` and routed through Alertmanager using the Discord webhook from `DISCORD_WEBHOOK_URL`. During production deployment, the workflow renders `monitoring/alertmanager/generated/alertmanager.yml` with that secret and mounts the generated file into Alertmanager.
