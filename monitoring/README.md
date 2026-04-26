@@ -12,7 +12,7 @@
 
 - `GRAFANA_ADMIN_USER`
 - `GRAFANA_ADMIN_PASSWORD`
-- `ALERTMANAGER_WEBHOOK_URL`
+- `DISCORD_WEBHOOK_URL`
 
 The production compose file intentionally has no fallback for these values. Missing variables should fail fast during deployment instead of silently starting with unsafe defaults.
 
@@ -25,4 +25,4 @@ The baseline alert rules cover:
 - HTTP p95 latency above 1 second for 10 minutes
 - JVM heap usage above 90% for 15 minutes
 
-These rules are defined in `monitoring/prometheus/alerts/eod-alerts.yml` and routed through Alertmanager using the webhook configured by `ALERTMANAGER_WEBHOOK_URL`.
+These rules are defined in `monitoring/prometheus/alerts/eod-alerts.yml` and routed through Alertmanager using the Discord webhook configured by `DISCORD_WEBHOOK_URL`.
