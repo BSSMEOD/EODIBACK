@@ -35,7 +35,7 @@ public class AuthService {
         User user = storedToken.getUser();
 
         // 새로운 Access Token 및 Refresh Token 생성
-        String newAccessToken = tokenService.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+        String newAccessToken = tokenService.createAccessToken(user);
         String newRefreshToken = tokenService.createRefreshToken(user.getId());
 
         // 기존 Refresh Token 삭제 후 새로운 Refresh Token 저장
@@ -55,7 +55,7 @@ public class AuthService {
 
     // OAuth2 로그인 성공 시 토큰 발급
     public TokenPair issueTokensForOAuth2Login(User user) {
-        String accessToken = tokenService.createAccessToken(user.getId(), user.getEmail(), user.getRole().name());
+        String accessToken = tokenService.createAccessToken(user);
         String refreshToken = tokenService.createRefreshToken(user.getId());
 
         // Refresh Token DB에 저장

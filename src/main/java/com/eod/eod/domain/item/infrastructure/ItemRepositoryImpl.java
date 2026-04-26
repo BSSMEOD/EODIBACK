@@ -34,6 +34,7 @@ public class ItemRepositoryImpl implements ItemRepositoryCustom {
         // 동적 쿼리 조건 생성
         BooleanBuilder builder = new BooleanBuilder();
         builder.and(item.deletedAt.isNull());
+        builder.and(item.status.ne(Item.ItemStatus.GIVEN));
 
         if (trimmedQuery != null && !trimmedQuery.isBlank()) {
             builder.and(item.name.containsIgnoreCase(trimmedQuery));
