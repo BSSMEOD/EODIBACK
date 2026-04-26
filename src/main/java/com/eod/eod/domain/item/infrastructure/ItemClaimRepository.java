@@ -3,7 +3,7 @@ package com.eod.eod.domain.item.infrastructure;
 import com.eod.eod.domain.item.model.ItemClaim;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
@@ -12,6 +12,9 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
 
     // 특정 사용자가 특정 아이템에 대해 이미 소유권 주장을 했는지 확인
     boolean existsByItemIdAndClaimantId(Long itemId, Long claimantId);
+
+    // 특정 사용자가 특정 아이템에 대해 특정 상태의 소유권 주장을 했는지 확인
+    boolean existsByItemIdAndClaimantIdAndStatus(Long itemId, Long claimantId, ItemClaim.ClaimStatus status);
 
     // 특정 상태의 회수 신청 개수 조회
     long countByStatusAndItemDeletedAtIsNull(ItemClaim.ClaimStatus status);
@@ -33,4 +36,8 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
 
     // 특정 물품의 특정 상태 회수 요청 목록 조회 (페이지네이션)
     Page<ItemClaim> findByItemIdAndStatusAndItemDeletedAtIsNull(Long itemId, ItemClaim.ClaimStatus status, Pageable pageable);
+
+    // 특정 사용자의 회수 요청 목록 조회 (삭제된 물품 제외, 페이지네이션) - item fetch join으로 N+1 방지
+    @EntityGraph(attributePaths = "item")
+    Page<ItemClaim> findByClaimantIdAndItemDeletedAtIsNull(Long claimantId, Pageable pageable);
 }

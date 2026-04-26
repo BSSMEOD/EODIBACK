@@ -63,6 +63,10 @@ public class User {
     @Column(name = "introduce", columnDefinition = "TEXT")
     private String introduce;
 
+    // 디스코드 사용자 ID
+    @Column(name = "discord_id", unique = true, length = 20)
+    private String discordId;
+
     // 계정 생성 일시
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;

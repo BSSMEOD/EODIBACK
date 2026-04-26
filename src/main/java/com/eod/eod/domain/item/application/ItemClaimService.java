@@ -1,6 +1,9 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.domain.item.exception.ItemConflictException;
+import com.eod.eod.domain.item.exception.ItemForbiddenException;
+import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.GiveRecordRepository;
 import com.eod.eod.domain.item.infrastructure.ItemClaimRepository;
 import com.eod.eod.domain.item.model.GiveRecord;
@@ -28,14 +31,12 @@ public class ItemClaimService {
         // 아이템 존재 여부 확인
         Item item = itemFacade.getItemById(itemId);
 
-        // 중복 주장 확인
-        if (itemClaimRepository.existsByItemIdAndClaimantId(itemId, currentUser.getId())) {
-            throw new IllegalStateException("이미 해당 분실물에 대해 소유권을 주장하셨습니다.");
-        }
+        // 소유권 주장 가능 여부 검증은 도메인에서 처리
+        item.validateClaimableBy(currentUser);
 
-        // 과거 날짜 검증 (중복 신청 확인 이후에 수행)
-        if (visitDate.isBefore(LocalDate.now())) {
-            throw new IllegalStateException("방문 날짜는 오늘 이전일 수 없습니다.");
+        // 중복 주장 확인 (PENDING 상태인 주장이 있는 경우에만 중복으로 간주)
+        if (itemClaimRepository.existsByItemIdAndClaimantIdAndStatus(itemId, currentUser.getId(), ItemClaim.ClaimStatus.PENDING)) {
+            throw new ItemConflictException("이미 해당 분실물에 대해 소유권을 주장하셨습니다.");
         }
 
         // 소유권 주장 생성
@@ -58,7 +59,7 @@ public class ItemClaimService {
     public void approveClaim(Long claimId, User currentUser) {
         // 소유권 주장 조회
         ItemClaim claim = itemClaimRepository.findById(claimId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 소유권 주장을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 소유권 주장을 찾을 수 없습니다."));
 
         // 승인 처리
         claim.approve();
@@ -94,9 +95,31 @@ public class ItemClaimService {
     public void rejectClaim(Long claimId, User currentUser) {
         // 소유권 주장 조회
         ItemClaim claim = itemClaimRepository.findById(claimId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 소유권 주장을 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 소유권 주장을 찾을 수 없습니다."));
 
         // 거절 처리
         claim.reject();
+    }
+
+    /**
+     * 소유권 주장 취소 (본인만 가능, 관리자 승인 전에만 가능)
+     */
+    public void cancelClaim(Long claimId, User currentUser) {
+        // 소유권 주장 조회
+        ItemClaim claim = itemClaimRepository.findById(claimId)
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 소유권 주장을 찾을 수 없습니다."));
+
+        // 본인 확인
+        if (!claim.getClaimant().getId().equals(currentUser.getId())) {
+            throw new ItemForbiddenException("본인의 소유권 주장만 취소할 수 있습니다.");
+        }
+
+        // PENDING 상태인지 확인
+        if (claim.getStatus() != ItemClaim.ClaimStatus.PENDING) {
+            throw new ItemConflictException("대기 중인 소유권 주장만 취소할 수 있습니다.");
+        }
+
+        // 취소 처리 - 레코드 삭제
+        itemClaimRepository.delete(claim);
     }
 }

@@ -1,6 +1,6 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY}:latest
+    image: ghcr.io/${GITHUB_REPOSITORY:-bssmeod/eodiback}:latest
     container_name: eod-app
     volumes:
       - /eod/prod/logs:/logs
@@ -20,6 +20,7 @@ services:
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
       - BSM_REDIRECT_URI=${BSM_REDIRECT_URI}
+      - MANAGEMENT_SERVER_PORT=${MANAGEMENT_SERVER_PORT:-8081}
       - FILE_UPLOAD_DIR=/eod/uploads
       - FILE_UPLOAD_BASE_URL=${FILE_UPLOAD_BASE_URL}
     depends_on:
@@ -48,6 +49,56 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: eod-prometheus
+    restart: always
+    ports:
+      - "127.0.0.1:9091:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring/prometheus/alerts:/etc/prometheus/alerts:ro
+    depends_on:
+      app:
+        condition: service_started
+      alertmanager:
+        condition: service_started
+    networks:
+      - eod-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: eod-alertmanager
+    restart: always
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --config.expand-env
+    environment:
+      - DISCORD_WEBHOOK_URL=${DISCORD_WEBHOOK_URL:?DISCORD_WEBHOOK_URL is required}
+    volumes:
+      - ./monitoring/alertmanager/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+    networks:
+      - eod-network
+
+  grafana:
+    image: grafana/grafana:11.1.0
+    container_name: eod-grafana
+    restart: always
+    ports:
+      - "127.0.0.1:3002:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is required}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+    volumes:
+      - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      prometheus:
+        condition: service_started
+    networks:
+      - eod-network
 
 volumes:
   mysql-data-prod:

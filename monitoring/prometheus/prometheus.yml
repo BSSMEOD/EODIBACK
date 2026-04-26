@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+rule_files:
+  - /etc/prometheus/alerts/eod-alerts.yml
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: ["alertmanager:9093"]
+
+scrape_configs:
+  - job_name: "eod-app-local"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8081"]
+        labels:
+          application: eod
+          runtime: local
+
+  - job_name: "eod-app-docker"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["app:8081"]
+        labels:
+          application: eod
+          runtime: docker
+
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["prometheus:9090"]

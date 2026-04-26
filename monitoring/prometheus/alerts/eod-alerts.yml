@@ -1,0 +1,56 @@
+groups:
+  - name: eod-application
+    rules:
+      - alert: EodAppDown
+        expr: up{job="eod-app-docker"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: eod
+        annotations:
+          summary: EOD application target is down
+          description: Prometheus has not been able to scrape the dockerized EOD application for 2 minutes.
+
+      - alert: EodHighHttp5xxRatio
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{application="eod",status=~"5..",uri!="UNKNOWN"}[5m]))
+            /
+            clamp_min(sum(rate(http_server_requests_seconds_count{application="eod",uri!="UNKNOWN"}[5m])), 1)
+          ) > 0.05
+        for: 10m
+        labels:
+          severity: critical
+          service: eod
+        annotations:
+          summary: EOD 5xx ratio is elevated
+          description: The 5xx response ratio has stayed above 5% for 10 minutes.
+
+      - alert: EodHighHttpP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket{application="eod",uri!="UNKNOWN"}[5m]))
+          ) > 1
+        for: 10m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD p95 latency is elevated
+          description: HTTP p95 latency has stayed above 1 second for 10 minutes.
+
+      - alert: EodHighJvmHeapUsage
+        expr: |
+          (
+            sum(jvm_memory_used_bytes{application="eod",area="heap"})
+            /
+            clamp_min(sum(jvm_memory_max_bytes{application="eod",area="heap"}), 1)
+          ) > 0.90
+        for: 15m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD JVM heap usage is high
+          description: JVM heap usage has exceeded 90% for 15 minutes.

@@ -1,6 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.DisposalReasonRepository;
 import com.eod.eod.domain.item.model.DisposalReason;
 import com.eod.eod.domain.item.model.Item;
@@ -12,8 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Date;
-
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -56,13 +55,13 @@ public class DisposalReasonService {
                 return disposalReasonRepository
                         .findTopByItemIdAndCreatedAtGreaterThanEqualAndCreatedAtLessThanOrderByCreatedAtDesc(
                                 itemId, fromDateTime, toDateTimeExclusive)
-                        .orElseThrow(() -> new IllegalArgumentException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new ItemResourceNotFoundException("해당 기간에 폐기 보류 사유를 찾을 수 없습니다."));
             }
         }
 
         // 날짜 필터가 없으면 최신 사유 조회
         return disposalReasonRepository.findTopByItemIdOrderByCreatedAtDesc(itemId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 물품의 폐기 보류 사유를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 물품의 폐기 보류 사유를 찾을 수 없습니다."));
     }
 
     /**
@@ -75,20 +74,10 @@ public class DisposalReasonService {
 
         // 보류 사유 조회 및 검증
         DisposalReason disposalReason = disposalReasonRepository.findById(reasonId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 보류 사유를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 보류 사유를 찾을 수 없습니다."));
 
-        // 보류 사유가 해당 물품의 것인지 확인
-        if (!disposalReason.getItem().equals(item)) {
-            throw new IllegalArgumentException("해당 보류 사유는 이 물품의 것이 아닙니다.");
-        }
-
-        // 물품 상태 확인
-        if (item.getStatus() != Item.ItemStatus.TO_BE_DISCARDED) {
-            throw new IllegalStateException("폐기 예정 상태의 물품만 기간을 연장할 수 있습니다.");
-        }
-
-        // 폐기 기간 연장 (보류 사유에 저장된 일수만큼 연장)
-        item.extendDisposalDate(disposalReason.getExtensionDays());
+        // 폐기 기간 연장 관련 검증과 상태 변경은 도메인에서 처리
+        item.extendDisposalDateWith(disposalReason);
 
         return item.getDiscardedAt();
     }
