@@ -117,6 +117,10 @@ public class User {
         this.studentNo = studentNo;
     }
 
+    public void updateDiscordId(String discordId) {
+        this.discordId = discordId;
+    }
+
     public Integer getStudentCode() {
         if (grade == null || classNo == null || studentNo == null) {
             return null;
