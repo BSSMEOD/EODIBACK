@@ -88,6 +88,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // 테스트 페이지 허용
                         .requestMatchers("/test/**").permitAll()
+                        // Discord 내부 인증 API 허용
+                        .requestMatchers(HttpMethod.POST, "/discord/verify").permitAll()
 
                         // ===== Items API 세분화 =====
                         // 공개 물품 조회 API 허용
