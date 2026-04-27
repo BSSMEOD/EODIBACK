@@ -29,6 +29,11 @@ public class TokenService {
         return jwtTokenProvider.createAccessToken(userId, email, role);
     }
 
+    // Access Token 생성
+    public String createAccessToken(User user) {
+        return jwtTokenProvider.createAccessToken(user);
+    }
+
     // Refresh Token 생성
     public String createRefreshToken(Long userId) {
         return jwtTokenProvider.createRefreshToken(userId);

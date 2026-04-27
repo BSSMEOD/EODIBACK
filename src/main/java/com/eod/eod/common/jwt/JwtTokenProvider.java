@@ -1,5 +1,6 @@
 package com.eod.eod.common.jwt;
 
+import com.eod.eod.domain.user.model.User;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -46,6 +47,33 @@ public class JwtTokenProvider {
                 .expiration(expiryDate)
                 .signWith(getSigningKey())
                 .compact();
+    }
+
+    // Access Token 생성
+    public String createAccessToken(User user) {
+        Date now = new Date();
+        long accessTokenTtlMillis = jwtProperties.getAccessTokenExpiration().toMillis();
+        Date expiryDate = new Date(now.getTime() + accessTokenTtlMillis);
+
+        JwtBuilder builder = Jwts.builder()
+                .subject(String.valueOf(user.getId()))
+                .claim("email", user.getEmail())
+                .claim("role", user.getRole().name())
+                .claim("type", "access")
+                .claim("name", user.getName())
+                .issuedAt(now)
+                .expiration(expiryDate);
+
+        addClaimIfPresent(builder, "studentCode", user.getStudentCode());
+
+        return builder.signWith(getSigningKey())
+                .compact();
+    }
+
+    private void addClaimIfPresent(JwtBuilder builder, String name, Object value) {
+        if (value != null) {
+            builder.claim(name, value);
+        }
     }
 
     // Refresh Token 생성
