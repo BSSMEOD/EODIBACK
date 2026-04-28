@@ -28,6 +28,7 @@ import java.nio.charset.StandardCharsets;
 public class BsmOAuthCallbackController {
 
     private static final String STATE_COOKIE_NAME = "bsm_oauth_state";
+    private static final String DISCORD_FRONTEND_BASE_URL = "https://www.jojaemin.com";
 
     private final BsmLoginService bsmLoginService;
     private final DiscordOAuthStateService discordOAuthStateService;
@@ -90,34 +91,42 @@ public class BsmOAuthCallbackController {
 
             // Google OAuth2와 동일하게 access token을 fragment로 전달
             // Discord 연결 실패 시에도 BSM 로그인은 유지하고 에러 정보를 함께 전달
+            String redirectBaseUrl = resolveRedirectBaseUrl(discordId);
             String redirectUrl = discordLinkError != null
                     ? String.format(
                             "%s%s#token=%s&provider=bsm&discord_error=%s",
-                            frontendBaseUrl,
+                            redirectBaseUrl,
                             frontendCallbackPath,
                             loginResult.accessToken(),
                             URLEncoder.encode(discordLinkError, StandardCharsets.UTF_8))
                     : String.format(
                             "%s%s#token=%s&provider=bsm",
-                            frontendBaseUrl,
+                            redirectBaseUrl,
                             frontendCallbackPath,
                             loginResult.accessToken());
             response.sendRedirect(redirectUrl);
         } catch (Exception e) {
             log.error("BSM OAuth callback failed", e);
             cookieUtil.deleteCookie(response, STATE_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
-            failRedirect(response, "bsm_oauth_failed");
+            failRedirect(response, "bsm_oauth_failed", null);
         }
     }
 
-    private void failRedirect(HttpServletResponse response, String reason) throws IOException {
+    private void failRedirect(HttpServletResponse response, String reason, String discordId) throws IOException {
         String redirectUrl = String.format(
                 "%s%s#error=%s&message=%s",
-                frontendBaseUrl,
+                resolveRedirectBaseUrl(discordId),
                 frontendCallbackPath,
                 URLEncoder.encode(reason, StandardCharsets.UTF_8),
                 URLEncoder.encode("BSM 로그인에 실패했습니다.", StandardCharsets.UTF_8)
         );
         response.sendRedirect(redirectUrl);
+    }
+
+    private String resolveRedirectBaseUrl(String discordId) {
+        if (discordId != null && !discordId.isBlank()) {
+            return DISCORD_FRONTEND_BASE_URL;
+        }
+        return frontendBaseUrl;
     }
 }
