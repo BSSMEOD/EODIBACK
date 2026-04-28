@@ -67,6 +67,10 @@ public class User {
     @Column(name = "discord_id", unique = true, length = 20)
     private String discordId;
 
+    // 물품 픽업 예정 일시
+    @Column(name = "pickup_date")
+    private LocalDateTime pickupDate;
+
     // 계정 생성 일시
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -126,6 +130,14 @@ public class User {
             return null;
         }
         return grade * 1000 + classNo * 100 + studentNo;
+    }
+
+    public void linkDiscordId(String discordId) {
+        this.discordId = discordId;
+    }
+
+    public void updatePickupDate(LocalDateTime pickupDate) {
+        this.pickupDate = pickupDate;
     }
 
     // 사용자 역할 정의
