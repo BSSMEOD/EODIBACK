@@ -2,13 +2,17 @@ package com.eod.eod.domain.auth.presentation;
 
 import com.eod.eod.common.util.CookieUtil;
 import com.eod.eod.domain.auth.application.BsmOAuthService;
+import com.eod.eod.domain.auth.application.DiscordOAuthStateService;
+import com.eod.eod.domain.auth.presentation.dto.response.BsmAuthorizeUrlResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -22,6 +26,7 @@ import java.util.Base64;
 public class BsmOAuthController {
 
     private final BsmOAuthService bsmOAuthService;
+    private final DiscordOAuthStateService discordOAuthStateService;
     private final CookieUtil cookieUtil;
 
     private static final String STATE_COOKIE_NAME = "bsm_oauth_state";
@@ -40,6 +45,18 @@ public class BsmOAuthController {
         String authorizeUrl = bsmOAuthService.buildAuthorizeUrl(state);
         response.setStatus(302);
         response.setHeader("Location", authorizeUrl);
+    }
+
+    @GetMapping("/authorize/discord")
+    @Operation(summary = "Discord 봇용 BSM 로그인 URL 발급", description = "쿠키 없이 사용할 수 있도록 state와 Discord ID를 서버에 저장하고 OAuth URL을 JSON으로 반환합니다.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "OAuth URL 반환")
+    })
+    public ResponseEntity<BsmAuthorizeUrlResponse> authorizeForDiscord(@RequestParam("discordId") String discordId) {
+        String state = generateState();
+        discordOAuthStateService.save(state, discordId);
+        String authorizeUrl = bsmOAuthService.buildAuthorizeUrl(state);
+        return ResponseEntity.ok(new BsmAuthorizeUrlResponse(authorizeUrl));
     }
 
     private String generateState() {

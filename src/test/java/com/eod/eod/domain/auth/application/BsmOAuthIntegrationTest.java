@@ -1,5 +1,7 @@
 package com.eod.eod.domain.auth.application;
 
+import com.eod.eod.domain.auth.infrastructure.DiscordOAuthStateRepository;
+import com.eod.eod.domain.auth.model.DiscordOAuthState;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -43,6 +45,9 @@ class BsmOAuthIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+    @Autowired
+    private DiscordOAuthStateRepository discordOAuthStateRepository;
+
     @MockitoBean
     private BsmOAuthService bsmOAuthService;
 
@@ -57,6 +62,7 @@ class BsmOAuthIntegrationTest {
     void setUp() {
         // 기존 테스트 사용자 정리
         userRepository.deleteAll();
+        discordOAuthStateRepository.deleteAll();
     }
 
     @Test
@@ -76,6 +82,27 @@ class BsmOAuthIntegrationTest {
                 .andExpect(header().string("Location", containsString("state=")))
                 .andExpect(cookie().exists("bsm_oauth_state"))
                 .andExpect(cookie().maxAge("bsm_oauth_state", 300)); // 5분
+    }
+
+    @Test
+    @DisplayName("Discord 봇용 인증 시작 - OAuth URL을 JSON으로 반환하고 state를 저장")
+    void testAuthorizeForDiscordReturnsJsonUrl() throws Exception {
+        String discordId = "123456789012345678";
+        String authorizeUrl = "https://auth.bssm.kro.kr/oauth?clientId=test&redirectURI=http://localhost/callback&state=generated";
+        when(bsmOAuthService.buildAuthorizeUrl(anyString())).thenReturn(authorizeUrl);
+
+        mockMvc.perform(get("/auth/oauth/bsm/authorize/discord")
+                        .param("discordId", discordId))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                        {"url":"https://auth.bssm.kro.kr/oauth?clientId=test&redirectURI=http://localhost/callback&state=generated"}
+                        """));
+
+        long stateCount = discordOAuthStateRepository.findAll().stream()
+                .filter(savedState -> discordId.equals(savedState.getDiscordId()))
+                .count();
+        assert stateCount == 1 : "Discord OAuth state should be saved";
     }
 
     @Test
@@ -175,6 +202,39 @@ class BsmOAuthIntegrationTest {
         assert updatedUser.getClassNo().equals(2) : "ClassNo should be updated from BSM";
         assert updatedUser.getStudentNo().equals(3) : "StudentNo should be updated from BSM";
         assert updatedUser.getIsGraduate().equals(false) : "IsGraduate should be updated from BSM";
+    }
+
+    @Test
+    @DisplayName("콜백 성공 - Discord state로 사용자 discordId 연결")
+    void testCallbackLinksDiscordId() throws Exception {
+        String discordId = "123456789012345678";
+        discordOAuthStateRepository.save(new DiscordOAuthState(TEST_STATE, discordId, java.time.LocalDateTime.now().plusMinutes(10)));
+
+        JsonNode mockUserResource = createMockBsmUserResource(
+                "123456",
+                "12345",
+                "홍길동",
+                "hong@bssm.hs.kr"
+        );
+
+        BsmOAuthService.ExchangeResult exchangeResult =
+                new BsmOAuthService.ExchangeResult(TEST_BSM_TOKEN, mockUserResource);
+
+        when(bsmOAuthService.exchangeCode(eq(TEST_CODE), eq(true)))
+                .thenReturn(exchangeResult);
+
+        mockMvc.perform(get("/oauth/bsm")
+                        .param("code", TEST_CODE)
+                        .param("state", TEST_STATE))
+                .andDo(print())
+                .andExpect(status().isFound())
+                .andExpect(header().string("Location", containsString("auth/callback")))
+                .andExpect(cookie().exists("refreshToken"));
+
+        User savedUser = userRepository.findByOauthProviderAndOauthId("bsm", "123456")
+                .orElseThrow(() -> new AssertionError("User should be saved"));
+        assert discordId.equals(savedUser.getDiscordId()) : "Discord ID should be linked";
+        assert discordOAuthStateRepository.findById(TEST_STATE).isEmpty() : "Discord OAuth state should be consumed";
     }
 
     @Test
