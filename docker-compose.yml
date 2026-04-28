@@ -1,29 +1,32 @@
 services:
   app:
-    image: ghcr.io/${GITHUB_REPOSITORY:-bssmeod/eodiback}:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: eodi-app-dev:local
     container_name: eod-app-dev
     volumes:
-      - /eod/logs:/logs
-      - /eod/uploads:/eod/uploads
+      - ${HOST_LOGS_DIR:-./.docker/logs}:/logs
+      - ${HOST_UPLOADS_DIR:-./.docker/uploads}:/eod/uploads
     restart: always
     ports:
       - "8000:8080"
     environment:
-      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
-      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
-      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD}
-      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
-      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
-      - JWT_SECRET=${JWT_SECRET}
-      - BASE_URL=${BASE_URL}
-      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
-      - LOG_DIR=${LOG_DIR}
-      - BSM_CLIENT_ID=${BSM_CLIENT_ID}
-      - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
-      - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
-      - BSM_REDIRECT_URI=${BSM_REDIRECT_URI}
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:mysql://mysql:3306/eod?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=Asia/Seoul}
+      - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME:-eod_user}
+      - SPRING_DATASOURCE_PASSWORD=${SPRING_DATASOURCE_PASSWORD:-eod_dev_password}
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-dev-google-client-id}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-dev-google-client-secret}
+      - JWT_SECRET=${JWT_SECRET:-dev-jwt-secret-key-at-least-32-characters-long}
+      - BASE_URL=${BASE_URL:-http://localhost:8000}
+      - FRONTEND_BASE_URL=${FRONTEND_BASE_URL:-http://localhost:3000}
+      - LOG_DIR=${LOG_DIR:-/logs}
+      - BSM_CLIENT_ID=${BSM_CLIENT_ID:-dev-bsm-client-id}
+      - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET:-dev-bsm-client-secret}
+      - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL:-https://auth.bssm.app}
+      - BSM_REDIRECT_URI=${BSM_REDIRECT_URI:-http://localhost:8000/oauth/bsm}
       - FILE_UPLOAD_DIR=/eod/uploads
-      - FILE_UPLOAD_BASE_URL=${FILE_UPLOAD_BASE_URL}
+      - FILE_UPLOAD_BASE_URL=${FILE_UPLOAD_BASE_URL:-http://localhost:8000}
     depends_on:
       mysql:
         condition: service_healthy
@@ -35,10 +38,10 @@ services:
     container_name: eod-mysql-dev
     restart: always
     environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-eod_root_password}
+      MYSQL_DATABASE: ${MYSQL_DATABASE:-eod}
+      MYSQL_USER: ${MYSQL_USER:-eod_user}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-eod_dev_password}
     ports:
       - "3306:3306"
     volumes:
@@ -84,8 +87,7 @@ services:
 
 volumes:
   mysql-data-dev:
-    external: true
-    name: eod_mysql-data-dev
+    name: eodi_mysql-data-dev
 
 networks:
   eod-network-dev:
