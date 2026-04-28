@@ -157,10 +157,10 @@ jobs:
           echo "🚀 Docker Compose 배포 시작"
           echo "========================================="
           for i in 1 2 3; do
-            echo "Docker 앱 이미지 build 시도 ${i}/3..."
-            docker compose -f docker-compose.yml build app && break
-            echo "Build 실패, 30초 후 재시도..."
-            [ $i -lt 3 ] && sleep 30 || { echo "❌ Build 최종 실패"; exit 1; }
+            echo "Docker 이미지 pull 시도 ${i}/3..."
+            docker compose -f docker-compose.yml pull && break
+            echo "Pull 실패, 30초 후 재시도..."
+            [ $i -lt 3 ] && sleep 30 || { echo "❌ Pull 최종 실패"; exit 1; }
           done
           docker compose -f docker-compose.yml down
           docker compose -f docker-compose.yml up -d --remove-orphans
