@@ -88,6 +88,8 @@ public class SecurityConfig {
                         .requestMatchers("/auth/**").permitAll()
                         // 테스트 페이지 허용
                         .requestMatchers("/test/**").permitAll()
+                        // Discord 봇 API 허용 (봇은 JWT 인증 없이 호출)
+                        .requestMatchers("/discord/**").permitAll()
 
                         // ===== Items API 세분화 =====
                         // 공개 물품 조회 API 허용

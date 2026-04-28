@@ -34,6 +34,24 @@ public class BsmLoginService {
         return new LoginResult(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), user);
     }
 
+    public User linkDiscordId(User user, String discordId) {
+        if (discordId == null || discordId.isBlank()) {
+            return user;
+        }
+        if (discordId.equals(user.getDiscordId())) {
+            return user;
+        }
+
+        userRepository.findByDiscordId(discordId)
+                .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+                .ifPresent(existingUser -> {
+                    throw new IllegalStateException("이미 다른 계정에 연결된 Discord ID입니다.");
+                });
+
+        user.linkDiscordId(discordId);
+        return userRepository.save(user);
+    }
+
     private User findOrCreateUser(BsmUserInfo userInfo) {
         Optional<User> byProviderAndId = userRepository.findByOauthProviderAndOauthId(PROVIDER, userInfo.oauthId());
         if (byProviderAndId.isPresent()) {

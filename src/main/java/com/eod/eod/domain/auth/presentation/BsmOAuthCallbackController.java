@@ -2,6 +2,7 @@ package com.eod.eod.domain.auth.presentation;
 
 import com.eod.eod.common.util.CookieUtil;
 import com.eod.eod.domain.auth.application.BsmLoginService;
+import com.eod.eod.domain.auth.application.DiscordOAuthStateService;
 import com.eod.eod.domain.auth.application.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -29,6 +30,7 @@ public class BsmOAuthCallbackController {
     private static final String STATE_COOKIE_NAME = "bsm_oauth_state";
 
     private final BsmLoginService bsmLoginService;
+    private final DiscordOAuthStateService discordOAuthStateService;
     private final TokenService tokenService;
     private final CookieUtil cookieUtil;
 
@@ -51,12 +53,13 @@ public class BsmOAuthCallbackController {
             HttpServletResponse response
     ) throws IOException {
         try {
+            String discordId = discordOAuthStateService.consumeDiscordId(state).orElse(null);
             String expectedState = cookieUtil.getCookie(request, STATE_COOKIE_NAME)
                     .map(c -> c.getValue())
                     .orElse(null);
 
-            // State 검증 (BSM OAuth가 state를 반환하지 않으므로 경고만 처리)
-            if (expectedState == null || state == null || !expectedState.equals(state)) {
+            // Discord 봇 플로우가 아니면 기존 쿠키 기반 state를 유지한다.
+            if (discordId == null && (expectedState == null || state == null || !expectedState.equals(state))) {
                 log.warn("BSM OAuth state mismatch. expected={}, actual={} (continuing login process)", expectedState, state);
             }
 
@@ -67,6 +70,16 @@ public class BsmOAuthCallbackController {
 
             BsmLoginService.LoginResult loginResult = bsmLoginService.login(code);
 
+            String discordLinkError = null;
+            if (discordId != null) {
+                try {
+                    bsmLoginService.linkDiscordId(loginResult.user(), discordId);
+                } catch (IllegalStateException e) {
+                    log.warn("Discord ID 연결 실패 (BSM 로그인은 성공): {}", e.getMessage());
+                    discordLinkError = e.getMessage();
+                }
+            }
+
             cookieUtil.addTokenCookie(
                     response,
                     "refreshToken",
@@ -76,12 +89,19 @@ public class BsmOAuthCallbackController {
             );
 
             // Google OAuth2와 동일하게 access token을 fragment로 전달
-            String redirectUrl = String.format(
-                    "%s%s#token=%s&provider=bsm",
-                    frontendBaseUrl,
-                    frontendCallbackPath,
-                    loginResult.accessToken()
-            );
+            // Discord 연결 실패 시에도 BSM 로그인은 유지하고 에러 정보를 함께 전달
+            String redirectUrl = discordLinkError != null
+                    ? String.format(
+                            "%s%s#token=%s&provider=bsm&discord_error=%s",
+                            frontendBaseUrl,
+                            frontendCallbackPath,
+                            loginResult.accessToken(),
+                            URLEncoder.encode(discordLinkError, StandardCharsets.UTF_8))
+                    : String.format(
+                            "%s%s#token=%s&provider=bsm",
+                            frontendBaseUrl,
+                            frontendCallbackPath,
+                            loginResult.accessToken());
             response.sendRedirect(redirectUrl);
         } catch (Exception e) {
             log.error("BSM OAuth callback failed", e);
