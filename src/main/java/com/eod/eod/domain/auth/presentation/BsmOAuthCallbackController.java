@@ -28,7 +28,7 @@ import java.nio.charset.StandardCharsets;
 public class BsmOAuthCallbackController {
 
     private static final String STATE_COOKIE_NAME = "bsm_oauth_state";
-    private static final String DISCORD_FRONTEND_BASE_URL = "https://www.jojaemin.com";
+    private static final String DISCORD_FRONTEND_BASE_URL = "https://eodi.kro.kr";
 
     private final BsmLoginService bsmLoginService;
     private final DiscordOAuthStateService discordOAuthStateService;
