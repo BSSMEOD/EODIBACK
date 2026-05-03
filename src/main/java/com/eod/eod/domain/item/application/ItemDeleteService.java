@@ -1,6 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.metrics.EodMetrics;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -13,13 +14,20 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemDeleteService {
 
     private final ItemFacade itemFacade;
+    private final EodMetrics eodMetrics;
 
     @RequireAdmin
     public void deleteItem(Long itemId, User currentUser) {
-        // 물품 존재 여부 확인
-        Item item = itemFacade.getItemById(itemId);
+        try {
+            // 물품 존재 여부 확인
+            Item item = itemFacade.getItemById(itemId);
 
-        // 물품 논리 삭제
-        item.softDelete();
+            // 물품 논리 삭제
+            item.softDelete();
+            eodMetrics.recordBusinessEvent("item", "delete", "success");
+        } catch (RuntimeException e) {
+            eodMetrics.recordBusinessEvent("item", "delete", "failure");
+            throw e;
+        }
     }
 }

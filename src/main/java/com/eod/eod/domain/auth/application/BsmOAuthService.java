@@ -1,5 +1,6 @@
 package com.eod.eod.domain.auth.application;
 
+import com.eod.eod.common.metrics.EodMetrics;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,6 +13,8 @@ import org.springframework.web.client.RestClientResponseException;
 
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -29,6 +32,7 @@ public class BsmOAuthService {
 
     @Qualifier("bsmOauthRestClient")
     private final RestClient bsmOauthRestClient;
+    private final EodMetrics eodMetrics;
 
     @Value("${bsm.auth.client-id}")
     private String clientId;
@@ -77,7 +81,15 @@ public class BsmOAuthService {
     }
 
     private String exchangeCodeForToken(String code) {
-        JsonNode node = requestTokenWithJsonBody(code, true);
+        Instant start = Instant.now();
+        JsonNode node;
+        try {
+            node = requestTokenWithJsonBody(code, true);
+            eodMetrics.recordExternalCall("bsm", "token", "success", Duration.between(start, Instant.now()));
+        } catch (RuntimeException e) {
+            eodMetrics.recordExternalCall("bsm", "token", "failure", Duration.between(start, Instant.now()));
+            throw e;
+        }
 
         String token = extractToken(node);
         if (token == null || token.isBlank()) {
@@ -112,6 +124,7 @@ public class BsmOAuthService {
 
     private Optional<JsonNode> fetchUserResource(String token) {
         log.debug("BSM 사용자 정보 조회 시작");
+        Instant start = Instant.now();
         
         try {
             // BSM 공식 문서: POST /resource with JSON body
@@ -132,10 +145,12 @@ public class BsmOAuthService {
                     .body(JsonNode.class);
                     
             log.info("✅ 사용자 정보 조회 성공");
+            eodMetrics.recordExternalCall("bsm", "resource", "success", Duration.between(start, Instant.now()));
             return Optional.ofNullable(resource);
         } catch (RestClientResponseException e) {
             log.error("❌ 사용자 정보 조회 실패 - {} {}, 응답: {}", 
                     e.getStatusCode(), e.getMessage(), e.getResponseBodyAsString());
+            eodMetrics.recordExternalCall("bsm", "resource", "failure", Duration.between(start, Instant.now()));
             return Optional.empty();
         }
     }

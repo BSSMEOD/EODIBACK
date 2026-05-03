@@ -67,6 +67,58 @@ services:
     networks:
       - eod-network
 
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: eod-node-exporter
+    restart: always
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - eod-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    container_name: eod-cadvisor
+    restart: always
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    networks:
+      - eod-network
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.19.0
+    container_name: eod-mysqld-exporter
+    restart: always
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=${MYSQL_USER}
+    environment:
+      - MYSQLD_EXPORTER_PASSWORD=${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - eod-network
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.27.0
+    container_name: eod-blackbox-exporter
+    restart: always
+    command:
+      - --config.file=/etc/blackbox/blackbox.yml
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    networks:
+      - eod-network
+
   alertmanager:
     image: prom/alertmanager:v0.27.0
     container_name: eod-alertmanager
@@ -122,6 +174,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is required}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      - GF_METRICS_ENABLED=true
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro

@@ -63,6 +63,60 @@ services:
     networks:
       - eod-network-dev
 
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: eod-node-exporter-dev
+    restart: always
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - eod-network-dev
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    container_name: eod-cadvisor-dev
+    restart: always
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    networks:
+      - eod-network-dev
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.19.0
+    container_name: eod-mysqld-exporter-dev
+    restart: always
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=${MYSQL_USER}
+    environment:
+      - MYSQLD_EXPORTER_PASSWORD=${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - eod-network-dev
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.27.0
+    container_name: eod-blackbox-exporter-dev
+    restart: always
+    command:
+      - --config.file=/etc/blackbox/blackbox.yml
+    ports:
+      - "127.0.0.1:9115:9115"
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    networks:
+      - eod-network-dev
+
   loki:
     image: grafana/loki:3.7.0
     container_name: eod-loki-dev
@@ -109,6 +163,7 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=admin
       - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_METRICS_ENABLED=true
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro

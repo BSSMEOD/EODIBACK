@@ -1,5 +1,6 @@
 package com.eod.eod.domain.image.application;
 
+import com.eod.eod.common.metrics.EodMetrics;
 import com.eod.eod.domain.image.exception.ImageErrorCode;
 import com.eod.eod.domain.image.exception.ImageException;
 import com.eod.eod.domain.image.infrastructure.ImageRepository;
@@ -23,6 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +41,7 @@ public class ImageServiceImpl implements ImageService {
 
     private final ImageRepository imageRepository;
     private final UserFacade userFacade;
+    private final EodMetrics eodMetrics;
 
     @Value("${file.upload.dir}")
     private String uploadDir;
@@ -48,26 +52,34 @@ public class ImageServiceImpl implements ImageService {
     @Override
     @Transactional
     public String uploadImage(MultipartFile file, Long userId) {
-        User user = userFacade.getUserById(userId);
-
-        String extension = validateFile(file);
-        StoredImage storedImage = saveFile(file, extension);
-
-        Image image = Image.create(
-            storedImage.publicPath(),
-            file.getOriginalFilename(),
-            file.getSize(),
-            file.getContentType(),
-            user
-        );
+        Instant start = Instant.now();
+        long bytes = file == null ? 0L : file.getSize();
         try {
-            imageRepository.save(image);
+            User user = userFacade.getUserById(userId);
+
+            String extension = validateFile(file);
+            StoredImage storedImage = saveFile(file, extension);
+
+            Image image = Image.create(
+                storedImage.publicPath(),
+                file.getOriginalFilename(),
+                file.getSize(),
+                file.getContentType(),
+                user
+            );
+            try {
+                imageRepository.save(image);
+            } catch (RuntimeException e) {
+                deleteFileIfExists(storedImage.filePath());
+                throw e;
+            }
+
+            eodMetrics.recordImageUpload("success", bytes, Duration.between(start, Instant.now()));
+            return buildImageUrl(storedImage.publicPath());
         } catch (RuntimeException e) {
-            deleteFileIfExists(storedImage.filePath());
+            eodMetrics.recordImageUpload("failure", bytes, Duration.between(start, Instant.now()));
             throw e;
         }
-
-        return buildImageUrl(storedImage.publicPath());
     }
 
     private String validateFile(MultipartFile file) {

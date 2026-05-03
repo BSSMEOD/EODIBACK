@@ -24,8 +24,50 @@ The baseline alert rules cover:
 - HTTP 5xx ratio above 5% for 10 minutes
 - HTTP p95 latency above 1 second for 10 minutes
 - JVM heap usage above 90% for 15 minutes
+- HikariCP pending connections
+- JVM GC pause average above 200ms
+- Public and internal `/healthz` availability
+- Monitoring exporter availability
+- Host CPU, memory, disk, and inode pressure
+- MySQL availability and connection usage
+- BSM login failures
+- Image upload failures
+- Scheduler failures
+- Reward give failures
 
 These rules are defined in `monitoring/prometheus/alerts/eod-alerts.yml` and routed through Alertmanager using the Discord webhook from `DISCORD_WEBHOOK_URL`. During production deployment, the workflow renders `monitoring/alertmanager/generated/alertmanager.yml` with that secret and mounts the generated file into Alertmanager.
+
+## Metrics
+
+The monitoring stack collects metrics from:
+
+- Spring Boot Actuator: HTTP, JVM, HikariCP, and EOD custom domain metrics
+- Node Exporter: host CPU, memory, disk, inode, and network metrics
+- cAdvisor: Docker container resource metrics
+- MySQL Exporter: MySQL health, connections, and server metrics
+- Blackbox Exporter: internal and public HTTP availability checks
+- Loki, Alloy, Grafana, and Prometheus self metrics
+
+The application exposes `GET /healthz` as a lightweight unauthenticated liveness endpoint for HTTP availability checks. It intentionally does not check MySQL; database health is monitored separately through MySQL Exporter and HikariCP metrics.
+
+Dashboard files:
+
+- `monitoring/grafana/dashboards/eod-overview.json`: application HTTP/JVM/DB overview
+- `monitoring/grafana/dashboards/eod-infrastructure.json`: server, container, MySQL, and availability metrics
+- `monitoring/grafana/dashboards/eod-domain-metrics.json`: EOD business/domain metrics
+
+Domain metric names:
+
+- `eod_business_events_total{domain,action,result}`
+- `eod_external_call_seconds{provider,operation,result}`
+- `eod_image_upload_bytes{result}`
+- `eod_image_upload_seconds{result}`
+- `eod_scheduler_runs_total{task,result}`
+- `eod_scheduler_processed_items{task}`
+- `eod_items_current{status}`
+- `eod_claims_current{status}`
+- `eod_reward_eligible_items`
+- `eod_reward_records_current`
 
 ## Logs
 

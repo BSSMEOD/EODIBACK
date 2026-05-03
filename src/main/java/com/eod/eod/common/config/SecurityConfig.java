@@ -69,6 +69,8 @@ public class SecurityConfig {
                         // Prometheus 수집 엔드포인트는 인증 없이 허용하되,
                         // 운영에서는 전용 management 포트를 호스트에 publish 하지 않고 내부 네트워크에서만 scrape 한다.
                         .requestMatchers("/actuator/prometheus").permitAll()
+                        // 외부 가용성 체크용 liveness 엔드포인트
+                        .requestMatchers("/healthz").permitAll()
                         // Swagger 경로 허용
                         .requestMatchers(
                                 "/swagger-ui/**",

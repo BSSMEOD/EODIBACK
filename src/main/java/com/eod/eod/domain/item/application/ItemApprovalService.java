@@ -1,6 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.metrics.EodMetrics;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.item.presentation.dto.response.ItemApprovalResponse;
 import com.eod.eod.domain.user.model.User;
@@ -14,17 +15,25 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemApprovalService {
 
     private final ItemFacade itemFacade;
+    private final EodMetrics eodMetrics;
 
     // 물품 승인/거절 처리
     @RequireAdmin
     public ItemApprovalResponse processApproval(Long itemId, Item.ApprovalStatus approvalStatus, User currentUser) {
-        // 물품 조회
-        Item item = itemFacade.getItemById(itemId);
+        String action = approvalStatus == Item.ApprovalStatus.APPROVED ? "approve" : "reject";
+        try {
+            // 물품 조회
+            Item item = itemFacade.getItemById(itemId);
 
-        // 승인/거절 처리
-        item.processApproval(approvalStatus, currentUser);
+            // 승인/거절 처리
+            item.processApproval(approvalStatus, currentUser);
 
-        // Response 변환
-        return ItemApprovalResponse.from(item);
+            eodMetrics.recordBusinessEvent("item", action, "success");
+            // Response 변환
+            return ItemApprovalResponse.from(item);
+        } catch (RuntimeException e) {
+            eodMetrics.recordBusinessEvent("item", action, "failure");
+            throw e;
+        }
     }
 }

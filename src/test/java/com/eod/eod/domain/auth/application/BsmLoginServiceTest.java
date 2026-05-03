@@ -1,5 +1,6 @@
 package com.eod.eod.domain.auth.application;
 
+import com.eod.eod.common.metrics.EodMetrics;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -33,6 +34,9 @@ class BsmLoginServiceTest {
 
     @Mock
     private AuthService authService;
+
+    @Mock
+    private EodMetrics eodMetrics;
 
     @InjectMocks
     private BsmLoginService bsmLoginService;

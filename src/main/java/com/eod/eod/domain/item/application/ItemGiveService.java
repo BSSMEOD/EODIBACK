@@ -1,6 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.metrics.EodMetrics;
 import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.GiveRecordRepository;
 import com.eod.eod.domain.item.model.GiveRecord;
@@ -19,27 +20,34 @@ public class ItemGiveService {
     private final ItemFacade itemFacade;
     private final UserRepository userRepository;
     private final GiveRecordRepository giveRecordRepository;
+    private final EodMetrics eodMetrics;
 
     // 물품 지급 처리
     @RequireAdmin
     public void giveItemToStudent(Long itemId, Long receiverId, User currentUser) {
-        // 물품 조회
-        Item item = itemFacade.getItemById(itemId);
+        try {
+            // 물품 조회
+            Item item = itemFacade.getItemById(itemId);
 
-        // 지급받을 학생 확인
-        User receiver = userRepository.findById(receiverId)
-                .orElseThrow(() -> new ItemResourceNotFoundException("해당 학생을 찾을 수 없습니다."));
+            // 지급받을 학생 확인
+            User receiver = userRepository.findById(receiverId)
+                    .orElseThrow(() -> new ItemResourceNotFoundException("해당 학생을 찾을 수 없습니다."));
 
-        // 물품 지급 처리
-        item.giveToStudent(receiver, currentUser);
+            // 물품 지급 처리
+            item.giveToStudent(receiver, currentUser);
 
-        // 지급 기록 생성 (감사 용도)
-        GiveRecord giveRecord = GiveRecord.builder()
-                .item(item)
-                .giver(currentUser)
-                .receiver(receiver)
-                .build();
+            // 지급 기록 생성 (감사 용도)
+            GiveRecord giveRecord = GiveRecord.builder()
+                    .item(item)
+                    .giver(currentUser)
+                    .receiver(receiver)
+                    .build();
 
-        giveRecordRepository.save(giveRecord);
+            giveRecordRepository.save(giveRecord);
+            eodMetrics.recordBusinessEvent("item", "give", "success");
+        } catch (RuntimeException e) {
+            eodMetrics.recordBusinessEvent("item", "give", "failure");
+            throw e;
+        }
     }
 }

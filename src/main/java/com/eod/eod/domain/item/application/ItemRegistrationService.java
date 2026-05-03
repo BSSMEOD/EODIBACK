@@ -1,6 +1,7 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.metrics.EodMetrics;
 import com.eod.eod.common.util.DatePrecisionParser;
 import com.eod.eod.common.util.DatePrecisionParser.ParsedDate;
 import com.eod.eod.domain.item.application.command.ItemRegistrationCommand;
@@ -22,26 +23,33 @@ public class ItemRegistrationService {
     private final ItemFacade itemFacade;
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
+    private final EodMetrics eodMetrics;
 
     @RequireAdmin
     public Long registerItem(ItemRegistrationCommand command, User currentUser) {
-        ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
-        User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
+        try {
+            ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
+            User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
 
-        Item item = Item.registerLostItem(
-                currentUser,
-                student,
-                command.placeId(),
-                command.foundPlaceDetail(),
-                command.name(),
-                command.imageUrl(),
-                command.category(),
-                parsedDate.getDateTime(),
-                parsedDate.getPrecision()
-        );
+            Item item = Item.registerLostItem(
+                    currentUser,
+                    student,
+                    command.placeId(),
+                    command.foundPlaceDetail(),
+                    command.name(),
+                    command.imageUrl(),
+                    command.category(),
+                    parsedDate.getDateTime(),
+                    parsedDate.getPrecision()
+            );
 
-        Item savedItem = itemFacade.save(item);
-        return savedItem.getId();
+            Item savedItem = itemFacade.save(item);
+            eodMetrics.recordBusinessEvent("item", "register", "success");
+            return savedItem.getId();
+        } catch (RuntimeException e) {
+            eodMetrics.recordBusinessEvent("item", "register", "failure");
+            throw e;
+        }
     }
 
     /**
@@ -89,20 +97,26 @@ public class ItemRegistrationService {
 
     @RequireAdmin
     public void updateItem(Long itemId, ItemUpdateCommand command, User currentUser) {
-        Item item = itemFacade.getItemById(itemId);
-        ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
-        User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
+        try {
+            Item item = itemFacade.getItemById(itemId);
+            ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
+            User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
 
-        item.updateItem(
-                currentUser,
-                student,
-                command.placeId(),
-                command.foundPlaceDetail(),
-                command.name(),
-                command.imageUrl(),
-                command.category(),
-                parsedDate.getDateTime(),
-                parsedDate.getPrecision()
-        );
+            item.updateItem(
+                    currentUser,
+                    student,
+                    command.placeId(),
+                    command.foundPlaceDetail(),
+                    command.name(),
+                    command.imageUrl(),
+                    command.category(),
+                    parsedDate.getDateTime(),
+                    parsedDate.getPrecision()
+            );
+            eodMetrics.recordBusinessEvent("item", "update", "success");
+        } catch (RuntimeException e) {
+            eodMetrics.recordBusinessEvent("item", "update", "failure");
+            throw e;
+        }
     }
 }

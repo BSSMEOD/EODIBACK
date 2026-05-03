@@ -1,5 +1,6 @@
 package com.eod.eod.domain.auth.application;
 
+import com.eod.eod.common.metrics.EodMetrics;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,19 +20,26 @@ public class BsmLoginService {
     private final BsmOAuthService bsmOAuthService;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final EodMetrics eodMetrics;
 
     public LoginResult login(String code) {
-        BsmOAuthService.ExchangeResult exchangeResult = bsmOAuthService.exchangeCode(code, true);
-        JsonNode resource = exchangeResult.resource();
-        if (resource == null || resource.isNull()) {
-            throw new IllegalStateException("BSM resource를 가져오지 못했습니다. (토큰 교환은 성공했을 수 있습니다)");
+        try {
+            BsmOAuthService.ExchangeResult exchangeResult = bsmOAuthService.exchangeCode(code, true);
+            JsonNode resource = exchangeResult.resource();
+            if (resource == null || resource.isNull()) {
+                throw new IllegalStateException("BSM resource를 가져오지 못했습니다. (토큰 교환은 성공했을 수 있습니다)");
+            }
+
+            BsmUserInfo userInfo = BsmUserInfo.from(resource);
+            User user = findOrCreateUser(userInfo);
+
+            AuthService.TokenPair tokenPair = authService.issueTokensForOAuth2Login(user);
+            eodMetrics.recordBusinessEvent("auth", "bsm_login", "success");
+            return new LoginResult(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), user);
+        } catch (RuntimeException e) {
+            eodMetrics.recordBusinessEvent("auth", "bsm_login", "failure");
+            throw e;
         }
-
-        BsmUserInfo userInfo = BsmUserInfo.from(resource);
-        User user = findOrCreateUser(userInfo);
-
-        AuthService.TokenPair tokenPair = authService.issueTokensForOAuth2Login(user);
-        return new LoginResult(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), user);
     }
 
     public User linkDiscordId(User user, String discordId) {
