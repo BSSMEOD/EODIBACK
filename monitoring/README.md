@@ -26,3 +26,31 @@ The baseline alert rules cover:
 - JVM heap usage above 90% for 15 minutes
 
 These rules are defined in `monitoring/prometheus/alerts/eod-alerts.yml` and routed through Alertmanager using the Discord webhook from `DISCORD_WEBHOOK_URL`. During production deployment, the workflow renders `monitoring/alertmanager/generated/alertmanager.yml` with that secret and mounts the generated file into Alertmanager.
+
+## Logs
+
+Application logs are written by Logback to `/logs/application.log` inside the app container. In production, `docker-compose.prod.yml` mounts host `/eod/prod/logs` to that path.
+
+Grafana Alloy tails `/eod/prod/logs/application.log` through a read-only mount, parses the current Logback text format, attaches labels, and sends entries to Loki. Loki stays on the internal Docker network; Grafana is the user-facing access point for Explore and Drilldown > Logs.
+
+Important Loki labels:
+
+- `service_name="eod-backend"`: primary service label for Logs Drilldown
+- `server="eod-prod-01"`: production server label configured in `docker-compose.prod.yml`
+- `env="prod"`: production environment label configured in `docker-compose.prod.yml`
+- `container`: Docker container role
+- `level`: parsed log severity
+
+Direct LogQL check:
+
+```logql
+{service_name="eod-backend", server="eod-prod-01"}
+```
+
+Operational checks:
+
+```bash
+docker compose -f docker-compose.prod.yml ps loki alloy grafana
+docker compose -f docker-compose.prod.yml logs --tail=100 alloy
+docker compose -f docker-compose.prod.yml exec loki wget -qO- http://localhost:3100/ready
+```

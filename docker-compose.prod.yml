@@ -15,7 +15,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - BASE_URL=${BASE_URL}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
-      - LOG_DIR=${LOG_DIR}
+      - LOG_DIR=${LOG_DIR:-/logs}
       - BSM_CLIENT_ID=${BSM_CLIENT_ID}
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
@@ -78,8 +78,43 @@ services:
     networks:
       - eod-network
 
+  loki:
+    image: grafana/loki:3.7.0
+    container_name: eod-loki
+    restart: always
+    command:
+      - -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data-prod:/loki
+    networks:
+      - eod-network
+
+  alloy:
+    image: grafana/alloy:v1.11.3
+    container_name: eod-alloy
+    restart: always
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy
+      - /etc/alloy/config.alloy
+    environment:
+      - SERVER_NAME=eod-prod-01
+      - ENVIRONMENT=prod
+      - APP_CONTAINER_NAME=eod-app
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /eod/prod/logs:/var/log/eod:ro
+      - alloy-data-prod:/var/lib/alloy
+    depends_on:
+      loki:
+        condition: service_started
+    networks:
+      - eod-network
+
   grafana:
-    image: grafana/grafana:11.1.0
+    image: grafana/grafana:12.4.0
     container_name: eod-grafana
     restart: always
     ports:
@@ -94,6 +129,8 @@ services:
     depends_on:
       prometheus:
         condition: service_started
+      loki:
+        condition: service_started
     networks:
       - eod-network
 
@@ -101,6 +138,10 @@ volumes:
   mysql-data-prod:
     external: true
     name: eod_mysql-data-prod
+  loki-data-prod:
+    name: eod_loki-data-prod
+  alloy-data-prod:
+    name: eod_alloy-data-prod
 
 networks:
   eod-network:

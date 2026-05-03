@@ -17,7 +17,7 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - BASE_URL=${BASE_URL}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
-      - LOG_DIR=${LOG_DIR}
+      - LOG_DIR=${LOG_DIR:-/logs}
       - BSM_CLIENT_ID=${BSM_CLIENT_ID}
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
@@ -63,8 +63,45 @@ services:
     networks:
       - eod-network-dev
 
+  loki:
+    image: grafana/loki:3.7.0
+    container_name: eod-loki-dev
+    restart: always
+    command:
+      - -config.file=/etc/loki/loki-config.yml
+    ports:
+      - "127.0.0.1:3100:3100"
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data-dev:/loki
+    networks:
+      - eod-network-dev
+
+  alloy:
+    image: grafana/alloy:v1.11.3
+    container_name: eod-alloy-dev
+    restart: always
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy
+      - /etc/alloy/config.alloy
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-local-dev}
+      - ENVIRONMENT=${ENVIRONMENT:-dev}
+      - APP_CONTAINER_NAME=eod-app-dev
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - /eod/logs:/var/log/eod:ro
+      - alloy-data-dev:/var/lib/alloy
+    depends_on:
+      loki:
+        condition: service_started
+    networks:
+      - eod-network-dev
+
   grafana:
-    image: grafana/grafana:11.1.0
+    image: grafana/grafana:12.4.0
     container_name: eod-grafana-dev
     restart: always
     ports:
@@ -79,6 +116,8 @@ services:
     depends_on:
       prometheus:
         condition: service_started
+      loki:
+        condition: service_started
     networks:
       - eod-network-dev
 
@@ -86,6 +125,10 @@ volumes:
   mysql-data-dev:
     external: true
     name: eod_mysql-data-dev
+  loki-data-dev:
+    name: eod_loki-data-dev
+  alloy-data-dev:
+    name: eod_alloy-data-dev
 
 networks:
   eod-network-dev:
