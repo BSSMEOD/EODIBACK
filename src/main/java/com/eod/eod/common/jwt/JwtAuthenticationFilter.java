@@ -1,5 +1,6 @@
 package com.eod.eod.common.jwt;
 
+import com.eod.eod.common.event.EodBusinessEvent;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import jakarta.servlet.FilterChain;
@@ -8,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -26,6 +28,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -71,24 +74,28 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     } else {
                         // Access Token이 아닌 경우 (Refresh Token 등)
                         log.warn("Access Token이 아닌 토큰 유형: {}", jwtTokenProvider.getTokenType(token));
+                        eventPublisher.publishEvent(new EodBusinessEvent("auth", "jwt_invalid_type", "failure"));
                         sendUnauthorizedResponse(response, "Access Token이 필요합니다.");
                         return;
                     }
                 } else {
                     // 토큰이 유효하지 않은 경우 (만료 포함)
                     log.warn("유효하지 않은 JWT 토큰");
+                    eventPublisher.publishEvent(new EodBusinessEvent("auth", "jwt_invalid", "failure"));
                     sendUnauthorizedResponse(response, "유효하지 않은 토큰입니다.");
                     return;
                 }
             } catch (io.jsonwebtoken.ExpiredJwtException e) {
                 // 토큰 만료 - 401 반환하고 필터 체인 중단
                 log.debug("만료된 JWT 토큰: {}", e.getMessage());
+                eventPublisher.publishEvent(new EodBusinessEvent("auth", "jwt_expired", "failure"));
                 sendUnauthorizedResponse(response, "토큰이 만료되었습니다.");
                 return;
             }
 
         } catch (Exception e) {
             log.error("JWT 인증 실패: {}", e.getMessage(), e);
+            eventPublisher.publishEvent(new EodBusinessEvent("auth", "jwt_authenticate", "failure"));
             SecurityContextHolder.clearContext();
             sendUnauthorizedResponse(response, "인증에 실패했습니다.");
             return;

@@ -1,5 +1,6 @@
 package com.eod.eod.domain.auth.application;
 
+import com.eod.eod.common.event.EodBusinessEvent;
 import com.eod.eod.domain.discord.application.DiscordBotClient;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.transaction.support.TransactionSynchronization;
 import org.springframework.transaction.support.TransactionSynchronizationManager;
 
@@ -36,6 +38,9 @@ class BsmLoginServiceTest {
 
     @Mock
     private AuthService authService;
+
+    @Mock
+    private ApplicationEventPublisher eventPublisher;
 
     @Mock
     private DiscordBotClient discordBotClient;
@@ -99,6 +104,7 @@ class BsmLoginServiceTest {
                         user.getIsGraduate() != null &&
                         user.getRole() == User.Role.USER
         ));
+        verify(eventPublisher).publishEvent(new EodBusinessEvent("auth", "bsm_login", "success"));
     }
 
     @Test

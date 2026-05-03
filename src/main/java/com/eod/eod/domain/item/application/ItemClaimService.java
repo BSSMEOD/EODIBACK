@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.item.exception.ItemConflictException;
 import com.eod.eod.domain.item.exception.ItemForbiddenException;
 import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
@@ -26,6 +28,7 @@ public class ItemClaimService {
     private final ItemFacade itemFacade;
     private final ItemClaimRepository itemClaimRepository;
     private final GiveRecordRepository giveRecordRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     public ItemClaimResponse claimItem(Long itemId, LocalDate visitDate, User currentUser) {
         // 아이템 존재 여부 확인
@@ -48,6 +51,7 @@ public class ItemClaimService {
 
         itemClaimRepository.save(claim);
 
+        eventPublisher.publishEvent(new EodBusinessEvent("claim", "create", "success"));
         return ItemClaimResponse.success();
     }
 
@@ -86,6 +90,7 @@ public class ItemClaimService {
                 otherClaim.reject();
             }
         }
+        eventPublisher.publishEvent(new EodBusinessEvent("claim", "approve", "success"));
     }
 
     /**
@@ -99,6 +104,7 @@ public class ItemClaimService {
 
         // 거절 처리
         claim.reject();
+        eventPublisher.publishEvent(new EodBusinessEvent("claim", "reject", "success"));
     }
 
     /**
@@ -121,5 +127,6 @@ public class ItemClaimService {
 
         // 취소 처리 - 레코드 삭제
         itemClaimRepository.delete(claim);
+        eventPublisher.publishEvent(new EodBusinessEvent("claim", "cancel", "success"));
     }
 }

@@ -1,9 +1,11 @@
 package com.eod.eod.domain.item.application;
 
+import com.eod.eod.common.event.EodSchedulerRunEvent;
 import com.eod.eod.domain.item.model.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -19,6 +21,7 @@ import java.util.function.Supplier;
 public class ItemSchedulerService {
 
     private final ItemFacade itemFacade;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 폐기 유예 기간 (2주)
     private static final int GRACE_PERIOD_WEEKS = 2;
@@ -33,6 +36,7 @@ public class ItemSchedulerService {
 
         processScheduledTask(
                 "폐기 예정 전환",
+                "auto_mark_to_be_discarded",
                 () -> itemFacade.findByStatusAndDiscardedAtBefore(Item.ItemStatus.LOST, twoWeeksLater),
                 Item::markAsToBeDiscarded,
                 item -> String.format("ID: %d, 이름: %s, 등록일: %s, 폐기 예정일: %s",
@@ -50,6 +54,7 @@ public class ItemSchedulerService {
 
         processScheduledTask(
                 "자동 폐기",
+                "auto_discard_expired_items",
                 () -> itemFacade.findByStatusAndDiscardedAtBefore(Item.ItemStatus.TO_BE_DISCARDED, now),
                 Item::discard,
                 item -> String.format("ID: %d, 이름: %s, 폐기 예정일: %s",
@@ -62,6 +67,7 @@ public class ItemSchedulerService {
      */
     private void processScheduledTask(
             String taskName,
+            String metricTaskName,
             Supplier<List<Item>> itemsFetcher,
             Consumer<Item> itemProcessor,
             Function<Item, String> itemInfoProvider
@@ -72,6 +78,7 @@ public class ItemSchedulerService {
 
         if (items.isEmpty()) {
             log.info("{} 대상 물품이 없습니다.", taskName);
+            eventPublisher.publishEvent(new EodSchedulerRunEvent(metricTaskName, "success", 0));
             return;
         }
 
@@ -86,6 +93,8 @@ public class ItemSchedulerService {
             }
         }
 
+        String result = processedCount == items.size() ? "success" : "partial_failure";
+        eventPublisher.publishEvent(new EodSchedulerRunEvent(metricTaskName, result, processedCount));
         log.info("{} 스케줄러 완료 - 총 {}개 물품 처리", taskName, processedCount);
     }
 }

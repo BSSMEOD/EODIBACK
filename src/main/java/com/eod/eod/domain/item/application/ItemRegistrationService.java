@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.common.util.DatePrecisionParser;
 import com.eod.eod.common.util.DatePrecisionParser.ParsedDate;
 import com.eod.eod.domain.item.application.command.ItemRegistrationCommand;
@@ -22,6 +24,7 @@ public class ItemRegistrationService {
     private final ItemFacade itemFacade;
     private final PlaceRepository placeRepository;
     private final UserRepository userRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     @RequireAdmin
     public Long registerItem(ItemRegistrationCommand command, User currentUser) {
@@ -41,6 +44,7 @@ public class ItemRegistrationService {
         );
 
         Item savedItem = itemFacade.save(item);
+        eventPublisher.publishEvent(new EodBusinessEvent("item", "register", "success"));
         return savedItem.getId();
     }
 
@@ -104,5 +108,6 @@ public class ItemRegistrationService {
                 parsedDate.getDateTime(),
                 parsedDate.getPrecision()
         );
+        eventPublisher.publishEvent(new EodBusinessEvent("item", "update", "success"));
     }
 }

@@ -54,3 +54,151 @@ groups:
         annotations:
           summary: EOD JVM heap usage is high
           description: JVM heap usage has exceeded 90% for 15 minutes.
+
+      - alert: EodHikariPendingConnections
+        expr: sum(hikaricp_connections_pending{application="eod"}) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD HikariCP has pending connections
+          description: At least one request has waited for a DB connection for 5 minutes.
+
+      - alert: EodHighGcPauseAverage
+        expr: |
+          (
+            sum(rate(jvm_gc_pause_seconds_sum{application="eod"}[5m]))
+            /
+            clamp_min(sum(rate(jvm_gc_pause_seconds_count{application="eod"}[5m])), 1)
+          ) > 0.2
+        for: 10m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD JVM GC pause is elevated
+          description: Average JVM GC pause has stayed above 200ms for 10 minutes.
+
+      - alert: EodSchedulerFailure
+        expr: increase(eod_scheduler_runs_total{result=~"failure|partial_failure"}[1h]) > 0
+        for: 0m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD scheduled task failed
+          description: At least one scheduled task failed or partially failed in the last hour.
+
+  - name: eod-infrastructure
+    rules:
+      - alert: EodPublicAvailabilityDown
+        expr: probe_success{job="blackbox-http",availability_target="prod-public"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: eod
+        annotations:
+          summary: EOD public endpoint is unavailable
+          description: The public /healthz endpoint has failed for 2 minutes.
+
+      - alert: EodInternalHealthzDown
+        expr: probe_success{job="blackbox-http",availability_target="app-internal"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: eod
+        annotations:
+          summary: EOD internal healthz endpoint is unavailable
+          description: The internal app /healthz endpoint has failed for 2 minutes.
+
+      - alert: EodExporterDown
+        expr: up{job=~"node-exporter|cadvisor|mysql|loki|alloy|grafana"} == 0
+        for: 3m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD monitoring target is down
+          description: '{{ $labels.job }} target {{ $labels.instance }} has been down for 3 minutes.'
+
+      - alert: EodHostHighCpuUsage
+        expr: |
+          1 - avg(rate(node_cpu_seconds_total{job="node-exporter",mode="idle"}[5m])) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD host CPU usage is high
+          description: Host CPU usage has stayed above 85% for 10 minutes.
+
+      - alert: EodHostLowMemory
+        expr: |
+          (
+            node_memory_MemAvailable_bytes{job="node-exporter"}
+            /
+            node_memory_MemTotal_bytes{job="node-exporter"}
+          ) < 0.10
+        for: 10m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD host memory is low
+          description: Host available memory has stayed below 10% for 10 minutes.
+
+      - alert: EodHostDiskAlmostFull
+        expr: |
+          (
+            node_filesystem_avail_bytes{job="node-exporter",fstype!~"tmpfs|fuse.lxcfs|overlay",mountpoint!~"/run.*|/var/lib/docker/.+"}
+            /
+            node_filesystem_size_bytes{job="node-exporter",fstype!~"tmpfs|fuse.lxcfs|overlay",mountpoint!~"/run.*|/var/lib/docker/.+"}
+          ) < 0.15
+        for: 10m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD host disk is almost full
+          description: Filesystem {{ $labels.mountpoint }} has less than 15% free space.
+
+      - alert: EodHostInodesAlmostFull
+        expr: |
+          (
+            node_filesystem_files_free{job="node-exporter",fstype!~"tmpfs|fuse.lxcfs|overlay",mountpoint!~"/run.*|/var/lib/docker/.+"}
+            /
+            node_filesystem_files{job="node-exporter",fstype!~"tmpfs|fuse.lxcfs|overlay",mountpoint!~"/run.*|/var/lib/docker/.+"}
+          ) < 0.10
+        for: 10m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD host inodes are almost exhausted
+          description: Filesystem {{ $labels.mountpoint }} has less than 10% free inodes.
+
+      - alert: EodMysqlDown
+        expr: mysql_up{job="mysql"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: eod
+        annotations:
+          summary: EOD MySQL is down
+          description: MySQL exporter cannot connect to MySQL for 2 minutes.
+
+      - alert: EodMysqlHighConnectionUsage
+        expr: |
+          (
+            mysql_global_status_threads_connected{job="mysql"}
+            /
+            clamp_min(mysql_global_variables_max_connections{job="mysql"}, 1)
+          ) > 0.80
+        for: 10m
+        labels:
+          severity: warning
+          service: eod
+        annotations:
+          summary: EOD MySQL connection usage is high
+          description: MySQL connection usage has stayed above 80% for 10 minutes.

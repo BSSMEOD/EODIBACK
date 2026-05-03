@@ -3,7 +3,7 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY:-bssmeod/eodiback}:latest
     container_name: eod-app
     volumes:
-      - /eod/prod/logs:/logs
+      - app-logs-prod:/logs
       - /eod/uploads:/eod/uploads
     restart: always
     ports:
@@ -15,7 +15,8 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - BASE_URL=${BASE_URL}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
-      - LOG_DIR=${LOG_DIR}
+      - LOG_DIR=/logs
+      - TZ=Asia/Seoul
       - BSM_CLIENT_ID=${BSM_CLIENT_ID}
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
@@ -36,15 +37,22 @@ services:
     image: mysql:8.0
     container_name: eod-mysql
     restart: always
+    command:
+      - --log-error=/var/log/mysql/error.log
+      - --slow-query-log=ON
+      - --slow-query-log-file=/var/log/mysql/slow.log
+      - --long-query-time=1
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Seoul
     ports:
       - "3307:3306"
     volumes:
       - mysql-data-prod:/var/lib/mysql
+      - mysql-logs-prod:/var/log/mysql
     networks:
       - eod-network
     healthcheck:
@@ -70,6 +78,58 @@ services:
     networks:
       - eod-network
 
+  node-exporter:
+    image: prom/node-exporter:v1.9.1
+    container_name: eod-node-exporter
+    restart: always
+    command:
+      - --path.rootfs=/host
+    pid: host
+    volumes:
+      - /:/host:ro,rslave
+    networks:
+      - eod-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.52.1
+    container_name: eod-cadvisor
+    restart: always
+    privileged: true
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:ro
+      - /sys:/sys:ro
+      - /var/lib/docker:/var/lib/docker:ro
+      - /dev/disk:/dev/disk:ro
+    networks:
+      - eod-network
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.19.0
+    container_name: eod-mysqld-exporter
+    restart: always
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=${MYSQL_USER}
+    environment:
+      - MYSQLD_EXPORTER_PASSWORD=${MYSQL_PASSWORD}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - eod-network
+
+  blackbox-exporter:
+    image: prom/blackbox-exporter:v0.27.0
+    container_name: eod-blackbox-exporter
+    restart: always
+    command:
+      - --config.file=/etc/blackbox/blackbox.yml
+    volumes:
+      - ./monitoring/blackbox/blackbox.yml:/etc/blackbox/blackbox.yml:ro
+    networks:
+      - eod-network
+
   alertmanager:
     image: prom/alertmanager:v0.27.0
     container_name: eod-alertmanager
@@ -81,8 +141,45 @@ services:
     networks:
       - eod-network
 
+  loki:
+    image: grafana/loki:3.7.0
+    container_name: eod-loki
+    restart: always
+    command:
+      - -config.file=/etc/loki/loki-config.yml
+    volumes:
+      - ./monitoring/loki/loki-config.yml:/etc/loki/loki-config.yml:ro
+      - loki-data-prod:/loki
+    networks:
+      - eod-network
+
+  alloy:
+    image: grafana/alloy:v1.11.3
+    container_name: eod-alloy
+    restart: always
+    command:
+      - run
+      - --server.http.listen-addr=0.0.0.0:12345
+      - --storage.path=/var/lib/alloy
+      - /etc/alloy/config.alloy
+    environment:
+      - SERVER_NAME=eod-prod-01
+      - ENVIRONMENT=prod
+      - APP_CONTAINER_NAME=eod-app
+      - TZ=Asia/Seoul
+    volumes:
+      - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
+      - app-logs-prod:/var/log/eod:ro
+      - mysql-logs-prod:/var/log/mysql:ro
+      - alloy-data-prod:/var/lib/alloy
+    depends_on:
+      loki:
+        condition: service_started
+    networks:
+      - eod-network
+
   grafana:
-    image: grafana/grafana:11.1.0
+    image: grafana/grafana:12.4.0
     container_name: eod-grafana
     restart: always
     ports:
@@ -90,12 +187,15 @@ services:
     environment:
       - GF_SECURITY_ADMIN_USER=${GRAFANA_ADMIN_USER:?GRAFANA_ADMIN_USER is required}
       - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_ADMIN_PASSWORD:?GRAFANA_ADMIN_PASSWORD is required}
+      - GF_METRICS_ENABLED=true
     volumes:
       - ./monitoring/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./monitoring/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       prometheus:
+        condition: service_started
+      loki:
         condition: service_started
     networks:
       - eod-network
@@ -104,6 +204,14 @@ volumes:
   mysql-data-prod:
     external: true
     name: eod_mysql-data-prod
+  app-logs-prod:
+    name: eod_app-logs-prod
+  mysql-logs-prod:
+    name: eod_mysql-logs-prod
+  loki-data-prod:
+    name: eod_loki-data-prod
+  alloy-data-prod:
+    name: eod_alloy-data-prod
 
 networks:
   eod-network:
