@@ -291,7 +291,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[1d]) * 100",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"app-internal\"}[1d]) * 100",
           "legendFormat": "24h",
           "instant": true,
           "refId": "A"
@@ -302,7 +302,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[7d]) * 100",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"app-internal\"}[7d]) * 100",
           "legendFormat": "7d",
           "instant": true,
           "refId": "B"
@@ -313,7 +313,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[30d]) * 100",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"app-internal\"}[30d]) * 100",
           "legendFormat": "30d",
           "instant": true,
           "refId": "C"
