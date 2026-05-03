@@ -3,7 +3,7 @@ services:
     image: ghcr.io/${GITHUB_REPOSITORY:-bssmeod/eodiback}:latest
     container_name: eod-app
     volumes:
-      - /eod/prod/logs:/logs
+      - app-logs-prod:/logs
       - /eod/uploads:/eod/uploads
     restart: always
     ports:
@@ -157,7 +157,7 @@ services:
       - APP_CONTAINER_NAME=eod-app
     volumes:
       - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
-      - /eod/prod/logs:/var/log/eod:ro
+      - app-logs-prod:/var/log/eod:ro
       - alloy-data-prod:/var/lib/alloy
     depends_on:
       loki:
@@ -191,6 +191,8 @@ volumes:
   mysql-data-prod:
     external: true
     name: eod_mysql-data-prod
+  app-logs-prod:
+    name: eod_app-logs-prod
   loki-data-prod:
     name: eod_loki-data-prod
   alloy-data-prod:
