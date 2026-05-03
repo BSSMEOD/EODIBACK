@@ -1,0 +1,42 @@
+loki.source.file "eod_app" {
+  targets = [
+    {
+      __path__      = "/var/log/eod/application.log",
+      service_name  = "eod-backend",
+      app           = "eod",
+      env           = sys.env("ENVIRONMENT"),
+      server        = sys.env("SERVER_NAME"),
+      container     = sys.env("APP_CONTAINER_NAME"),
+      log_source    = "spring-file",
+    },
+  ]
+
+  forward_to = [loki.process.eod_app.receiver]
+}
+
+loki.process "eod_app" {
+  stage.regex {
+    expression = "^(?P<timestamp>\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2}\\.\\d{3}) (?P<level>[A-Z]+)\\s+\\[(?P<thread>[^\\]]+)\\] (?P<logger>[^ ]+) - (?P<message>.*)$"
+  }
+
+  stage.labels {
+    values = {
+      level = "",
+    }
+  }
+
+  stage.structured_metadata {
+    values = {
+      thread = "",
+      logger = "",
+    }
+  }
+
+  forward_to = [loki.write.local.receiver]
+}
+
+loki.write "local" {
+  endpoint {
+    url = "http://loki:3100/loki/api/v1/push"
+  }
+}

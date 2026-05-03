@@ -1,5 +1,7 @@
 package com.eod.eod.domain.reward.application;
 
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.item.infrastructure.ItemRepository;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.reward.infrastructure.RewardRecordRepository;
@@ -16,6 +18,7 @@ public class RewardGiveService {
 
     private final RewardRecordRepository rewardRecordRepository;
     private final ItemRepository itemRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 상점 지급 처리
     public void giveRewardToStudent(Long itemId, User currentUser) {
@@ -42,5 +45,6 @@ public class RewardGiveService {
                 .build();
 
         rewardRecordRepository.save(rewardRecord);
+        eventPublisher.publishEvent(new EodBusinessEvent("reward", "give", "success"));
     }
 }

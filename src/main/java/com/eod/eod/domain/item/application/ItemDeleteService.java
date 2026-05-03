@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.item.model.Item;
 import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
@@ -13,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ItemDeleteService {
 
     private final ItemFacade itemFacade;
+    private final ApplicationEventPublisher eventPublisher;
 
     @RequireAdmin
     public void deleteItem(Long itemId, User currentUser) {
@@ -21,5 +24,6 @@ public class ItemDeleteService {
 
         // 물품 논리 삭제
         item.softDelete();
+        eventPublisher.publishEvent(new EodBusinessEvent("item", "delete", "success"));
     }
 }

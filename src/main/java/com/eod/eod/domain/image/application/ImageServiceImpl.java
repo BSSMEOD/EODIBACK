@@ -1,5 +1,6 @@
 package com.eod.eod.domain.image.application;
 
+import com.eod.eod.common.event.EodImageUploadEvent;
 import com.eod.eod.domain.image.exception.ImageErrorCode;
 import com.eod.eod.domain.image.exception.ImageException;
 import com.eod.eod.domain.image.infrastructure.ImageRepository;
@@ -9,6 +10,7 @@ import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -23,6 +25,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.time.LocalDate;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Locale;
 import java.util.Set;
 import java.util.UUID;
@@ -38,6 +42,7 @@ public class ImageServiceImpl implements ImageService {
 
     private final ImageRepository imageRepository;
     private final UserFacade userFacade;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${file.upload.dir}")
     private String uploadDir;
@@ -48,6 +53,8 @@ public class ImageServiceImpl implements ImageService {
     @Override
     @Transactional
     public String uploadImage(MultipartFile file, Long userId) {
+        Instant start = Instant.now();
+        long bytes = file == null ? 0L : file.getSize();
         User user = userFacade.getUserById(userId);
 
         String extension = validateFile(file);
@@ -67,6 +74,7 @@ public class ImageServiceImpl implements ImageService {
             throw e;
         }
 
+        eventPublisher.publishEvent(new EodImageUploadEvent("success", bytes, Duration.between(start, Instant.now())));
         return buildImageUrl(storedImage.publicPath());
     }
 

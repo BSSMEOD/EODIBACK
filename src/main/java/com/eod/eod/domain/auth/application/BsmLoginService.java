@@ -1,5 +1,7 @@
 package com.eod.eod.domain.auth.application;
 
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -19,6 +21,7 @@ public class BsmLoginService {
     private final BsmOAuthService bsmOAuthService;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final ApplicationEventPublisher eventPublisher;
 
     public LoginResult login(String code) {
         BsmOAuthService.ExchangeResult exchangeResult = bsmOAuthService.exchangeCode(code, true);
@@ -31,7 +34,26 @@ public class BsmLoginService {
         User user = findOrCreateUser(userInfo);
 
         AuthService.TokenPair tokenPair = authService.issueTokensForOAuth2Login(user);
+        eventPublisher.publishEvent(new EodBusinessEvent("auth", "bsm_login", "success"));
         return new LoginResult(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), user);
+    }
+
+    public User linkDiscordId(User user, String discordId) {
+        if (discordId == null || discordId.isBlank()) {
+            return user;
+        }
+        if (discordId.equals(user.getDiscordId())) {
+            return user;
+        }
+
+        userRepository.findByDiscordId(discordId)
+                .filter(existingUser -> !existingUser.getId().equals(user.getId()))
+                .ifPresent(existingUser -> {
+                    throw new IllegalStateException("이미 다른 계정에 연결된 Discord ID입니다.");
+                });
+
+        user.linkDiscordId(discordId);
+        return userRepository.save(user);
     }
 
     private User findOrCreateUser(BsmUserInfo userInfo) {
