@@ -84,7 +84,8 @@
         }
       ],
       "title": "HTTP Availability",
-      "type": "stat"
+      "type": "stat",
+      "description": "\ud5ec\uc2a4\uccb4\ud06c \uc5d4\ub4dc\ud3ec\uc778\ud2b8 \ud604\uc7ac UP/DOWN \uc0c1\ud0dc"
     },
     {
       "datasource": {
@@ -319,7 +320,8 @@
         }
       ],
       "title": "Probe Availability (\uc678\ubd80)",
-      "type": "stat"
+      "type": "stat",
+      "description": "\uc678\ubd80\uc5d0\uc11c \ud5ec\uc2a4\uccb4\ud06c probe \uc131\uacf5\ub960 \u2014 24h \u00b7 7d \u00b7 30d \uae30\uc900"
     },
     {
       "datasource": {
@@ -414,7 +416,8 @@
         }
       ],
       "title": "HTTP Success Rate",
-      "type": "stat"
+      "type": "stat",
+      "description": "5xx \uc5d0\ub7ec\ub97c \uc81c\uc678\ud55c HTTP \uc694\uccad \uc131\uacf5\ub960 \u2014 24h \u00b7 7d \u00b7 30d \uae30\uc900"
     },
     {
       "datasource": {
@@ -691,7 +694,8 @@
         }
       ],
       "title": "MySQL Connection Usage",
-      "type": "stat"
+      "type": "stat",
+      "description": "MySQL \ucd5c\ub300 \ud5c8\uc6a9 \ucee4\ub125\uc158 \ub300\ube44 \ud604\uc7ac \uc0ac\uc6a9\ub960"
     },
     {
       "datasource": {
@@ -756,7 +760,8 @@
         }
       ],
       "title": "Monitoring Targets",
-      "type": "stat"
+      "type": "stat",
+      "description": "Prometheus\uac00 \uc218\uc9d1 \uc911\uc778 \uac01 \uc11c\ube44\uc2a4\uc758 \ud65c\uc131 \uc0c1\ud0dc"
     }
   ],
   "preload": false,

@@ -84,7 +84,8 @@
         }
       ],
       "title": "Business Events",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "\ub3c4\uba54\uc778\ubcc4 \ube44\uc988\ub2c8\uc2a4 \uc774\ubca4\ud2b8 \ubc1c\uc0dd \uac74\uc218 (5\ubd84 \ub204\uc801)"
     },
     {
       "datasource": {
@@ -158,7 +159,8 @@
         }
       ],
       "title": "Business Failures",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "\ucc98\ub9ac \uc2e4\ud328\ud55c \ube44\uc988\ub2c8\uc2a4 \uc774\ubca4\ud2b8 \uac74\uc218 (10\ubd84 \ub204\uc801)"
     },
     {
       "datasource": {
@@ -227,7 +229,8 @@
         }
       ],
       "title": "Items by Status",
-      "type": "bargauge"
+      "type": "bargauge",
+      "description": "\ubb3c\uac74(Item) \uc0c1\ud0dc\ubcc4 \ud604\uc7ac \uc218\ub7c9"
     },
     {
       "datasource": {
@@ -296,7 +299,8 @@
         }
       ],
       "title": "Claims by Status",
-      "type": "bargauge"
+      "type": "bargauge",
+      "description": "\uc694\uccad(Claim) \uc0c1\ud0dc\ubcc4 \ud604\uc7ac \uc218\ub7c9"
     },
     {
       "datasource": {
@@ -369,7 +373,8 @@
         }
       ],
       "title": "Rewards",
-      "type": "stat"
+      "type": "stat",
+      "description": "\ub9ac\uc6cc\ub4dc \ub300\uc0c1 \ubb3c\uac74 \uc218 / \ub204\uc801 \ub9ac\uc6cc\ub4dc \uc9c0\uae09 \uac74\uc218"
     },
     {
       "datasource": {
@@ -436,7 +441,8 @@
         }
       ],
       "title": "BSM External Call P95",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "BSM \uc678\ubd80 API P95 \uc751\ub2f5 \uc2dc\uac04 \u2014 operation \u00b7 result\ubcc4"
     },
     {
       "datasource": {
@@ -502,7 +508,8 @@
         }
       ],
       "title": "Image Uploads",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "\uc774\ubbf8\uc9c0 \uc5c5\ub85c\ub4dc \uc131\uacf5/\uc2e4\ud328 \uac74\uc218 (5\ubd84 \ub204\uc801)"
     },
     {
       "datasource": {
@@ -579,7 +586,8 @@
         }
       ],
       "title": "Schedulers",
-      "type": "timeseries"
+      "type": "timeseries",
+      "description": "\uc2a4\ucf00\uc904\ub7ec \uc2e4\ud589 \ud69f\uc218 \ubc0f \ucc98\ub9ac \uac74\uc218 (1\uc2dc\uac04 \ub204\uc801)"
     }
   ],
   "preload": false,
