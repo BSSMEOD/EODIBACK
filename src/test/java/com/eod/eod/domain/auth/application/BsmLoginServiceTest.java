@@ -1,6 +1,6 @@
 package com.eod.eod.domain.auth.application;
 
-import com.eod.eod.common.metrics.EodMetrics;
+import com.eod.eod.common.event.EodBusinessEvent;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Optional;
 
@@ -36,7 +37,7 @@ class BsmLoginServiceTest {
     private AuthService authService;
 
     @Mock
-    private EodMetrics eodMetrics;
+    private ApplicationEventPublisher eventPublisher;
 
     @InjectMocks
     private BsmLoginService bsmLoginService;
@@ -97,6 +98,7 @@ class BsmLoginServiceTest {
                         user.getIsGraduate() != null &&
                         user.getRole() == User.Role.USER
         ));
+        verify(eventPublisher).publishEvent(new EodBusinessEvent("auth", "bsm_login", "success"));
     }
 
     @Test

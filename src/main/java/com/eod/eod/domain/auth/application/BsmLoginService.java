@@ -1,6 +1,7 @@
 package com.eod.eod.domain.auth.application;
 
-import com.eod.eod.common.metrics.EodMetrics;
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -20,7 +21,7 @@ public class BsmLoginService {
     private final BsmOAuthService bsmOAuthService;
     private final UserRepository userRepository;
     private final AuthService authService;
-    private final EodMetrics eodMetrics;
+    private final ApplicationEventPublisher eventPublisher;
 
     public LoginResult login(String code) {
         BsmOAuthService.ExchangeResult exchangeResult = bsmOAuthService.exchangeCode(code, true);
@@ -33,7 +34,7 @@ public class BsmLoginService {
         User user = findOrCreateUser(userInfo);
 
         AuthService.TokenPair tokenPair = authService.issueTokensForOAuth2Login(user);
-        eodMetrics.recordBusinessEvent("auth", "bsm_login", "success");
+        eventPublisher.publishEvent(new EodBusinessEvent("auth", "bsm_login", "success"));
         return new LoginResult(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), user);
     }
 

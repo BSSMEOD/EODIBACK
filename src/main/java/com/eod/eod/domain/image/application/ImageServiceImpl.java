@@ -1,6 +1,6 @@
 package com.eod.eod.domain.image.application;
 
-import com.eod.eod.common.metrics.EodMetrics;
+import com.eod.eod.common.event.EodImageUploadEvent;
 import com.eod.eod.domain.image.exception.ImageErrorCode;
 import com.eod.eod.domain.image.exception.ImageException;
 import com.eod.eod.domain.image.infrastructure.ImageRepository;
@@ -10,6 +10,7 @@ import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,7 +42,7 @@ public class ImageServiceImpl implements ImageService {
 
     private final ImageRepository imageRepository;
     private final UserFacade userFacade;
-    private final EodMetrics eodMetrics;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Value("${file.upload.dir}")
     private String uploadDir;
@@ -73,7 +74,7 @@ public class ImageServiceImpl implements ImageService {
             throw e;
         }
 
-        eodMetrics.recordImageUpload("success", bytes, Duration.between(start, Instant.now()));
+        eventPublisher.publishEvent(new EodImageUploadEvent("success", bytes, Duration.between(start, Instant.now())));
         return buildImageUrl(storedImage.publicPath());
     }
 

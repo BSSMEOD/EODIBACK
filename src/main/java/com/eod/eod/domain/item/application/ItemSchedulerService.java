@@ -1,10 +1,11 @@
 package com.eod.eod.domain.item.application;
 
-import com.eod.eod.common.metrics.EodMetrics;
+import com.eod.eod.common.event.EodSchedulerRunEvent;
 import com.eod.eod.domain.item.model.Item;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,7 +21,7 @@ import java.util.function.Supplier;
 public class ItemSchedulerService {
 
     private final ItemFacade itemFacade;
-    private final EodMetrics eodMetrics;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 폐기 유예 기간 (2주)
     private static final int GRACE_PERIOD_WEEKS = 2;
@@ -77,7 +78,7 @@ public class ItemSchedulerService {
 
         if (items.isEmpty()) {
             log.info("{} 대상 물품이 없습니다.", taskName);
-            eodMetrics.recordSchedulerRun(metricTaskName, "success", 0);
+            eventPublisher.publishEvent(new EodSchedulerRunEvent(metricTaskName, "success", 0));
             return;
         }
 
@@ -93,7 +94,7 @@ public class ItemSchedulerService {
         }
 
         String result = processedCount == items.size() ? "success" : "partial_failure";
-        eodMetrics.recordSchedulerRun(metricTaskName, result, processedCount);
+        eventPublisher.publishEvent(new EodSchedulerRunEvent(metricTaskName, result, processedCount));
         log.info("{} 스케줄러 완료 - 총 {}개 물품 처리", taskName, processedCount);
     }
 }

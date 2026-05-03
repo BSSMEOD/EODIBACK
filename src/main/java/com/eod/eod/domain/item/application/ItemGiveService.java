@@ -1,7 +1,8 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
-import com.eod.eod.common.metrics.EodMetrics;
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.GiveRecordRepository;
 import com.eod.eod.domain.item.model.GiveRecord;
@@ -20,7 +21,7 @@ public class ItemGiveService {
     private final ItemFacade itemFacade;
     private final UserRepository userRepository;
     private final GiveRecordRepository giveRecordRepository;
-    private final EodMetrics eodMetrics;
+    private final ApplicationEventPublisher eventPublisher;
 
     // 물품 지급 처리
     @RequireAdmin
@@ -43,6 +44,6 @@ public class ItemGiveService {
                 .build();
 
         giveRecordRepository.save(giveRecord);
-        eodMetrics.recordBusinessEvent("item", "give", "success");
+        eventPublisher.publishEvent(new EodBusinessEvent("item", "give", "success"));
     }
 }
