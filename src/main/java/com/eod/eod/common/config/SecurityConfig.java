@@ -14,6 +14,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.security.web.header.writers.StaticHeadersWriter;
 import org.springframework.web.cors.CorsConfigurationSource;
+import com.eod.eod.common.filter.RequestLoggingFilter;
 import com.eod.eod.common.jwt.JwtAuthenticationFilter;
 import com.eod.eod.domain.auth.application.CustomOAuth2UserService;
 import com.eod.eod.domain.auth.application.OAuth2SuccessHandler;
@@ -27,6 +28,7 @@ import com.eod.eod.common.exception.CustomAuthenticationEntryPoint;
 public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
+    private final RequestLoggingFilter requestLoggingFilter;
     private final CustomOAuth2UserService customOAuth2UserService;
     private final OAuth2SuccessHandler oAuth2SuccessHandler;
     private final OAuth2FailureHandler oAuth2FailureHandler;
@@ -148,7 +150,9 @@ public class SecurityConfig {
                         .failureHandler(oAuth2FailureHandler)
                 )
                 // JWT 필터 추가
-                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                // 요청 로깅 필터: JWT 필터보다 앞에 두어 401/403 응답까지 함께 기록
+                .addFilterBefore(requestLoggingFilter, JwtAuthenticationFilter.class);
 
         return http.build();
     }
