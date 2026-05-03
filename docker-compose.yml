@@ -18,6 +18,7 @@ services:
       - BASE_URL=${BASE_URL}
       - FRONTEND_BASE_URL=${FRONTEND_BASE_URL}
       - LOG_DIR=/logs
+      - TZ=Asia/Seoul
       - BSM_CLIENT_ID=${BSM_CLIENT_ID}
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
@@ -34,15 +35,22 @@ services:
     image: mysql:8.0
     container_name: eod-mysql-dev
     restart: always
+    command:
+      - --log-error=/var/log/mysql/error.log
+      - --slow-query-log=ON
+      - --slow-query-log-file=/var/log/mysql/slow.log
+      - --long-query-time=1
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Seoul
     ports:
       - "3306:3306"
     volumes:
       - mysql-data-dev:/var/lib/mysql
+      - mysql-logs-dev:/var/log/mysql
     networks:
       - eod-network-dev
     healthcheck:
@@ -144,9 +152,11 @@ services:
       - SERVER_NAME=${SERVER_NAME:-local-dev}
       - ENVIRONMENT=${ENVIRONMENT:-dev}
       - APP_CONTAINER_NAME=eod-app-dev
+      - TZ=Asia/Seoul
     volumes:
       - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - app-logs-dev:/var/log/eod:ro
+      - mysql-logs-dev:/var/log/mysql:ro
       - alloy-data-dev:/var/lib/alloy
     depends_on:
       loki:
@@ -182,6 +192,8 @@ volumes:
     name: eod_mysql-data-dev
   app-logs-dev:
     name: eod_app-logs-dev
+  mysql-logs-dev:
+    name: eod_mysql-logs-dev
   loki-data-dev:
     name: eod_loki-data-dev
   alloy-data-dev:
