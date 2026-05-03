@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +32,7 @@ import java.util.Locale;
 public class BsmOAuthCallbackController {
 
     private static final String STATE_COOKIE_NAME = "bsm_oauth_state";
+    static final String DISCORD_ID_COOKIE_NAME = "bsm_discord_id";
     private static final String DISCORD_FRONTEND_BASE_URL = "https://eodi.kro.kr";
 
     private final BsmLoginService bsmLoginService;
@@ -59,6 +61,14 @@ public class BsmOAuthCallbackController {
     ) throws IOException {
         try {
             String discordId = discordOAuthStateService.consumeDiscordId(state).orElse(null);
+            if (discordId == null) {
+                discordId = cookieUtil.getCookie(request, DISCORD_ID_COOKIE_NAME)
+                        .map(Cookie::getValue)
+                        .filter(value -> !value.isBlank())
+                        .orElse(null);
+            }
+            cookieUtil.deleteCookie(response, DISCORD_ID_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
+
             String expectedState = cookieUtil.getCookie(request, STATE_COOKIE_NAME)
                     .map(c -> c.getValue())
                     .orElse(null);
@@ -112,6 +122,7 @@ public class BsmOAuthCallbackController {
         } catch (Exception e) {
             log.error("BSM OAuth callback failed", e);
             cookieUtil.deleteCookie(response, STATE_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
+            cookieUtil.deleteCookie(response, DISCORD_ID_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
             failRedirect(response, "bsm_oauth_failed", null);
         }
     }
