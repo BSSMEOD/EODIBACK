@@ -83,11 +83,6 @@ scrape_configs:
         labels:
           application: eod
           availability_target: app-internal
-      - targets:
-          - "https://www.jojaemin.com/healthz"
-        labels:
-          application: eod
-          availability_target: prod-public
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
