@@ -84,7 +84,8 @@
         }
       ],
       "title": "HTTP Availability",
-      "type": "stat"
+      "type": "stat",
+      "description": "\ud5ec\uc2a4\uccb4\ud06c \uc5d4\ub4dc\ud3ec\uc778\ud2b8 \ud604\uc7ac UP/DOWN \uc0c1\ud0dc"
     },
     {
       "datasource": {
@@ -233,6 +234,198 @@
       },
       "fieldConfig": {
         "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 99
+              },
+              {
+                "color": "green",
+                "value": 99.9
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[1d]) * 100",
+          "legendFormat": "24h",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[7d]) * 100",
+          "legendFormat": "7d",
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[30d]) * 100",
+          "legendFormat": "30d",
+          "instant": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Probe Availability (\uc678\ubd80)",
+      "type": "stat",
+      "description": "\uc678\ubd80\uc5d0\uc11c \ud5ec\uc2a4\uccb4\ud06c probe \uc131\uacf5\ub960 \u2014 24h \u00b7 7d \u00b7 30d \uae30\uc900"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 99
+              },
+              {
+                "color": "green",
+                "value": 99.9
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(1 - sum(rate(http_server_requests_seconds_count{application=\"eod\", status=~\"5..\"}[1d])) / sum(rate(http_server_requests_seconds_count{application=\"eod\", uri!=\"UNKNOWN\"}[1d]))) * 100",
+          "legendFormat": "24h",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(1 - sum(rate(http_server_requests_seconds_count{application=\"eod\", status=~\"5..\"}[7d])) / sum(rate(http_server_requests_seconds_count{application=\"eod\", uri!=\"UNKNOWN\"}[7d]))) * 100",
+          "legendFormat": "7d",
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(1 - sum(rate(http_server_requests_seconds_count{application=\"eod\", status=~\"5..\"}[30d])) / sum(rate(http_server_requests_seconds_count{application=\"eod\", uri!=\"UNKNOWN\"}[30d]))) * 100",
+          "legendFormat": "30d",
+          "instant": true,
+          "refId": "C"
+        }
+      ],
+      "title": "HTTP Success Rate",
+      "type": "stat",
+      "description": "5xx \uc5d0\ub7ec\ub97c \uc81c\uc678\ud55c HTTP \uc694\uccad \uc131\uacf5\ub960 \u2014 24h \u00b7 7d \u00b7 30d \uae30\uc900"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 8,
@@ -267,7 +460,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 5
+        "y": 11
       },
       "id": 4,
       "options": {
@@ -333,7 +526,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 5
+        "y": 11
       },
       "id": 5,
       "options": {
@@ -396,7 +589,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 13
+        "y": 19
       },
       "id": 6,
       "options": {
@@ -466,7 +659,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 13
+        "y": 19
       },
       "id": 7,
       "options": {
@@ -501,7 +694,8 @@
         }
       ],
       "title": "MySQL Connection Usage",
-      "type": "stat"
+      "type": "stat",
+      "description": "MySQL \ucd5c\ub300 \ud5c8\uc6a9 \ucee4\ub125\uc158 \ub300\ube44 \ud604\uc7ac \uc0ac\uc6a9\ub960"
     },
     {
       "datasource": {
@@ -531,7 +725,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 13
+        "y": 19
       },
       "id": 8,
       "options": {
@@ -566,7 +760,8 @@
         }
       ],
       "title": "Monitoring Targets",
-      "type": "stat"
+      "type": "stat",
+      "description": "Prometheus\uac00 \uc218\uc9d1 \uc911\uc778 \uac01 \uc11c\ube44\uc2a4\uc758 \ud65c\uc131 \uc0c1\ud0dc"
     }
   ],
   "preload": false,
