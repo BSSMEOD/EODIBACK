@@ -8,6 +8,8 @@ import com.eod.eod.domain.user.model.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 import java.util.Objects;
@@ -22,6 +24,7 @@ public class DiscordVerifyService {
     private static final Pattern NICKNAME_PATTERN = Pattern.compile("^(\\d+)기_([^_]+)$");
 
     private final UserRepository userRepository;
+    private final DiscordBotClient discordBotClient;
 
     @Transactional
     public DiscordVerifyResponse verify(DiscordVerifyRequest request) {
@@ -122,6 +125,15 @@ public class DiscordVerifyService {
                 });
 
         student.updateDiscordId(discordUserId);
+
+        String studentName = student.getName();
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                discordBotClient.notifyVerified(discordUserId, studentName);
+            }
+        });
+
         return DiscordVerifyResponse.success("인증이 완료되었습니다.");
     }
 

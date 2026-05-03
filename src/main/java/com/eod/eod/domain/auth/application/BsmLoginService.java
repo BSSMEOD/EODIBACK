@@ -1,11 +1,14 @@
 package com.eod.eod.domain.auth.application;
 
+import com.eod.eod.domain.discord.application.DiscordBotClient;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 
@@ -19,6 +22,7 @@ public class BsmLoginService {
     private final BsmOAuthService bsmOAuthService;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final DiscordBotClient discordBotClient;
 
     public LoginResult login(String code) {
         BsmOAuthService.ExchangeResult exchangeResult = bsmOAuthService.exchangeCode(code, true);
@@ -49,7 +53,18 @@ public class BsmLoginService {
                 });
 
         user.linkDiscordId(discordId);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        registerDiscordVerificationNotification(discordId, savedUser.getName());
+        return savedUser;
+    }
+
+    private void registerDiscordVerificationNotification(String discordId, String studentName) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                discordBotClient.notifyVerified(discordId, studentName);
+            }
+        });
     }
 
     private User findOrCreateUser(BsmUserInfo userInfo) {
