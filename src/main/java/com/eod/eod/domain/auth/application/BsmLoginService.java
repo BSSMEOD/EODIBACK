@@ -23,23 +23,18 @@ public class BsmLoginService {
     private final EodMetrics eodMetrics;
 
     public LoginResult login(String code) {
-        try {
-            BsmOAuthService.ExchangeResult exchangeResult = bsmOAuthService.exchangeCode(code, true);
-            JsonNode resource = exchangeResult.resource();
-            if (resource == null || resource.isNull()) {
-                throw new IllegalStateException("BSM resource를 가져오지 못했습니다. (토큰 교환은 성공했을 수 있습니다)");
-            }
-
-            BsmUserInfo userInfo = BsmUserInfo.from(resource);
-            User user = findOrCreateUser(userInfo);
-
-            AuthService.TokenPair tokenPair = authService.issueTokensForOAuth2Login(user);
-            eodMetrics.recordBusinessEvent("auth", "bsm_login", "success");
-            return new LoginResult(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), user);
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("auth", "bsm_login", "failure");
-            throw e;
+        BsmOAuthService.ExchangeResult exchangeResult = bsmOAuthService.exchangeCode(code, true);
+        JsonNode resource = exchangeResult.resource();
+        if (resource == null || resource.isNull()) {
+            throw new IllegalStateException("BSM resource를 가져오지 못했습니다. (토큰 교환은 성공했을 수 있습니다)");
         }
+
+        BsmUserInfo userInfo = BsmUserInfo.from(resource);
+        User user = findOrCreateUser(userInfo);
+
+        AuthService.TokenPair tokenPair = authService.issueTokensForOAuth2Login(user);
+        eodMetrics.recordBusinessEvent("auth", "bsm_login", "success");
+        return new LoginResult(tokenPair.getAccessToken(), tokenPair.getRefreshToken(), user);
     }
 
     public User linkDiscordId(User user, String discordId) {

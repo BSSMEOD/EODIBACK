@@ -21,19 +21,14 @@ public class ItemApprovalService {
     @RequireAdmin
     public ItemApprovalResponse processApproval(Long itemId, Item.ApprovalStatus approvalStatus, User currentUser) {
         String action = approvalStatus == Item.ApprovalStatus.APPROVED ? "approve" : "reject";
-        try {
-            // 물품 조회
-            Item item = itemFacade.getItemById(itemId);
+        // 물품 조회
+        Item item = itemFacade.getItemById(itemId);
 
-            // 승인/거절 처리
-            item.processApproval(approvalStatus, currentUser);
+        // 승인/거절 처리
+        item.processApproval(approvalStatus, currentUser);
 
-            eodMetrics.recordBusinessEvent("item", action, "success");
-            // Response 변환
-            return ItemApprovalResponse.from(item);
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("item", action, "failure");
-            throw e;
-        }
+        eodMetrics.recordBusinessEvent("item", action, "success");
+        // Response 변환
+        return ItemApprovalResponse.from(item);
     }
 }

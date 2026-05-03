@@ -27,29 +27,24 @@ public class ItemRegistrationService {
 
     @RequireAdmin
     public Long registerItem(ItemRegistrationCommand command, User currentUser) {
-        try {
-            ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
-            User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
+        ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
+        User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
 
-            Item item = Item.registerLostItem(
-                    currentUser,
-                    student,
-                    command.placeId(),
-                    command.foundPlaceDetail(),
-                    command.name(),
-                    command.imageUrl(),
-                    command.category(),
-                    parsedDate.getDateTime(),
-                    parsedDate.getPrecision()
-            );
+        Item item = Item.registerLostItem(
+                currentUser,
+                student,
+                command.placeId(),
+                command.foundPlaceDetail(),
+                command.name(),
+                command.imageUrl(),
+                command.category(),
+                parsedDate.getDateTime(),
+                parsedDate.getPrecision()
+        );
 
-            Item savedItem = itemFacade.save(item);
-            eodMetrics.recordBusinessEvent("item", "register", "success");
-            return savedItem.getId();
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("item", "register", "failure");
-            throw e;
-        }
+        Item savedItem = itemFacade.save(item);
+        eodMetrics.recordBusinessEvent("item", "register", "success");
+        return savedItem.getId();
     }
 
     /**
@@ -97,26 +92,21 @@ public class ItemRegistrationService {
 
     @RequireAdmin
     public void updateItem(Long itemId, ItemUpdateCommand command, User currentUser) {
-        try {
-            Item item = itemFacade.getItemById(itemId);
-            ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
-            User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
+        Item item = itemFacade.getItemById(itemId);
+        ParsedDate parsedDate = validateAndParseFoundAt(command.foundAt(), command.placeId());
+        User student = findStudentByCodeAndName(command.reporterStudentCode(), command.reporterName());
 
-            item.updateItem(
-                    currentUser,
-                    student,
-                    command.placeId(),
-                    command.foundPlaceDetail(),
-                    command.name(),
-                    command.imageUrl(),
-                    command.category(),
-                    parsedDate.getDateTime(),
-                    parsedDate.getPrecision()
-            );
-            eodMetrics.recordBusinessEvent("item", "update", "success");
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("item", "update", "failure");
-            throw e;
-        }
+        item.updateItem(
+                currentUser,
+                student,
+                command.placeId(),
+                command.foundPlaceDetail(),
+                command.name(),
+                command.imageUrl(),
+                command.category(),
+                parsedDate.getDateTime(),
+                parsedDate.getPrecision()
+        );
+        eodMetrics.recordBusinessEvent("item", "update", "success");
     }
 }

@@ -73,13 +73,7 @@ public class ItemSchedulerService {
     ) {
         log.info("{} 스케줄러 시작", taskName);
 
-        List<Item> items;
-        try {
-            items = itemsFetcher.get();
-        } catch (RuntimeException e) {
-            eodMetrics.recordSchedulerRun(metricTaskName, "failure", 0);
-            throw e;
-        }
+        List<Item> items = itemsFetcher.get();
 
         if (items.isEmpty()) {
             log.info("{} 대상 물품이 없습니다.", taskName);

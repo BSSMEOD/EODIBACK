@@ -27,21 +27,16 @@ public class DisposalReasonService {
      * 폐기 보류 사유 제출
      */
     public DisposalReason submitDisposalReason(Long itemId, String reason, Integer extensionDays, User currentUser) {
-        try {
-            // 물품 조회
-            Item item = itemFacade.getItemById(itemId);
+        // 물품 조회
+        Item item = itemFacade.getItemById(itemId);
 
-            // 폐기 보류 사유 생성 (도메인에서 선생님 권한 및 물품 상태 검증)
-            DisposalReason disposalReason = DisposalReason.create(item, currentUser, reason, extensionDays);
+        // 폐기 보류 사유 생성 (도메인에서 선생님 권한 및 물품 상태 검증)
+        DisposalReason disposalReason = DisposalReason.create(item, currentUser, reason, extensionDays);
 
-            // 저장 및 반환 (영속화된 엔티티 사용)
-            DisposalReason savedReason = disposalReasonRepository.save(disposalReason);
-            eodMetrics.recordBusinessEvent("disposal", "reason_submit", "success");
-            return savedReason;
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("disposal", "reason_submit", "failure");
-            throw e;
-        }
+        // 저장 및 반환 (영속화된 엔티티 사용)
+        DisposalReason savedReason = disposalReasonRepository.save(disposalReason);
+        eodMetrics.recordBusinessEvent("disposal", "reason_submit", "success");
+        return savedReason;
     }
 
     /**
@@ -78,23 +73,18 @@ public class DisposalReasonService {
      */
     @RequireAdmin
     public String extendDisposalPeriod(Long itemId, Long reasonId, User currentUser) {
-        try {
-            // 물품 조회
-            Item item = itemFacade.getItemById(itemId);
+        // 물품 조회
+        Item item = itemFacade.getItemById(itemId);
 
-            // 보류 사유 조회 및 검증
-            DisposalReason disposalReason = disposalReasonRepository.findById(reasonId)
-                    .orElseThrow(() -> new ItemResourceNotFoundException("해당 보류 사유를 찾을 수 없습니다."));
+        // 보류 사유 조회 및 검증
+        DisposalReason disposalReason = disposalReasonRepository.findById(reasonId)
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 보류 사유를 찾을 수 없습니다."));
 
-            // 폐기 기간 연장 관련 검증과 상태 변경은 도메인에서 처리
-            item.extendDisposalDateWith(disposalReason);
+        // 폐기 기간 연장 관련 검증과 상태 변경은 도메인에서 처리
+        item.extendDisposalDateWith(disposalReason);
 
-            eodMetrics.recordBusinessEvent("disposal", "extend", "success");
-            return item.getDiscardedAt();
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("disposal", "extend", "failure");
-            throw e;
-        }
+        eodMetrics.recordBusinessEvent("disposal", "extend", "success");
+        return item.getDiscardedAt();
     }
 
     public long countItemsToBeDiscarded() {

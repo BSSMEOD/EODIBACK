@@ -54,32 +54,27 @@ public class ImageServiceImpl implements ImageService {
     public String uploadImage(MultipartFile file, Long userId) {
         Instant start = Instant.now();
         long bytes = file == null ? 0L : file.getSize();
+        User user = userFacade.getUserById(userId);
+
+        String extension = validateFile(file);
+        StoredImage storedImage = saveFile(file, extension);
+
+        Image image = Image.create(
+            storedImage.publicPath(),
+            file.getOriginalFilename(),
+            file.getSize(),
+            file.getContentType(),
+            user
+        );
         try {
-            User user = userFacade.getUserById(userId);
-
-            String extension = validateFile(file);
-            StoredImage storedImage = saveFile(file, extension);
-
-            Image image = Image.create(
-                storedImage.publicPath(),
-                file.getOriginalFilename(),
-                file.getSize(),
-                file.getContentType(),
-                user
-            );
-            try {
-                imageRepository.save(image);
-            } catch (RuntimeException e) {
-                deleteFileIfExists(storedImage.filePath());
-                throw e;
-            }
-
-            eodMetrics.recordImageUpload("success", bytes, Duration.between(start, Instant.now()));
-            return buildImageUrl(storedImage.publicPath());
+            imageRepository.save(image);
         } catch (RuntimeException e) {
-            eodMetrics.recordImageUpload("failure", bytes, Duration.between(start, Instant.now()));
+            deleteFileIfExists(storedImage.filePath());
             throw e;
         }
+
+        eodMetrics.recordImageUpload("success", bytes, Duration.between(start, Instant.now()));
+        return buildImageUrl(storedImage.publicPath());
     }
 
     private String validateFile(MultipartFile file) {

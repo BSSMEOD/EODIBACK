@@ -80,26 +80,6 @@ groups:
           summary: EOD JVM GC pause is elevated
           description: Average JVM GC pause has stayed above 200ms for 10 minutes.
 
-      - alert: EodBsmLoginFailures
-        expr: increase(eod_business_events_total{domain="auth",action="bsm_login",result="failure"}[10m]) > 3
-        for: 0m
-        labels:
-          severity: warning
-          service: eod
-        annotations:
-          summary: BSM login failures increased
-          description: More than 3 BSM login failures occurred in 10 minutes.
-
-      - alert: EodImageUploadFailures
-        expr: increase(eod_business_events_total{domain="image",action="upload",result="failure"}[10m]) > 3
-        for: 0m
-        labels:
-          severity: warning
-          service: eod
-        annotations:
-          summary: Image upload failures increased
-          description: More than 3 image upload failures occurred in 10 minutes.
-
       - alert: EodSchedulerFailure
         expr: increase(eod_scheduler_runs_total{result=~"failure|partial_failure"}[1h]) > 0
         for: 0m
@@ -109,16 +89,6 @@ groups:
         annotations:
           summary: EOD scheduled task failed
           description: At least one scheduled task failed or partially failed in the last hour.
-
-      - alert: EodRewardGiveFailures
-        expr: increase(eod_business_events_total{domain="reward",action="give",result="failure"}[10m]) > 0
-        for: 0m
-        labels:
-          severity: warning
-          service: eod
-        annotations:
-          summary: Reward give failed
-          description: At least one reward give operation failed in 10 minutes.
 
   - name: eod-infrastructure
     rules:

@@ -30,10 +30,7 @@ The baseline alert rules cover:
 - Monitoring exporter availability
 - Host CPU, memory, disk, and inode pressure
 - MySQL availability and connection usage
-- BSM login failures
-- Image upload failures
 - Scheduler failures
-- Reward give failures
 
 These rules are defined in `monitoring/prometheus/alerts/eod-alerts.yml` and routed through Alertmanager using the Discord webhook from `DISCORD_WEBHOOK_URL`. During production deployment, the workflow renders `monitoring/alertmanager/generated/alertmanager.yml` with that secret and mounts the generated file into Alertmanager.
 

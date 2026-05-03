@@ -25,29 +25,24 @@ public class ItemGiveService {
     // 물품 지급 처리
     @RequireAdmin
     public void giveItemToStudent(Long itemId, Long receiverId, User currentUser) {
-        try {
-            // 물품 조회
-            Item item = itemFacade.getItemById(itemId);
+        // 물품 조회
+        Item item = itemFacade.getItemById(itemId);
 
-            // 지급받을 학생 확인
-            User receiver = userRepository.findById(receiverId)
-                    .orElseThrow(() -> new ItemResourceNotFoundException("해당 학생을 찾을 수 없습니다."));
+        // 지급받을 학생 확인
+        User receiver = userRepository.findById(receiverId)
+                .orElseThrow(() -> new ItemResourceNotFoundException("해당 학생을 찾을 수 없습니다."));
 
-            // 물품 지급 처리
-            item.giveToStudent(receiver, currentUser);
+        // 물품 지급 처리
+        item.giveToStudent(receiver, currentUser);
 
-            // 지급 기록 생성 (감사 용도)
-            GiveRecord giveRecord = GiveRecord.builder()
-                    .item(item)
-                    .giver(currentUser)
-                    .receiver(receiver)
-                    .build();
+        // 지급 기록 생성 (감사 용도)
+        GiveRecord giveRecord = GiveRecord.builder()
+                .item(item)
+                .giver(currentUser)
+                .receiver(receiver)
+                .build();
 
-            giveRecordRepository.save(giveRecord);
-            eodMetrics.recordBusinessEvent("item", "give", "success");
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("item", "give", "failure");
-            throw e;
-        }
+        giveRecordRepository.save(giveRecord);
+        eodMetrics.recordBusinessEvent("item", "give", "success");
     }
 }

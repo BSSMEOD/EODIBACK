@@ -18,16 +18,11 @@ public class ItemDeleteService {
 
     @RequireAdmin
     public void deleteItem(Long itemId, User currentUser) {
-        try {
-            // 물품 존재 여부 확인
-            Item item = itemFacade.getItemById(itemId);
+        // 물품 존재 여부 확인
+        Item item = itemFacade.getItemById(itemId);
 
-            // 물품 논리 삭제
-            item.softDelete();
-            eodMetrics.recordBusinessEvent("item", "delete", "success");
-        } catch (RuntimeException e) {
-            eodMetrics.recordBusinessEvent("item", "delete", "failure");
-            throw e;
-        }
+        // 물품 논리 삭제
+        item.softDelete();
+        eodMetrics.recordBusinessEvent("item", "delete", "success");
     }
 }

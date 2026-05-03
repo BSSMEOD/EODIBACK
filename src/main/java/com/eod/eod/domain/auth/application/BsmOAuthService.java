@@ -82,14 +82,8 @@ public class BsmOAuthService {
 
     private String exchangeCodeForToken(String code) {
         Instant start = Instant.now();
-        JsonNode node;
-        try {
-            node = requestTokenWithJsonBody(code, true);
-            eodMetrics.recordExternalCall("bsm", "token", "success", Duration.between(start, Instant.now()));
-        } catch (RuntimeException e) {
-            eodMetrics.recordExternalCall("bsm", "token", "failure", Duration.between(start, Instant.now()));
-            throw e;
-        }
+        JsonNode node = requestTokenWithJsonBody(code, true);
+        eodMetrics.recordExternalCall("bsm", "token", "success", Duration.between(start, Instant.now()));
 
         String token = extractToken(node);
         if (token == null || token.isBlank()) {
