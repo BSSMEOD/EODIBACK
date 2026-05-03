@@ -13,6 +13,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +21,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Locale;
 
 @RestController
 @RequiredArgsConstructor
@@ -34,6 +37,7 @@ public class BsmOAuthCallbackController {
     private final DiscordOAuthStateService discordOAuthStateService;
     private final TokenService tokenService;
     private final CookieUtil cookieUtil;
+    private final Environment environment;
 
     @Value("${frontend.base-url}")
     private String frontendBaseUrl;
@@ -127,6 +131,31 @@ public class BsmOAuthCallbackController {
         if (discordId != null && !discordId.isBlank()) {
             return DISCORD_FRONTEND_BASE_URL;
         }
+
+        if (shouldFallbackToDiscordFrontend(frontendBaseUrl)) {
+            log.warn("Unsafe frontend.base-url detected for BSM callback: {}. Falling back to {}",
+                    frontendBaseUrl, DISCORD_FRONTEND_BASE_URL);
+            return DISCORD_FRONTEND_BASE_URL;
+        }
+
         return frontendBaseUrl;
+    }
+
+    private boolean shouldFallbackToDiscordFrontend(String baseUrl) {
+        if (isTestProfile()) {
+            return false;
+        }
+
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return true;
+        }
+
+        String normalized = baseUrl.toLowerCase(Locale.ROOT);
+        return normalized.contains("localhost") || normalized.contains("127.0.0.1");
+    }
+
+    private boolean isTestProfile() {
+        return Arrays.stream(environment.getActiveProfiles())
+                .anyMatch(profile -> profile.equalsIgnoreCase("test"));
     }
 }
