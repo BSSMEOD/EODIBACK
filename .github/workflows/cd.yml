@@ -132,6 +132,9 @@ jobs:
           BSM_OAUTH_BASE_URL=${{ secrets.BSM_OAUTH_BASE_URL }}
           BSM_REDIRECT_URI=${{ secrets.BSM_REDIRECT_URI }}
           FILE_UPLOAD_BASE_URL=${{ secrets.FILE_UPLOAD_BASE_URL }}
+          DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }}
+          DISCORD_VERIFIED_ROLE_ID=${{ secrets.DISCORD_VERIFIED_ROLE_ID }}
           EOF
           
           # GitHub Container Registry 로그인
