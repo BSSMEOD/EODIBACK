@@ -84,7 +84,7 @@ scrape_configs:
           application: eod
           availability_target: app-internal
       - targets:
-          - "https://www.jojaemin.com/healthz"
+          - "https://eodi.jojaemin.com/healthz"
         labels:
           application: eod
           availability_target: prod-public
