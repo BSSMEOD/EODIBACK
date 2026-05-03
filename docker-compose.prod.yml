@@ -34,15 +34,22 @@ services:
     image: mysql:8.0
     container_name: eod-mysql
     restart: always
+    command:
+      - --log-error=/var/log/mysql/error.log
+      - --slow-query-log=ON
+      - --slow-query-log-file=/var/log/mysql/slow.log
+      - --long-query-time=1
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: ${MYSQL_DATABASE}
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      TZ: Asia/Seoul
     ports:
       - "3307:3306"
     volumes:
       - mysql-data-prod:/var/lib/mysql
+      - mysql-logs-prod:/var/log/mysql
     networks:
       - eod-network
     healthcheck:
@@ -160,6 +167,7 @@ services:
     volumes:
       - ./monitoring/alloy/config.alloy:/etc/alloy/config.alloy:ro
       - app-logs-prod:/var/log/eod:ro
+      - mysql-logs-prod:/var/log/mysql:ro
       - alloy-data-prod:/var/lib/alloy
     depends_on:
       loki:
@@ -195,6 +203,8 @@ volumes:
     name: eod_mysql-data-prod
   app-logs-prod:
     name: eod_app-logs-prod
+  mysql-logs-prod:
+    name: eod_mysql-logs-prod
   loki-data-prod:
     name: eod_loki-data-prod
   alloy-data-prod:
