@@ -233,6 +233,196 @@
       },
       "fieldConfig": {
         "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 99
+              },
+              {
+                "color": "green",
+                "value": 99.9
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 0,
+        "y": 5
+      },
+      "id": 9,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[1d]) * 100",
+          "legendFormat": "24h",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[7d]) * 100",
+          "legendFormat": "7d",
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "avg_over_time(probe_success{job=\"blackbox-http\", availability_target=\"prod-public\"}[30d]) * 100",
+          "legendFormat": "30d",
+          "instant": true,
+          "refId": "C"
+        }
+      ],
+      "title": "Probe Availability (\uc678\ubd80)",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "decimals": 2,
+          "mappings": [],
+          "max": 100,
+          "min": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": null
+              },
+              {
+                "color": "yellow",
+                "value": 99
+              },
+              {
+                "color": "green",
+                "value": 99.9
+              }
+            ]
+          },
+          "unit": "percent"
+        },
+        "overrides": []
+      },
+      "gridPos": {
+        "h": 6,
+        "w": 12,
+        "x": 12,
+        "y": 5
+      },
+      "id": 10,
+      "options": {
+        "colorMode": "background",
+        "graphMode": "none",
+        "justifyMode": "center",
+        "orientation": "horizontal",
+        "percentChangeColorMode": "standard",
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "showPercentChange": false,
+        "textMode": "auto",
+        "wideLayout": true
+      },
+      "pluginVersion": "12.4.0",
+      "targets": [
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(1 - sum(rate(http_server_requests_seconds_count{application=\"eod\", status=~\"5..\"}[1d])) / sum(rate(http_server_requests_seconds_count{application=\"eod\", uri!=\"UNKNOWN\"}[1d]))) * 100",
+          "legendFormat": "24h",
+          "instant": true,
+          "refId": "A"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(1 - sum(rate(http_server_requests_seconds_count{application=\"eod\", status=~\"5..\"}[7d])) / sum(rate(http_server_requests_seconds_count{application=\"eod\", uri!=\"UNKNOWN\"}[7d]))) * 100",
+          "legendFormat": "7d",
+          "instant": true,
+          "refId": "B"
+        },
+        {
+          "datasource": {
+            "type": "prometheus",
+            "uid": "prometheus"
+          },
+          "editorMode": "code",
+          "expr": "(1 - sum(rate(http_server_requests_seconds_count{application=\"eod\", status=~\"5..\"}[30d])) / sum(rate(http_server_requests_seconds_count{application=\"eod\", uri!=\"UNKNOWN\"}[30d]))) * 100",
+          "legendFormat": "30d",
+          "instant": true,
+          "refId": "C"
+        }
+      ],
+      "title": "HTTP Success Rate",
+      "type": "stat"
+    },
+    {
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "fieldConfig": {
+        "defaults": {
           "custom": {
             "drawStyle": "line",
             "fillOpacity": 8,
@@ -267,7 +457,7 @@
         "h": 8,
         "w": 12,
         "x": 0,
-        "y": 5
+        "y": 11
       },
       "id": 4,
       "options": {
@@ -333,7 +523,7 @@
         "h": 8,
         "w": 12,
         "x": 12,
-        "y": 5
+        "y": 11
       },
       "id": 5,
       "options": {
@@ -396,7 +586,7 @@
         "h": 6,
         "w": 8,
         "x": 0,
-        "y": 13
+        "y": 19
       },
       "id": 6,
       "options": {
@@ -466,7 +656,7 @@
         "h": 6,
         "w": 8,
         "x": 8,
-        "y": 13
+        "y": 19
       },
       "id": 7,
       "options": {
@@ -531,7 +721,7 @@
         "h": 6,
         "w": 8,
         "x": 16,
-        "y": 13
+        "y": 19
       },
       "id": 8,
       "options": {
