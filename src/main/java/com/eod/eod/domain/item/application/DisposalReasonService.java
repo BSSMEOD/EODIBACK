@@ -1,6 +1,8 @@
 package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
+import com.eod.eod.common.event.EodBusinessEvent;
+import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.item.exception.ItemResourceNotFoundException;
 import com.eod.eod.domain.item.infrastructure.DisposalReasonRepository;
 import com.eod.eod.domain.item.model.DisposalReason;
@@ -20,6 +22,7 @@ public class DisposalReasonService {
 
     private final ItemFacade itemFacade;
     private final DisposalReasonRepository disposalReasonRepository;
+    private final ApplicationEventPublisher eventPublisher;
 
     /**
      * 폐기 보류 사유 제출
@@ -32,7 +35,9 @@ public class DisposalReasonService {
         DisposalReason disposalReason = DisposalReason.create(item, currentUser, reason, extensionDays);
 
         // 저장 및 반환 (영속화된 엔티티 사용)
-        return disposalReasonRepository.save(disposalReason);
+        DisposalReason savedReason = disposalReasonRepository.save(disposalReason);
+        eventPublisher.publishEvent(new EodBusinessEvent("disposal", "reason_submit", "success"));
+        return savedReason;
     }
 
     /**
@@ -79,6 +84,7 @@ public class DisposalReasonService {
         // 폐기 기간 연장 관련 검증과 상태 변경은 도메인에서 처리
         item.extendDisposalDateWith(disposalReason);
 
+        eventPublisher.publishEvent(new EodBusinessEvent("disposal", "extend", "success"));
         return item.getDiscardedAt();
     }
 
