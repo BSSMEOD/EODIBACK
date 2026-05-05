@@ -86,6 +86,8 @@ public class SecurityConfig {
                         .requestMatchers("/login/**", "/oauth2/**", "/auth/oauth/**").permitAll()
                         // BSM OAuth callback
                         .requestMatchers("/oauth/bsm").permitAll()
+                        // Discord 봇 DM 진입점 (BSM 로그인 페이지로 리다이렉트)
+                        .requestMatchers("/discord-verify").permitAll()
                         // 로그아웃은 인증된 사용자만 가능
                         .requestMatchers(HttpMethod.POST, "/auth/logout").hasAnyRole("USER", "TEACHER", "ADMIN")
                         // 그 외 Auth API 허용 (로그인, 토큰 재발급 등)
