@@ -2,6 +2,7 @@ package com.eod.eod.domain.item.application;
 
 import com.eod.eod.common.annotation.RequireAdmin;
 import com.eod.eod.common.event.EodBusinessEvent;
+import com.eod.eod.domain.discord.application.DiscordBotClient;
 import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.item.exception.ItemConflictException;
 import com.eod.eod.domain.item.exception.ItemForbiddenException;
@@ -14,9 +15,12 @@ import com.eod.eod.domain.item.model.ItemClaim;
 import com.eod.eod.domain.item.presentation.dto.response.ItemClaimResponse;
 import com.eod.eod.domain.user.model.User;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.List;
 
@@ -29,6 +33,7 @@ public class ItemClaimService {
     private final ItemClaimRepository itemClaimRepository;
     private final GiveRecordRepository giveRecordRepository;
     private final ApplicationEventPublisher eventPublisher;
+    private final DiscordBotClient discordBotClient;
 
     public ItemClaimResponse claimItem(Long itemId, LocalDate visitDate, User currentUser) {
         // 아이템 존재 여부 확인
@@ -80,17 +85,35 @@ public class ItemClaimService {
                 .build();
         giveRecordRepository.save(giveRecord);
 
+        // afterCommit 시 알림 보낼 정보 캡처
+        String itemName = item.getName();
+        String approvedDiscordId = claim.getClaimant().getDiscordId();
+
         // 같은 물품에 대한 다른 PENDING 상태의 주장들을 모두 거절
         Long itemId = item.getId();
         List<ItemClaim> otherPendingClaims = itemClaimRepository
                 .findByItemIdAndStatus(itemId, ItemClaim.ClaimStatus.PENDING);
 
+        List<String> autoRejectedDiscordIds = new ArrayList<>();
         for (ItemClaim otherClaim : otherPendingClaims) {
             if (!otherClaim.getId().equals(claimId)) {
                 otherClaim.reject();
+                String otherDiscordId = otherClaim.getClaimant().getDiscordId();
+                if (otherDiscordId != null && !otherDiscordId.isBlank()) {
+                    autoRejectedDiscordIds.add(otherDiscordId);
+                }
             }
         }
         eventPublisher.publishEvent(new EodBusinessEvent("claim", "approve", "success"));
+
+        registerAfterCommit(() -> {
+            if (approvedDiscordId != null && !approvedDiscordId.isBlank()) {
+                discordBotClient.notifyClaimApproved(approvedDiscordId, itemName);
+            }
+            for (String rejectedDiscordId : autoRejectedDiscordIds) {
+                discordBotClient.notifyClaimRejected(rejectedDiscordId, itemName);
+            }
+        });
     }
 
     /**
@@ -104,7 +127,31 @@ public class ItemClaimService {
 
         // 거절 처리
         claim.reject();
+
+        // afterCommit 시 알림 보낼 정보 캡처
+        String itemName = claim.getItem().getName();
+        String rejectedDiscordId = claim.getClaimant().getDiscordId();
+
         eventPublisher.publishEvent(new EodBusinessEvent("claim", "reject", "success"));
+
+        registerAfterCommit(() -> {
+            if (rejectedDiscordId != null && !rejectedDiscordId.isBlank()) {
+                discordBotClient.notifyClaimRejected(rejectedDiscordId, itemName);
+            }
+        });
+    }
+
+    private void registerAfterCommit(Runnable action) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            action.run();
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                action.run();
+            }
+        });
     }
 
     /**

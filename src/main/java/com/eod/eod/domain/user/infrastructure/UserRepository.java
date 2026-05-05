@@ -3,6 +3,7 @@ package com.eod.eod.domain.user.infrastructure;
 import com.eod.eod.domain.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -18,4 +19,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByName(String name);
 
     Optional<User> findByDiscordId(String discordId);
+
+    List<User> findByPickupDateBetween(LocalDateTime start, LocalDateTime end);
 }

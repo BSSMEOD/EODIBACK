@@ -15,8 +15,12 @@ public class DiscordBotProperties {
     private String verifiedRoleId;
 
     public boolean isConfigured() {
-        return token != null && !token.isBlank()
+        return isTokenConfigured()
                 && guildId != null && !guildId.isBlank()
                 && verifiedRoleId != null && !verifiedRoleId.isBlank();
+    }
+
+    public boolean isTokenConfigured() {
+        return token != null && !token.isBlank();
     }
 }

@@ -6,6 +6,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 @Slf4j
@@ -83,5 +85,60 @@ public class DiscordBotClient {
         return "✅ **인증이 완료되었습니다!**\n" +
                 "안녕하세요, **" + studentName + "**님!\n" +
                 "이오디 디스코드 인증이 성공적으로 완료되었습니다. 이제 서버의 모든 채널에 접근할 수 있습니다.";
+    }
+
+    /**
+     * 소유권 주장 승인 알림 (DM 만)
+     */
+    public void notifyClaimApproved(String discordUserId, String itemName) {
+        if (!properties.isTokenConfigured()) {
+            log.warn("Discord bot token 미설정, claim approval DM 스킵 (discordId={})", discordUserId);
+            return;
+        }
+        String message = "✅ **소유권 주장 승인**\n" +
+                "**" + safe(itemName) + "**에 대한 소유권 주장이 승인되었습니다.\n" +
+                "픽업할 날짜를 다음 형식으로 답장해주세요. 예: `4/23/12:00`";
+        sendDmFireAndForget(discordUserId, message, "claim approval");
+    }
+
+    /**
+     * 소유권 주장 거절 알림 (DM 만)
+     */
+    public void notifyClaimRejected(String discordUserId, String itemName) {
+        if (!properties.isTokenConfigured()) {
+            log.warn("Discord bot token 미설정, claim rejection DM 스킵 (discordId={})", discordUserId);
+            return;
+        }
+        String message = "❌ **소유권 주장 거절**\n" +
+                "**" + safe(itemName) + "**에 대한 소유권 주장이 거절되었습니다.";
+        sendDmFireAndForget(discordUserId, message, "claim rejection");
+    }
+
+    /**
+     * 픽업 당일 아침 리마인더 (DM 만)
+     */
+    public void notifyPickupReminder(String discordUserId, String itemName, LocalDateTime pickupTime) {
+        if (!properties.isTokenConfigured()) {
+            log.warn("Discord bot token 미설정, pickup reminder DM 스킵 (discordId={})", discordUserId);
+            return;
+        }
+        String timeStr = pickupTime != null
+                ? pickupTime.format(DateTimeFormatter.ofPattern("HH:mm"))
+                : "예정된 시간";
+        String message = "🔔 **오늘 픽업 예정**\n" +
+                "오늘 **" + timeStr + "**에 **" + safe(itemName) + "**를 찾으러 와주세요.";
+        sendDmFireAndForget(discordUserId, message, "pickup reminder");
+    }
+
+    private void sendDmFireAndForget(String discordUserId, String message, String purpose) {
+        sendDm(discordUserId, message)
+                .doOnSuccess(v -> log.info("Discord DM sent to {} ({})", discordUserId, purpose))
+                .doOnError(e -> log.warn("Failed to send Discord DM to {} ({}): {}", discordUserId, purpose, e.getMessage()))
+                .onErrorResume(e -> Mono.empty())
+                .subscribe();
+    }
+
+    private String safe(String value) {
+        return value == null || value.isBlank() ? "분실물" : value;
     }
 }
