@@ -30,7 +30,7 @@ public class DiscordBotClient {
      */
     public void notifyVerified(String discordUserId, String studentName) {
         if (!properties.isConfigured()) {
-            log.debug("Discord bot not configured, skipping notification for {}", discordUserId);
+            log.warn("Discord bot not configured (token/guild/role 중 하나 비어있음), skipping notification for {}", discordUserId);
             return;
         }
 
