@@ -31,6 +31,7 @@ public class BsmOAuthController {
 
     private static final String STATE_COOKIE_NAME = "bsm_oauth_state";
     private static final long STATE_COOKIE_MAX_AGE_MILLIS = 5 * 60 * 1000L; // 5 minutes
+    private static final long DISCORD_ID_COOKIE_MAX_AGE_MILLIS = 5 * 60 * 1000L;
     private final SecureRandom secureRandom = new SecureRandom();
 
     @GetMapping("/authorize")
@@ -48,13 +49,22 @@ public class BsmOAuthController {
     }
 
     @GetMapping("/authorize/discord")
-    @Operation(summary = "Discord 봇용 BSM 로그인 URL 발급", description = "쿠키 없이 사용할 수 있도록 state와 Discord ID를 서버에 저장하고 OAuth URL을 JSON으로 반환합니다.")
+    @Operation(summary = "Discord 봇용 BSM 로그인 URL 발급", description = "state와 Discord ID를 서버에 저장하고 fallback 쿠키와 함께 OAuth URL을 JSON으로 반환합니다.")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "OAuth URL 반환")
     })
-    public ResponseEntity<BsmAuthorizeUrlResponse> authorizeForDiscord(@RequestParam("discordId") String discordId) {
+    public ResponseEntity<BsmAuthorizeUrlResponse> authorizeForDiscord(
+            @RequestParam("discordId") String discordId,
+            HttpServletResponse response) {
         String state = generateState();
         discordOAuthStateService.save(state, discordId);
+        cookieUtil.addTokenCookie(
+                response,
+                BsmOAuthCallbackController.DISCORD_ID_COOKIE_NAME,
+                discordId,
+                DISCORD_ID_COOKIE_MAX_AGE_MILLIS,
+                CookieUtil.SameSitePolicy.LAX
+        );
         String authorizeUrl = bsmOAuthService.buildAuthorizeUrl(state);
         return ResponseEntity.ok(new BsmAuthorizeUrlResponse(authorizeUrl));
     }

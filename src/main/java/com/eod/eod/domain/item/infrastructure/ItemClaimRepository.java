@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, ItemClaimRepositoryCustom {
 
@@ -40,4 +41,8 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
     // 특정 사용자의 회수 요청 목록 조회 (삭제된 물품 제외, 페이지네이션) - item fetch join으로 N+1 방지
     @EntityGraph(attributePaths = "item")
     Page<ItemClaim> findByClaimantIdAndItemDeletedAtIsNull(Long claimantId, Pageable pageable);
+
+    // 픽업 리마인더용: 사용자의 가장 최근 APPROVED 클레임 (item fetch join)
+    @EntityGraph(attributePaths = "item")
+    Optional<ItemClaim> findFirstByClaimantIdAndStatusOrderByIdDesc(Long claimantId, ItemClaim.ClaimStatus status);
 }

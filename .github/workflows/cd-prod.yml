@@ -140,6 +140,9 @@ jobs:
           GRAFANA_ADMIN_USER=${{ secrets.PROD_GRAFANA_ADMIN_USER }}
           GRAFANA_ADMIN_PASSWORD=${{ secrets.PROD_GRAFANA_ADMIN_PASSWORD }}
           DISCORD_WEBHOOK_URL=${{ secrets.PROD_DISCORD_WEBHOOK_URL }}
+          DISCORD_BOT_TOKEN=${{ secrets.PROD_DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID=${{ secrets.PROD_DISCORD_GUILD_ID }}
+          DISCORD_VERIFIED_ROLE_ID=${{ secrets.PROD_DISCORD_VERIFIED_ROLE_ID }}
           EOF
 
           # Alertmanager Discord webhook 설정 파일 생성

@@ -1,6 +1,7 @@
 package com.eod.eod.domain.auth.application;
 
 import com.eod.eod.common.event.EodBusinessEvent;
+import com.eod.eod.domain.discord.application.DiscordBotClient;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -13,6 +14,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 
@@ -38,6 +41,9 @@ class BsmLoginServiceTest {
 
     @Mock
     private ApplicationEventPublisher eventPublisher;
+
+    @Mock
+    private DiscordBotClient discordBotClient;
 
     @InjectMocks
     private BsmLoginService bsmLoginService;
@@ -269,6 +275,62 @@ class BsmLoginServiceTest {
                         user.getOauthProvider().equals("bsm") &&
                         user.getOauthId().equals(providerId)
         ));
+    }
+
+    @Test
+    @DisplayName("Discord 연동 성공 시 커밋 후 인증 완료 알림 전송")
+    void testLinkDiscordIdRegistersNotificationAfterCommit() {
+        User user = User.builder()
+                .email("hong@bssm.hs.kr")
+                .name("홍길동")
+                .oauthProvider("bsm")
+                .oauthId("123456")
+                .role(User.Role.USER)
+                .build();
+        String discordId = "123456789012345678";
+
+        when(userRepository.findByDiscordId(discordId)).thenReturn(Optional.empty());
+        when(userRepository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            User linkedUser = bsmLoginService.linkDiscordId(user, discordId);
+
+            assertThat(linkedUser.getDiscordId()).isEqualTo(discordId);
+            assertThat(TransactionSynchronizationManager.getSynchronizations()).hasSize(1);
+
+            for (TransactionSynchronization synchronization : TransactionSynchronizationManager.getSynchronizations()) {
+                synchronization.afterCommit();
+            }
+
+            verify(discordBotClient).notifyVerified(discordId, "홍길동");
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    @DisplayName("이미 같은 Discord ID가 연결돼 있으면 추가 알림 없음")
+    void testLinkDiscordIdSkipsNotificationWhenAlreadyLinked() {
+        User user = User.builder()
+                .email("hong@bssm.hs.kr")
+                .name("홍길동")
+                .oauthProvider("bsm")
+                .oauthId("123456")
+                .role(User.Role.USER)
+                .build();
+        user.linkDiscordId("123456789012345678");
+
+        TransactionSynchronizationManager.initSynchronization();
+        try {
+            bsmLoginService.linkDiscordId(user, "123456789012345678");
+
+            assertThat(TransactionSynchronizationManager.getSynchronizations()).isEmpty();
+            verifyNoInteractions(discordBotClient);
+            verify(userRepository, never()).save(any(User.class));
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
     }
 
     /**

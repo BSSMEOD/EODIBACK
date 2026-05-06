@@ -1,6 +1,8 @@
 package com.eod.eod.domain.auth.application;
 
 import com.eod.eod.common.event.EodBusinessEvent;
+import com.eod.eod.domain.discord.application.DiscordBotClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
 import com.eod.eod.domain.user.infrastructure.UserRepository;
 import com.eod.eod.domain.user.model.User;
@@ -8,12 +10,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 
 import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
 @Transactional
+@Slf4j
 public class BsmLoginService {
 
     private static final String PROVIDER = "bsm";
@@ -21,6 +26,7 @@ public class BsmLoginService {
     private final BsmOAuthService bsmOAuthService;
     private final UserRepository userRepository;
     private final AuthService authService;
+    private final DiscordBotClient discordBotClient;
     private final ApplicationEventPublisher eventPublisher;
 
     public LoginResult login(String code) {
@@ -39,10 +45,14 @@ public class BsmLoginService {
     }
 
     public User linkDiscordId(User user, String discordId) {
+        log.info("[linkDiscordId] enter userId={} currentDiscordId={} newDiscordId={}",
+                user.getId(), user.getDiscordId(), discordId);
         if (discordId == null || discordId.isBlank()) {
+            log.info("[linkDiscordId] skip: discordId is null/blank");
             return user;
         }
         if (discordId.equals(user.getDiscordId())) {
+            log.info("[linkDiscordId] skip: already linked to same discordId");
             return user;
         }
 
@@ -53,7 +63,26 @@ public class BsmLoginService {
                 });
 
         user.linkDiscordId(discordId);
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        log.info("[linkDiscordId] saved userId={} discordId={}, registering afterCommit notification",
+                savedUser.getId(), savedUser.getDiscordId());
+        registerDiscordVerificationNotification(discordId, savedUser.getName());
+        return savedUser;
+    }
+
+    private void registerDiscordVerificationNotification(String discordId, String studentName) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            log.warn("[linkDiscordId] No active transaction synchronization — calling notifyVerified immediately");
+            discordBotClient.notifyVerified(discordId, studentName);
+            return;
+        }
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                log.info("[linkDiscordId] afterCommit: notifying Discord for {}", discordId);
+                discordBotClient.notifyVerified(discordId, studentName);
+            }
+        });
     }
 
     private User findOrCreateUser(BsmUserInfo userInfo) {

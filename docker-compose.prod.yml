@@ -24,6 +24,9 @@ services:
       - MANAGEMENT_SERVER_PORT=${MANAGEMENT_SERVER_PORT:-8081}
       - FILE_UPLOAD_DIR=/eod/uploads
       - FILE_UPLOAD_BASE_URL=${FILE_UPLOAD_BASE_URL}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+      - DISCORD_VERIFIED_ROLE_ID=${DISCORD_VERIFIED_ROLE_ID}
     depends_on:
       mysql:
         condition: service_healthy

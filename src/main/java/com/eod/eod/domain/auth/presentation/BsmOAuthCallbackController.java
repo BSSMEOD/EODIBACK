@@ -8,11 +8,13 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.env.Environment;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 import java.io.IOException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
+import java.util.Locale;
 
 @RestController
 @RequiredArgsConstructor
@@ -28,12 +32,14 @@ import java.nio.charset.StandardCharsets;
 public class BsmOAuthCallbackController {
 
     private static final String STATE_COOKIE_NAME = "bsm_oauth_state";
+    static final String DISCORD_ID_COOKIE_NAME = "bsm_discord_id";
     private static final String DISCORD_FRONTEND_BASE_URL = "https://eodi.kro.kr";
 
     private final BsmLoginService bsmLoginService;
     private final DiscordOAuthStateService discordOAuthStateService;
     private final TokenService tokenService;
     private final CookieUtil cookieUtil;
+    private final Environment environment;
 
     @Value("${frontend.base-url}")
     private String frontendBaseUrl;
@@ -54,7 +60,16 @@ public class BsmOAuthCallbackController {
             HttpServletResponse response
     ) throws IOException {
         try {
-            String discordId = discordOAuthStateService.consumeDiscordId(state).orElse(null);
+            String discordIdFromState = discordOAuthStateService.consumeDiscordId(state).orElse(null);
+            String discordIdFromCookie = cookieUtil.getCookie(request, DISCORD_ID_COOKIE_NAME)
+                    .map(Cookie::getValue)
+                    .filter(value -> !value.isBlank())
+                    .orElse(null);
+            String discordId = discordIdFromState != null ? discordIdFromState : discordIdFromCookie;
+            log.info("[BSM Callback] discordId resolution: fromState={}, fromCookie={}, resolved={}",
+                    discordIdFromState, discordIdFromCookie, discordId);
+            cookieUtil.deleteCookie(response, DISCORD_ID_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
+
             String expectedState = cookieUtil.getCookie(request, STATE_COOKIE_NAME)
                     .map(c -> c.getValue())
                     .orElse(null);
@@ -73,12 +88,20 @@ public class BsmOAuthCallbackController {
 
             String discordLinkError = null;
             if (discordId != null) {
+                log.info("[BSM Callback] linkDiscordId 진입 userId={} currentDiscordId={} newDiscordId={}",
+                        loginResult.user().getId(), loginResult.user().getDiscordId(), discordId);
                 try {
                     bsmLoginService.linkDiscordId(loginResult.user(), discordId);
+                    log.info("[BSM Callback] linkDiscordId 완료 userId={}", loginResult.user().getId());
                 } catch (IllegalStateException e) {
                     log.warn("Discord ID 연결 실패 (BSM 로그인은 성공): {}", e.getMessage());
                     discordLinkError = e.getMessage();
+                } catch (Exception e) {
+                    log.error("Discord ID 연결 중 예외 발생 (BSM 로그인은 성공)", e);
+                    discordLinkError = e.getClass().getSimpleName() + ": " + e.getMessage();
                 }
+            } else {
+                log.info("[BSM Callback] discordId is null, skipping linkDiscordId");
             }
 
             cookieUtil.addTokenCookie(
@@ -108,6 +131,7 @@ public class BsmOAuthCallbackController {
         } catch (Exception e) {
             log.error("BSM OAuth callback failed", e);
             cookieUtil.deleteCookie(response, STATE_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
+            cookieUtil.deleteCookie(response, DISCORD_ID_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
             failRedirect(response, "bsm_oauth_failed", null);
         }
     }
@@ -127,6 +151,31 @@ public class BsmOAuthCallbackController {
         if (discordId != null && !discordId.isBlank()) {
             return DISCORD_FRONTEND_BASE_URL;
         }
+
+        if (shouldFallbackToDiscordFrontend(frontendBaseUrl)) {
+            log.warn("Unsafe frontend.base-url detected for BSM callback: {}. Falling back to {}",
+                    frontendBaseUrl, DISCORD_FRONTEND_BASE_URL);
+            return DISCORD_FRONTEND_BASE_URL;
+        }
+
         return frontendBaseUrl;
+    }
+
+    private boolean shouldFallbackToDiscordFrontend(String baseUrl) {
+        if (isTestProfile()) {
+            return false;
+        }
+
+        if (baseUrl == null || baseUrl.isBlank()) {
+            return true;
+        }
+
+        String normalized = baseUrl.toLowerCase(Locale.ROOT);
+        return normalized.contains("localhost") || normalized.contains("127.0.0.1");
+    }
+
+    private boolean isTestProfile() {
+        return Arrays.stream(environment.getActiveProfiles())
+                .anyMatch(profile -> profile.equalsIgnoreCase("test"));
     }
 }
