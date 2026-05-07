@@ -127,18 +127,27 @@ public class DiscordVerifyService {
         student.updateDiscordId(discordUserId);
 
         String studentName = student.getName();
-        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
-            @Override
-            public void afterCommit() {
-                discordBotClient.notifyVerified(discordUserId, studentName);
-            }
-        });
+        registerAfterCommit(() -> discordBotClient.notifyVerified(discordUserId, studentName));
 
         return DiscordVerifyResponse.success("인증이 완료되었습니다.");
     }
 
     private boolean hasText(String value) {
         return value != null && !value.isBlank();
+    }
+
+    private void registerAfterCommit(Runnable action) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            action.run();
+            return;
+        }
+
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+            @Override
+            public void afterCommit() {
+                action.run();
+            }
+        });
     }
 
     private record ParsedNickname(String name, Integer expectedGrade) {

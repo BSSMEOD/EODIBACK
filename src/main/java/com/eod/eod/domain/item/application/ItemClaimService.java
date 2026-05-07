@@ -87,7 +87,11 @@ public class ItemClaimService {
 
         // afterCommit 시 알림 보낼 정보 캡처
         String itemName = item.getName();
-        String approvedDiscordId = claim.getClaimant().getDiscordId();
+        User claimant = claim.getClaimant();
+        String approvedDiscordId = claimant.getDiscordId();
+        Integer claimantStudentCode = claimant.getStudentCode();
+        String claimantName = claimant.getName();
+        LocalDate visitDate = claim.getVisitDate();
 
         // 같은 물품에 대한 다른 PENDING 상태의 주장들을 모두 거절
         Long itemId = item.getId();
@@ -108,11 +112,12 @@ public class ItemClaimService {
 
         registerAfterCommit(() -> {
             if (approvedDiscordId != null && !approvedDiscordId.isBlank()) {
-                discordBotClient.notifyClaimApproved(approvedDiscordId, itemName);
+                discordBotClient.notifyClaimApproved(approvedDiscordId, itemName, visitDate);
             }
             for (String rejectedDiscordId : autoRejectedDiscordIds) {
                 discordBotClient.notifyClaimRejected(rejectedDiscordId, itemName);
             }
+            discordBotClient.notifyStaffPickupScheduled(claimantStudentCode, claimantName, visitDate, itemName);
         });
     }
 

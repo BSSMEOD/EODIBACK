@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -84,20 +85,23 @@ public class DiscordBotClient {
     private String buildDmMessage(String studentName) {
         return "✅ **인증이 완료되었습니다!**\n" +
                 "안녕하세요, **" + studentName + "**님!\n" +
-                "이오디 디스코드 인증이 성공적으로 완료되었습니다. 이제 서버의 모든 채널에 접근할 수 있습니다.";
+                "어디 디스코드 인증이 성공적으로 완료되었습니다. 이제 서버의 모든 채널에 접근할 수 있습니다.";
     }
 
     /**
      * 소유권 주장 승인 알림 (DM 만)
      */
-    public void notifyClaimApproved(String discordUserId, String itemName) {
+    public void notifyClaimApproved(String discordUserId, String itemName, LocalDate visitDate) {
         if (!properties.isTokenConfigured()) {
             log.warn("Discord bot token 미설정, claim approval DM 스킵 (discordId={})", discordUserId);
             return;
         }
+        String visitSchedule = visitDate != null
+                ? visitDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 13:10"
+                : "방문일 13:10";
         String message = "✅ **소유권 주장 승인**\n" +
                 "**" + safe(itemName) + "**에 대한 소유권 주장이 승인되었습니다.\n" +
-                "픽업할 날짜를 다음 형식으로 답장해주세요. 예: `4/23/12:00`";
+                "방문 예정 시각은 **" + visitSchedule + "** 입니다.";
         sendDmFireAndForget(discordUserId, message, "claim approval");
     }
 
@@ -112,6 +116,32 @@ public class DiscordBotClient {
         String message = "❌ **소유권 주장 거절**\n" +
                 "**" + safe(itemName) + "**에 대한 소유권 주장이 거절되었습니다.";
         sendDmFireAndForget(discordUserId, message, "claim rejection");
+    }
+
+    /**
+     * 스태프(2명)에게 승인된 픽업 일정 DM 발송
+     */
+    public void notifyStaffPickupScheduled(Integer studentCode, String studentName, LocalDate visitDate, String itemName) {
+        if (!properties.isTokenConfigured()) {
+            log.warn("Discord bot token 미설정, staff pickup notification 스킵");
+            return;
+        }
+        java.util.List<String> staffIds = properties.getActiveStaffNotificationIds();
+        if (staffIds.isEmpty()) {
+            log.warn("Discord staff notification IDs 미설정, staff pickup notification 스킵");
+            return;
+        }
+        String visitDateStr = visitDate != null
+                ? visitDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                : "방문일";
+        String studentCodeStr = studentCode != null ? studentCode.toString() : "학번 미등록";
+        String safeName = studentName == null || studentName.isBlank() ? "이름 미등록" : studentName;
+        String message = "📦 **픽업 예정 알림**\n" +
+                "**" + studentCodeStr + " " + safeName + "** 학생이 **" +
+                visitDateStr + " 13:10**에 **" + safe(itemName) + "**을(를) 찾으러 옵니다.";
+        for (String staffId : staffIds) {
+            sendDmFireAndForget(staffId, message, "staff pickup notification");
+        }
     }
 
     /**

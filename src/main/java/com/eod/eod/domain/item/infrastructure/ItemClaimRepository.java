@@ -6,6 +6,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -42,7 +43,7 @@ public interface ItemClaimRepository extends JpaRepository<ItemClaim, Long>, Ite
     @EntityGraph(attributePaths = "item")
     Page<ItemClaim> findByClaimantIdAndItemDeletedAtIsNull(Long claimantId, Pageable pageable);
 
-    // 픽업 리마인더용: 사용자의 가장 최근 APPROVED 클레임 (item fetch join)
-    @EntityGraph(attributePaths = "item")
-    Optional<ItemClaim> findFirstByClaimantIdAndStatusOrderByIdDesc(Long claimantId, ItemClaim.ClaimStatus status);
+    // 픽업 리마인더용: 지정한 방문 날짜의 승인된 클레임
+    @EntityGraph(attributePaths = {"item", "claimant"})
+    List<ItemClaim> findByStatusAndVisitDate(ItemClaim.ClaimStatus status, LocalDate visitDate);
 }
