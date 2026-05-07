@@ -27,6 +27,7 @@ services:
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
       - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
       - DISCORD_VERIFIED_ROLE_ID=${DISCORD_VERIFIED_ROLE_ID}
+      - DISCORD_STAFF_NOTIFY_IDS=${DISCORD_STAFF_NOTIFY_IDS}
     depends_on:
       mysql:
         condition: service_healthy
