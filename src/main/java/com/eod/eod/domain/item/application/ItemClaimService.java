@@ -108,7 +108,7 @@ public class ItemClaimService {
 
         registerAfterCommit(() -> {
             if (approvedDiscordId != null && !approvedDiscordId.isBlank()) {
-                discordBotClient.notifyClaimApproved(approvedDiscordId, itemName);
+                discordBotClient.notifyClaimApproved(approvedDiscordId, itemName, claim.getVisitDate());
             }
             for (String rejectedDiscordId : autoRejectedDiscordIds) {
                 discordBotClient.notifyClaimRejected(rejectedDiscordId, itemName);

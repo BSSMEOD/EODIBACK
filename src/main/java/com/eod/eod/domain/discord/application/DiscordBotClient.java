@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
@@ -84,20 +85,23 @@ public class DiscordBotClient {
     private String buildDmMessage(String studentName) {
         return "✅ **인증이 완료되었습니다!**\n" +
                 "안녕하세요, **" + studentName + "**님!\n" +
-                "이오디 디스코드 인증이 성공적으로 완료되었습니다. 이제 서버의 모든 채널에 접근할 수 있습니다.";
+                "어디 디스코드 인증이 성공적으로 완료되었습니다. 이제 서버의 모든 채널에 접근할 수 있습니다.";
     }
 
     /**
      * 소유권 주장 승인 알림 (DM 만)
      */
-    public void notifyClaimApproved(String discordUserId, String itemName) {
+    public void notifyClaimApproved(String discordUserId, String itemName, LocalDate visitDate) {
         if (!properties.isTokenConfigured()) {
             log.warn("Discord bot token 미설정, claim approval DM 스킵 (discordId={})", discordUserId);
             return;
         }
+        String visitSchedule = visitDate != null
+                ? visitDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 13:10"
+                : "방문일 13:10";
         String message = "✅ **소유권 주장 승인**\n" +
                 "**" + safe(itemName) + "**에 대한 소유권 주장이 승인되었습니다.\n" +
-                "픽업할 날짜를 다음 형식으로 답장해주세요. 예: `4/23/12:00`";
+                "방문 예정 시각은 **" + visitSchedule + "** 입니다.";
         sendDmFireAndForget(discordUserId, message, "claim approval");
     }
 
