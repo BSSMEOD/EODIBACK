@@ -119,6 +119,32 @@ public class DiscordBotClient {
     }
 
     /**
+     * 스태프(2명)에게 승인된 픽업 일정 DM 발송
+     */
+    public void notifyStaffPickupScheduled(Integer studentCode, String studentName, LocalDate visitDate, String itemName) {
+        if (!properties.isTokenConfigured()) {
+            log.warn("Discord bot token 미설정, staff pickup notification 스킵");
+            return;
+        }
+        java.util.List<String> staffIds = properties.getActiveStaffNotificationIds();
+        if (staffIds.isEmpty()) {
+            log.warn("Discord staff notification IDs 미설정, staff pickup notification 스킵");
+            return;
+        }
+        String visitDateStr = visitDate != null
+                ? visitDate.format(DateTimeFormatter.ISO_LOCAL_DATE)
+                : "방문일";
+        String studentCodeStr = studentCode != null ? studentCode.toString() : "학번 미등록";
+        String safeName = studentName == null || studentName.isBlank() ? "이름 미등록" : studentName;
+        String message = "📦 **픽업 예정 알림**\n" +
+                "**" + studentCodeStr + " " + safeName + "** 학생이 **" +
+                visitDateStr + " 13:10**에 **" + safe(itemName) + "**을(를) 찾으러 옵니다.";
+        for (String staffId : staffIds) {
+            sendDmFireAndForget(staffId, message, "staff pickup notification");
+        }
+    }
+
+    /**
      * 픽업 당일 아침 리마인더 (DM 만)
      */
     public void notifyPickupReminder(String discordUserId, String itemName, LocalDateTime pickupTime) {
