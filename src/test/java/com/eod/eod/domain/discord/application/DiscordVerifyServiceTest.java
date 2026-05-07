@@ -24,6 +24,9 @@ class DiscordVerifyServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private DiscordBotClient discordBotClient;
+
     @InjectMocks
     private DiscordVerifyService discordVerifyService;
 
