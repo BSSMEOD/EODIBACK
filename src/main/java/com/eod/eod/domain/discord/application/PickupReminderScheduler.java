@@ -20,12 +20,12 @@ public class PickupReminderScheduler {
     private final DiscordBotClient discordBotClient;
 
     /**
-     * 매일 13:10에 실행. visit_date가 오늘인 승인된 클레임 대상자에게 Discord DM 리마인더를 보낸다.
+     * 매일 08:00에 실행. visit_date가 오늘인 승인된 클레임 대상자에게 Discord DM 리마인더를 보낸다.
      */
-    @Scheduled(cron = "0 10 13 * * *")
+    @Scheduled(cron = "0 0 8 * * *")
     public void sendPickupReminders() {
         LocalDate today = LocalDate.now();
-        LocalDateTime pickupTime = today.atTime(13, 10);
+        LocalDateTime pickupTime = today.atTime(13, 30);
         List<ItemClaim> claims = itemClaimRepository.findByStatusAndVisitDate(ItemClaim.ClaimStatus.APPROVED, today);
         log.info("픽업 리마인더 스케줄러 시작 - 대상 {}건", claims.size());
 

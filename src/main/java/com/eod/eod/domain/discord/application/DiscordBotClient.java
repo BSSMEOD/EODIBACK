@@ -97,8 +97,8 @@ public class DiscordBotClient {
             return;
         }
         String visitSchedule = visitDate != null
-                ? visitDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 13:10"
-                : "방문일 13:10";
+                ? visitDate.format(DateTimeFormatter.ISO_LOCAL_DATE) + " 13:30"
+                : "방문일 13:30";
         String message = "✅ **소유권 주장 승인**\n" +
                 "**" + safe(itemName) + "**에 대한 소유권 주장이 승인되었습니다.\n" +
                 "방문 예정 시각은 **" + visitSchedule + "** 입니다.";
@@ -138,7 +138,7 @@ public class DiscordBotClient {
         String safeName = studentName == null || studentName.isBlank() ? "이름 미등록" : studentName;
         String message = "📦 **픽업 예정 알림**\n" +
                 "**" + studentCodeStr + " " + safeName + "** 학생이 **" +
-                visitDateStr + " 13:10**에 **" + safe(itemName) + "**을(를) 찾으러 옵니다.";
+                visitDateStr + " 13:30**에 **" + safe(itemName) + "**을(를) 찾으러 옵니다.";
         for (String staffId : staffIds) {
             sendDmFireAndForget(staffId, message, "staff pickup notification");
         }
