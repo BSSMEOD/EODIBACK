@@ -144,6 +144,7 @@ services:
       - ./monitoring/blackbox/blackbox.yml:/etc/blackbox/blackbox.yml:ro
     networks:
       - eod-network
+      - eod-network-dev
 
   alertmanager:
     image: prom/alertmanager:v0.27.0
