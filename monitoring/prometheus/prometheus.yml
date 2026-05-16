@@ -23,7 +23,7 @@ scrape_configs:
   - job_name: "eod-app-dev"
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["host.docker.internal:8082"]
+      - targets: ["eod-app-dev:8081"]
         labels:
           application: eod
           runtime: docker

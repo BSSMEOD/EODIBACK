@@ -18,7 +18,7 @@
 - Modify: `docker-compose.yml`
 
 - [x] Add `MANAGEMENT_SERVER_PORT=${MANAGEMENT_SERVER_PORT:-8081}` to the dev app environment.
-- [x] Publish the dev management port on loopback only, using host port `8082`.
+- [x] Keep the dev management port private on Docker networking and expose it through `eod-app-dev:8081` on the shared `eod-network-dev` network.
 - [x] Validate with `docker compose -f docker-compose.yml config`.
 
 ### Task 2: Let Production Monitoring Reach Host-Published Dev Targets
@@ -26,7 +26,7 @@
 **Files:**
 - Modify: `docker-compose.prod.yml`
 
-- [x] Add `extra_hosts: ["host.docker.internal:host-gateway"]` to production Prometheus.
+- [x] Attach production Prometheus to the shared external `eod-network-dev` network.
 - [x] Add a lightweight `mysqld-exporter-dev` service to production compose.
 - [x] Mount dev app and MySQL log volumes into production Alloy as read-only external volumes.
 - [x] Declare the dev log volumes as external named volumes.
@@ -40,7 +40,7 @@
 - Modify: `monitoring/prometheus/prometheus.yml`
 
 - [x] Add `env="prod"` to existing production scrape targets.
-- [x] Add a dev app scrape target for `host.docker.internal:8082`.
+- [x] Add a dev app scrape target for `eod-app-dev:8081`.
 - [x] Add a dev MySQL scrape target for `mysqld-exporter-dev:9104`.
 - [x] Keep host/container metrics central and label them as `env="shared"`.
 - [x] Validate Prometheus YAML parsing.
