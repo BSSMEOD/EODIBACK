@@ -199,6 +199,17 @@ jobs:
           done
           echo "========================================="
 
+          # 중앙 모니터링이 dev 컨테이너에 직접 접근할 공유 네트워크 확인 및 생성
+          echo "========================================="
+          echo "🌐 dev 모니터링 공유 네트워크 확인 중..."
+          if ! docker network inspect eod-network-dev >/dev/null 2>&1; then
+            docker network create eod-network-dev
+            echo "✅ 네트워크 생성 완료: eod-network-dev"
+          else
+            echo "✅ 네트워크가 이미 존재합니다: eod-network-dev"
+          fi
+          echo "========================================="
+
           # 로그 디렉토리 생성
           echo "========================================="
           echo "📁 로그 디렉토리 생성 중..."

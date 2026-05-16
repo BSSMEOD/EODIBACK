@@ -156,6 +156,17 @@ jobs:
           fi
           echo "========================================="
 
+          # 중앙 모니터링 공유 네트워크 확인 및 생성
+          echo "========================================="
+          echo "🌐 dev 모니터링 공유 네트워크 확인 중..."
+          if ! docker network inspect eod-network-dev >/dev/null 2>&1; then
+            docker network create eod-network-dev
+            echo "✅ 네트워크 생성 완료: eod-network-dev"
+          else
+            echo "✅ 네트워크가 이미 존재합니다: eod-network-dev"
+          fi
+          echo "========================================="
+
           # Docker Compose로 배포
           echo "========================================="
           echo "🚀 Docker Compose 배포 시작"

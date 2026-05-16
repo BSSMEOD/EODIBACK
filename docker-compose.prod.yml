@@ -66,8 +66,6 @@ services:
     image: prom/prometheus:v2.54.1
     container_name: eod-prometheus
     restart: always
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     ports:
       - "127.0.0.1:9091:9090"
     volumes:
@@ -80,6 +78,7 @@ services:
         condition: service_started
     networks:
       - eod-network
+      - eod-network-dev
 
   node-exporter:
     image: prom/node-exporter:v1.9.1
@@ -127,14 +126,13 @@ services:
     container_name: eod-mysqld-exporter-dev-central
     restart: always
     command:
-      - --mysqld.address=host.docker.internal:3306
+      - --mysqld.address=eod-mysql-dev:3306
       - --mysqld.username=${DEV_MYSQL_USER:-${MYSQL_USER}}
     environment:
       - MYSQLD_EXPORTER_PASSWORD=${DEV_MYSQL_PASSWORD:-${MYSQL_PASSWORD}}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - eod-network
+      - eod-network-dev
 
   blackbox-exporter:
     image: prom/blackbox-exporter:v0.27.0
@@ -241,3 +239,6 @@ volumes:
 networks:
   eod-network:
     driver: bridge
+  eod-network-dev:
+    external: true
+    name: eod-network-dev
