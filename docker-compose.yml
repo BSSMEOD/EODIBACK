@@ -8,7 +8,6 @@ services:
     restart: always
     ports:
       - "8000:8080"
-      - "127.0.0.1:8082:8081"
     environment:
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
@@ -215,4 +214,5 @@ volumes:
 
 networks:
   eod-network-dev:
-    driver: bridge
+    external: true
+    name: eod-network-dev

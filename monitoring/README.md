@@ -16,9 +16,9 @@ In the normal same-LXC deployment:
 
 - Production runs the only Prometheus, Grafana, Loki, Alloy, Node Exporter, and cAdvisor stack.
 - Dev runs `app` and `mysql` by default.
-- Dev app metrics are exposed only on loopback as `127.0.0.1:8082`, forwarded to the app management port `8081`.
-- Production Prometheus scrapes dev app metrics through `host.docker.internal:8082`.
-- Production runs `mysqld-exporter-dev`, which connects to dev MySQL through `host.docker.internal:3306`.
+- Dev app metrics stay inside Docker and are scraped over the shared `eod-network-dev` network from `eod-app-dev:8081`.
+- Production Prometheus joins `eod-network-dev` and scrapes dev app metrics from `eod-app-dev:8081`.
+- Production runs `mysqld-exporter-dev`, which joins `eod-network-dev` and connects to dev MySQL at `eod-mysql-dev:3306`.
 - Production Alloy tails both prod and dev log volumes and labels entries with `env="prod"` or `env="dev"`.
 
 This keeps dev visible while avoiding a second Prometheus, Grafana, Loki, Alloy, Node Exporter, and cAdvisor stack during normal deployments.
@@ -42,7 +42,7 @@ Production deployment requires the dev MySQL credentials in:
 - `DEV_MYSQL_USER`
 - `DEV_MYSQL_PASSWORD`
 
-The GitHub production CD workflow fills these from the existing dev database secrets.
+The GitHub production and dev CD workflows ensure the shared external Docker network `eod-network-dev` exists before Compose runs. The production CD workflow fills these from the existing dev database secrets.
 
 ## Required production environment variables
 
@@ -89,6 +89,8 @@ Dashboard files:
 - `monitoring/grafana/dashboards/eod-infrastructure.json`: server, container, MySQL, and availability metrics
 - `monitoring/grafana/dashboards/eod-jvm.json`: JVM memory, GC, threads, and classes
 - `monitoring/grafana/dashboards/eod-domain-metrics.json`: EOD business/domain metrics
+- `monitoring/grafana/dashboards/eod-dev-monitoring.json`: dev-only app, MySQL, JVM, and container metrics
+- `monitoring/grafana/dashboards/eod-logs.json`: prod/dev application and MySQL logs from Loki
 
 Application, JVM, and domain dashboards include an `env` variable so prod and dev metrics can be viewed separately from the same Grafana instance.
 
@@ -125,6 +127,8 @@ Direct LogQL check:
 {service_name="eod-backend", server="eod-prod-01"}
 {service_name="eod-backend", env="dev"}
 ```
+
+Grafana Logs Drilldown is available from `Drilldown > Logs` in Grafana 12. The `EOD Logs` dashboard also includes a direct link to `/a/grafana-lokiexplore-app` and fixed prod/dev Loki panels so logs remain visible even when the Drilldown navigation is not obvious.
 
 Operational checks:
 
