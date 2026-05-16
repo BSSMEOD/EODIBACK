@@ -83,16 +83,20 @@ The monitoring stack collects metrics from:
 
 The application exposes `GET /healthz` as a lightweight unauthenticated liveness endpoint for HTTP availability checks. It intentionally does not check MySQL; database health is monitored separately through MySQL Exporter and HikariCP metrics.
 
-Dashboard files:
+Dashboard files are provisioned from folder structure:
 
-- `monitoring/grafana/dashboards/eod-overview.json`: application HTTP/JVM/DB overview
-- `monitoring/grafana/dashboards/eod-infrastructure.json`: server, container, MySQL, and availability metrics
-- `monitoring/grafana/dashboards/eod-jvm.json`: JVM memory, GC, threads, and classes
-- `monitoring/grafana/dashboards/eod-domain-metrics.json`: EOD business/domain metrics
-- `monitoring/grafana/dashboards/eod-dev-monitoring.json`: dev-only app, MySQL, JVM, and container metrics
-- `monitoring/grafana/dashboards/eod-logs.json`: prod/dev application and MySQL logs from Loki
+- `monitoring/grafana/dashboards/prod`: production dashboards
+- `monitoring/grafana/dashboards/dev`: development dashboards, including the restored dev monitoring views
+- `monitoring/grafana/dashboards/logs`: Loki log dashboards
 
-Application, JVM, and domain dashboards include an `env` variable so prod and dev metrics can be viewed separately from the same Grafana instance.
+Grafana creates matching `prod`, `dev`, and `logs` folders from these directories.
+
+Imported upstream dashboard bases:
+
+- Grafana dashboard `1860` Node Exporter Full: added under `prod` as the shared LXC host dashboard.
+- Grafana dashboard `15798` Docker monitoring: adapted for cAdvisor `name` labels and added to both `prod` and `dev`.
+- Grafana dashboard `14057` MySQL Exporter Quickstart: added to both `prod` and `dev` with `job="mysql"` / `job="mysql-dev"` defaults.
+- Grafana dashboard `20729` Spring Boot JDBC & HikariCP: adapted from `namespace` labels to EOD `env` labels and added to both `prod` and `dev`.
 
 Domain metric names:
 
@@ -115,7 +119,9 @@ Production Grafana Alloy tails both `/var/log/eod/prod/application.log` and `/va
 
 Important Loki labels:
 
-- `service_name="eod-backend"`: primary service label for Logs Drilldown
+- `service_name="eod-backend-prod"` and `service_name="eod-backend-dev"`: application services shown separately in Logs Drilldown
+- `service_name="mysql-prod"` and `service_name="mysql-dev"`: MySQL log services shown separately in Logs Drilldown
+- `service="eod-backend"` and `service="mysql"`: common service family labels for cross-environment LogQL
 - `server="eod-prod-01"`: production server label configured in `docker-compose.prod.yml`
 - `env="prod"` or `env="dev"`: source environment label
 - `container`: Docker container role
@@ -124,11 +130,11 @@ Important Loki labels:
 Direct LogQL check:
 
 ```logql
-{service_name="eod-backend", server="eod-prod-01"}
-{service_name="eod-backend", env="dev"}
+{service_name="eod-backend-prod"}
+{service_name="eod-backend-dev"}
 ```
 
-Grafana Logs Drilldown is available from `Drilldown > Logs` in Grafana 12. The `EOD Logs` dashboard also includes a direct link to `/a/grafana-lokiexplore-app` and fixed prod/dev Loki panels so logs remain visible even when the Drilldown navigation is not obvious.
+Grafana Logs Drilldown is available from `Drilldown > Logs` in Grafana 12. Logs are exposed as separate Drilldown services through the `service_name` labels `eod-backend-prod`, `eod-backend-dev`, `mysql-prod`, and `mysql-dev`. If Drilldown opens with no logs, expand the time range first; the app default is shorter than the dashboard default.
 
 Operational checks:
 

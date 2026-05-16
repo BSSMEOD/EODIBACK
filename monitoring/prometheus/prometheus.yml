@@ -102,6 +102,12 @@ scrape_configs:
           application: eod
           availability_target: app-internal
           env: prod
+      - targets:
+          - "http://eod-app-dev:8080/healthz"
+        labels:
+          application: eod
+          availability_target: app-dev-internal
+          env: dev
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target
