@@ -21,7 +21,7 @@
   "schemaVersion": 39,
   "style": "dark",
   "tags": ["eod", "prometheus", "jvm"],
-  "templating": {"list": []},
+  "templating": {"list": [{"name":"env","type":"query","datasource":{"type":"prometheus","uid":"prometheus"},"query":"label_values(up, env)","refresh":1,"sort":1,"current":{"text":"prod","value":"prod"},"includeAll":false,"multi":false}]},
   "time": {"from": "now-6h", "to": "now"},
   "timepicker": {},
   "timezone": "",
@@ -49,21 +49,21 @@
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "sum(jvm_memory_used_bytes{application=\"eod\", area=\"heap\"})",
+          "expr": "sum(jvm_memory_used_bytes{application=\"eod\",env=~\"$env\", area=\"heap\"})",
           "legendFormat": "used",
           "refId": "A"
         },
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "sum(jvm_memory_committed_bytes{application=\"eod\", area=\"heap\"})",
+          "expr": "sum(jvm_memory_committed_bytes{application=\"eod\",env=~\"$env\", area=\"heap\"})",
           "legendFormat": "committed",
           "refId": "B"
         },
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "sum(jvm_memory_max_bytes{application=\"eod\", area=\"heap\"} > 0)",
+          "expr": "sum(jvm_memory_max_bytes{application=\"eod\",env=~\"$env\", area=\"heap\"} > 0)",
           "legendFormat": "max",
           "refId": "C"
         }
@@ -90,7 +90,7 @@
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "sum by (id) (jvm_memory_used_bytes{application=\"eod\", area=\"nonheap\"})",
+          "expr": "sum by (id) (jvm_memory_used_bytes{application=\"eod\",env=~\"$env\", area=\"nonheap\"})",
           "legendFormat": "{{id}}",
           "refId": "A"
         }
@@ -117,7 +117,7 @@
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "sum by (action, cause) (rate(jvm_gc_pause_seconds_sum{application=\"eod\"}[5m]))",
+          "expr": "sum by (action, cause) (rate(jvm_gc_pause_seconds_sum{application=\"eod\",env=~\"$env\"}[5m]))",
           "legendFormat": "{{action}} / {{cause}}",
           "refId": "A"
         }
@@ -144,7 +144,7 @@
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "sum by (action) (rate(jvm_gc_pause_seconds_count{application=\"eod\"}[5m])) * 60",
+          "expr": "sum by (action) (rate(jvm_gc_pause_seconds_count{application=\"eod\",env=~\"$env\"}[5m])) * 60",
           "legendFormat": "{{action}}",
           "refId": "A"
         }
@@ -171,21 +171,21 @@
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "jvm_threads_live_threads{application=\"eod\"}",
+          "expr": "jvm_threads_live_threads{application=\"eod\",env=~\"$env\"}",
           "legendFormat": "live",
           "refId": "A"
         },
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "jvm_threads_daemon_threads{application=\"eod\"}",
+          "expr": "jvm_threads_daemon_threads{application=\"eod\",env=~\"$env\"}",
           "legendFormat": "daemon",
           "refId": "B"
         },
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "jvm_threads_peak_threads{application=\"eod\"}",
+          "expr": "jvm_threads_peak_threads{application=\"eod\",env=~\"$env\"}",
           "legendFormat": "peak",
           "refId": "C"
         }
@@ -212,7 +212,7 @@
         {
           "datasource": {"type": "prometheus", "uid": "prometheus"},
           "editorMode": "code",
-          "expr": "jvm_classes_loaded_classes{application=\"eod\"}",
+          "expr": "jvm_classes_loaded_classes{application=\"eod\",env=~\"$env\"}",
           "legendFormat": "loaded",
           "refId": "A"
         }

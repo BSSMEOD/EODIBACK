@@ -8,6 +8,7 @@ services:
     restart: always
     ports:
       - "8000:8080"
+      - "127.0.0.1:8082:8081"
     environment:
       - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL}
       - SPRING_DATASOURCE_USERNAME=${SPRING_DATASOURCE_USERNAME}
@@ -23,6 +24,7 @@ services:
       - BSM_CLIENT_SECRET=${BSM_CLIENT_SECRET}
       - BSM_OAUTH_BASE_URL=${BSM_OAUTH_BASE_URL}
       - BSM_REDIRECT_URI=${BSM_REDIRECT_URI}
+      - MANAGEMENT_SERVER_PORT=${MANAGEMENT_SERVER_PORT:-8081}
       - FILE_UPLOAD_DIR=/eod/uploads
       - FILE_UPLOAD_BASE_URL=${FILE_UPLOAD_BASE_URL}
       - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
@@ -64,6 +66,7 @@ services:
       retries: 10
 
   prometheus:
+    profiles: ["monitoring"]
     image: prom/prometheus:v2.54.1
     container_name: eod-prometheus-dev
     restart: always
@@ -76,6 +79,7 @@ services:
       - eod-network-dev
 
   node-exporter:
+    profiles: ["monitoring"]
     image: prom/node-exporter:v1.9.1
     container_name: eod-node-exporter-dev
     restart: always
@@ -88,6 +92,7 @@ services:
       - eod-network-dev
 
   cadvisor:
+    profiles: ["monitoring"]
     image: gcr.io/cadvisor/cadvisor:v0.52.1
     container_name: eod-cadvisor-dev
     restart: always
@@ -102,6 +107,7 @@ services:
       - eod-network-dev
 
   mysqld-exporter:
+    profiles: ["monitoring"]
     image: prom/mysqld-exporter:v0.19.0
     container_name: eod-mysqld-exporter-dev
     restart: always
@@ -117,6 +123,7 @@ services:
       - eod-network-dev
 
   blackbox-exporter:
+    profiles: ["monitoring"]
     image: prom/blackbox-exporter:v0.27.0
     container_name: eod-blackbox-exporter-dev
     restart: always
@@ -130,6 +137,7 @@ services:
       - eod-network-dev
 
   loki:
+    profiles: ["monitoring"]
     image: grafana/loki:3.7.0
     container_name: eod-loki-dev
     restart: always
@@ -144,6 +152,7 @@ services:
       - eod-network-dev
 
   alloy:
+    profiles: ["monitoring"]
     image: grafana/alloy:v1.11.3
     container_name: eod-alloy-dev
     restart: always
@@ -169,6 +178,7 @@ services:
       - eod-network-dev
 
   grafana:
+    profiles: ["monitoring"]
     image: grafana/grafana:12.4.0
     container_name: eod-grafana-dev
     restart: always

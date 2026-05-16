@@ -77,7 +77,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (domain, action, result) (increase(eod_business_events_total[5m]))",
+          "expr": "sum by (domain, action, result) (increase(eod_business_events_total{env=~\"$env\"}[5m]))",
           "legendFormat": "{{ domain }} / {{ action }} / {{ result }}",
           "range": true,
           "refId": "A"
@@ -152,7 +152,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (domain, action) (increase(eod_business_events_total{result=\"failure\"}[10m]))",
+          "expr": "sum by (domain, action) (increase(eod_business_events_total{env=~\"$env\",result=\"failure\"}[10m]))",
           "legendFormat": "{{ domain }} / {{ action }}",
           "range": true,
           "refId": "A"
@@ -222,7 +222,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "eod_items_current",
+          "expr": "eod_items_current{env=~\"$env\"}",
           "legendFormat": "{{ status }}",
           "range": true,
           "refId": "A"
@@ -292,7 +292,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "eod_claims_current",
+          "expr": "eod_claims_current{env=~\"$env\"}",
           "legendFormat": "{{ status }}",
           "range": true,
           "refId": "A"
@@ -355,7 +355,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "eod_reward_eligible_items",
+          "expr": "eod_reward_eligible_items{env=~\"$env\"}",
           "legendFormat": "eligible",
           "range": true,
           "refId": "A"
@@ -366,7 +366,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "eod_reward_records_current",
+          "expr": "eod_reward_records_current{env=~\"$env\"}",
           "legendFormat": "records",
           "range": true,
           "refId": "B"
@@ -434,7 +434,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "histogram_quantile(0.95, sum by (le, operation, result) (rate(eod_external_call_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (le, operation, result) (rate(eod_external_call_seconds_bucket{env=~\"$env\"}[5m])))",
           "legendFormat": "{{ operation }} / {{ result }}",
           "range": true,
           "refId": "A"
@@ -501,7 +501,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (result) (increase(eod_business_events_total{domain=\"image\",action=\"upload\"}[5m]))",
+          "expr": "sum by (result) (increase(eod_business_events_total{env=~\"$env\",domain=\"image\",action=\"upload\"}[5m]))",
           "legendFormat": "{{ result }}",
           "range": true,
           "refId": "A"
@@ -568,7 +568,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (task, result) (increase(eod_scheduler_runs_total[1h]))",
+          "expr": "sum by (task, result) (increase(eod_scheduler_runs_total{env=~\"$env\"}[1h]))",
           "legendFormat": "{{ task }} / {{ result }}",
           "range": true,
           "refId": "A"
@@ -579,7 +579,7 @@
             "uid": "prometheus"
           },
           "editorMode": "code",
-          "expr": "sum by (task) (increase(eod_scheduler_processed_items_sum[1h]))",
+          "expr": "sum by (task) (increase(eod_scheduler_processed_items_sum{env=~\"$env\"}[1h]))",
           "legendFormat": "{{ task }} processed",
           "range": true,
           "refId": "B"
@@ -598,7 +598,7 @@
     "domain"
   ],
   "templating": {
-    "list": []
+    "list": [{"name":"env","type":"query","datasource":{"type":"prometheus","uid":"prometheus"},"query":"label_values(up, env)","refresh":1,"sort":1,"current":{"text":"prod","value":"prod"},"includeAll":false,"multi":false}]
   },
   "time": {
     "from": "now-6h",

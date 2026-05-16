@@ -32,7 +32,7 @@ class PickupReminderSchedulerTest {
     private PickupReminderScheduler pickupReminderScheduler;
 
     @Test
-    void 오늘_visitDate인_승인건에_13시10분_리마인더를_보낸다() {
+    void 오늘_visitDate인_승인건에_13시30분_리마인더를_보낸다() {
         LocalDate today = LocalDate.now();
         User user = User.builder()
                 .oauthProvider("bsm")
@@ -61,7 +61,7 @@ class PickupReminderSchedulerTest {
 
         ArgumentCaptor<LocalDateTime> pickupTimeCaptor = ArgumentCaptor.forClass(LocalDateTime.class);
         verify(discordBotClient).notifyPickupReminder(eq("123456789"), eq("지갑"), pickupTimeCaptor.capture());
-        assertThat(pickupTimeCaptor.getValue()).isEqualTo(today.atTime(13, 10));
+        assertThat(pickupTimeCaptor.getValue()).isEqualTo(today.atTime(13, 30));
     }
 
     @Test
