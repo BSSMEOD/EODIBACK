@@ -25,7 +25,9 @@
       "icon": "external link",
       "includeVars": true,
       "keepTime": true,
-      "tags": [],
+      "tags": [
+
+      ],
       "targetBlank": false,
       "title": "Open Logs Drilldown",
       "tooltip": "Open Grafana Logs Drilldown",
@@ -37,12 +39,14 @@
       "icon": "external link",
       "includeVars": true,
       "keepTime": true,
-      "tags": [],
+      "tags": [
+
+      ],
       "targetBlank": false,
       "title": "Open Explore",
       "tooltip": "Open Grafana Explore",
       "type": "link",
-      "url": "/explore?schemaVersion=1&panes=%7B%22eodLogs%22:%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bservice_name%3D%5C%22eod-backend%5C%22%7D%22%7D%5D,%22range%22:%7B%22from%22:%22now-1h%22,%22to%22:%22now%22%7D%7D%7D"
+      "url": "/explore?schemaVersion=1&panes=%7B%22eodLogs%22:%7B%22datasource%22:%22loki%22,%22queries%22:%5B%7B%22refId%22:%22A%22,%22expr%22:%22%7Bservice%3D%5C%22eod-backend%5C%22%7D%22%7D%5D,%22range%22:%7B%22from%22:%22now-6h%22,%22to%22:%22now%22%7D%7D%7D"
     }
   ],
   "panels": [
@@ -52,8 +56,11 @@
         "uid": "loki"
       },
       "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+        "defaults": {
+        },
+        "overrides": [
+
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -81,7 +88,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{service_name=\"eod-backend\", env=\"prod\"}",
+          "expr": "{service_name=\"eod-backend-prod\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -95,8 +102,11 @@
         "uid": "loki"
       },
       "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+        "defaults": {
+        },
+        "overrides": [
+
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -124,7 +134,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{service_name=\"eod-backend\", env=\"dev\"}",
+          "expr": "{service_name=\"eod-backend-dev\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -138,8 +148,11 @@
         "uid": "loki"
       },
       "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+        "defaults": {
+        },
+        "overrides": [
+
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -167,7 +180,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{service_name=\"mysql\", env=\"prod\"}",
+          "expr": "{service_name=\"mysql-prod\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -181,8 +194,11 @@
         "uid": "loki"
       },
       "fieldConfig": {
-        "defaults": {},
-        "overrides": []
+        "defaults": {
+        },
+        "overrides": [
+
+        ]
       },
       "gridPos": {
         "h": 8,
@@ -210,7 +226,7 @@
           },
           "direction": "backward",
           "editorMode": "code",
-          "expr": "{service_name=\"mysql\", env=\"dev\"}",
+          "expr": "{service_name=\"mysql-dev\"}",
           "queryType": "range",
           "refId": "A"
         }
@@ -228,13 +244,16 @@
     "loki"
   ],
   "templating": {
-    "list": []
+    "list": [
+
+    ]
   },
   "time": {
     "from": "now-6h",
     "to": "now"
   },
-  "timepicker": {},
+  "timepicker": {
+  },
   "timezone": "browser",
   "title": "EOD Logs",
   "uid": "eod-logs",
