@@ -8,6 +8,42 @@
 - Prometheus is bound to `127.0.0.1` in production. Grafana is published on port `3002` for external access and must use a strong `GRAFANA_ADMIN_PASSWORD`.
 - Alertmanager stays on the internal Docker network and receives alerts directly from Prometheus.
 
+## Development monitoring policy
+
+The development compose file keeps the application and MySQL running by default. The full dev monitoring stack remains opt-in through the `monitoring` profile for temporary local troubleshooting, but continuous dev monitoring is handled by the production monitoring stack.
+
+In the normal same-LXC deployment:
+
+- Production runs the only Prometheus, Grafana, Loki, Alloy, Node Exporter, and cAdvisor stack.
+- Dev runs `app` and `mysql` by default.
+- Dev app metrics are exposed only on loopback as `127.0.0.1:8082`, forwarded to the app management port `8081`.
+- Production Prometheus scrapes dev app metrics through `host.docker.internal:8082`.
+- Production runs `mysqld-exporter-dev`, which connects to dev MySQL through `host.docker.internal:3306`.
+- Production Alloy tails both prod and dev log volumes and labels entries with `env="prod"` or `env="dev"`.
+
+This keeps dev visible while avoiding a second Prometheus, Grafana, Loki, Alloy, Node Exporter, and cAdvisor stack during normal deployments.
+
+Default dev deployment:
+
+```bash
+docker compose -f docker-compose.yml up -d
+```
+
+Temporary dev monitoring:
+
+```bash
+docker compose -f docker-compose.yml --profile monitoring up -d
+```
+
+The dev CD workflow runs `docker compose -f docker-compose.yml --profile monitoring down --remove-orphans` before starting the default services, so older dev monitoring containers are removed during the next deployment.
+
+Production deployment requires the dev MySQL credentials in:
+
+- `DEV_MYSQL_USER`
+- `DEV_MYSQL_PASSWORD`
+
+The GitHub production CD workflow fills these from the existing dev database secrets.
+
 ## Required production environment variables
 
 - `GRAFANA_ADMIN_USER`
@@ -41,7 +77,7 @@ The monitoring stack collects metrics from:
 - Spring Boot Actuator: HTTP, JVM, HikariCP, and EOD custom domain metrics
 - Node Exporter: host CPU, memory, disk, inode, and network metrics
 - cAdvisor: Docker container resource metrics
-- MySQL Exporter: MySQL health, connections, and server metrics
+- MySQL Exporter: prod and dev MySQL health, connections, and server metrics
 - Blackbox Exporter: internal and public HTTP availability checks
 - Loki, Alloy, Grafana, and Prometheus self metrics
 
@@ -51,7 +87,10 @@ Dashboard files:
 
 - `monitoring/grafana/dashboards/eod-overview.json`: application HTTP/JVM/DB overview
 - `monitoring/grafana/dashboards/eod-infrastructure.json`: server, container, MySQL, and availability metrics
+- `monitoring/grafana/dashboards/eod-jvm.json`: JVM memory, GC, threads, and classes
 - `monitoring/grafana/dashboards/eod-domain-metrics.json`: EOD business/domain metrics
+
+Application, JVM, and domain dashboards include an `env` variable so prod and dev metrics can be viewed separately from the same Grafana instance.
 
 Domain metric names:
 
@@ -68,15 +107,15 @@ Domain metric names:
 
 ## Logs
 
-Application logs are written by Logback to `/logs/application.log` inside the app container. In production, `docker-compose.prod.yml` mounts host `/eod/prod/logs` to that path.
+Application logs are written by Logback to `/logs/application.log` inside each app container. In production, `docker-compose.prod.yml` mounts the named volume `app-logs-prod` to that path. In dev, `docker-compose.yml` mounts `app-logs-dev`.
 
-Grafana Alloy tails `/eod/prod/logs/application.log` through a read-only mount, parses the current Logback text format, attaches labels, and sends entries to Loki. Loki stays on the internal Docker network; Grafana is the user-facing access point for Explore and Drilldown > Logs.
+Production Grafana Alloy tails both `/var/log/eod/prod/application.log` and `/var/log/eod/dev/application.log` through read-only mounts, parses the current Logback text format, attaches labels, and sends entries to Loki. Loki stays on the internal Docker network; Grafana is the user-facing access point for Explore and Drilldown > Logs.
 
 Important Loki labels:
 
 - `service_name="eod-backend"`: primary service label for Logs Drilldown
 - `server="eod-prod-01"`: production server label configured in `docker-compose.prod.yml`
-- `env="prod"`: production environment label configured in `docker-compose.prod.yml`
+- `env="prod"` or `env="dev"`: source environment label
 - `container`: Docker container role
 - `level`: parsed log severity
 
@@ -84,6 +123,7 @@ Direct LogQL check:
 
 ```logql
 {service_name="eod-backend", server="eod-prod-01"}
+{service_name="eod-backend", env="dev"}
 ```
 
 Operational checks:

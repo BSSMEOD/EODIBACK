@@ -143,6 +143,8 @@ jobs:
           DISCORD_BOT_TOKEN=${{ secrets.PROD_DISCORD_BOT_TOKEN }}
           DISCORD_GUILD_ID=${{ secrets.PROD_DISCORD_GUILD_ID }}
           DISCORD_VERIFIED_ROLE_ID=${{ secrets.PROD_DISCORD_VERIFIED_ROLE_ID }}
+          DEV_MYSQL_USER=${{ secrets.DB_USERNAME }}
+          DEV_MYSQL_PASSWORD=${{ secrets.DB_PASSWORD }}
           EOF
 
           # Alertmanager Discord webhook 설정 파일 생성
@@ -186,6 +188,14 @@ jobs:
           else
             echo "✅ 볼륨이 이미 존재합니다: eod_mysql-data-prod"
           fi
+          for volume in eod_app-logs-dev eod_mysql-logs-dev; do
+            if ! docker volume inspect "$volume" >/dev/null 2>&1; then
+              echo "⚠️  dev 로그 볼륨이 존재하지 않습니다. 새로 생성합니다: $volume"
+              docker volume create "$volume"
+            else
+              echo "✅ dev 로그 볼륨 확인: $volume"
+            fi
+          done
           echo "========================================="
 
           # 로그 디렉토리 생성

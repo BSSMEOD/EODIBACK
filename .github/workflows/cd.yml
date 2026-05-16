@@ -165,7 +165,7 @@ jobs:
             echo "Pull 실패, 30초 후 재시도..."
             [ $i -lt 3 ] && sleep 30 || { echo "❌ Pull 최종 실패"; exit 1; }
           done
-          docker compose -f docker-compose.yml down
+          docker compose -f docker-compose.yml --profile monitoring down --remove-orphans
           docker compose -f docker-compose.yml up -d --remove-orphans
 
           # 배포 직후 상태 확인
