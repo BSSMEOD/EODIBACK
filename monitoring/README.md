@@ -91,6 +91,13 @@ Dashboard files are provisioned from folder structure:
 
 Grafana creates matching `prod`, `dev`, and `logs` folders from these directories.
 
+Imported upstream dashboard bases:
+
+- Grafana dashboard `1860` Node Exporter Full: added under `prod` as the shared LXC host dashboard.
+- Grafana dashboard `15798` Docker monitoring: adapted for cAdvisor `name` labels and added to both `prod` and `dev`.
+- Grafana dashboard `14057` MySQL Exporter Quickstart: added to both `prod` and `dev` with `job="mysql"` / `job="mysql-dev"` defaults.
+- Grafana dashboard `20729` Spring Boot JDBC & HikariCP: adapted from `namespace` labels to EOD `env` labels and added to both `prod` and `dev`.
+
 Domain metric names:
 
 - `eod_business_events_total{domain,action,result}`
