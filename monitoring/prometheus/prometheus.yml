@@ -11,14 +11,6 @@ alerting:
         - targets: ["alertmanager:9093"]
 
 scrape_configs:
-  - job_name: "eod-app-local"
-    metrics_path: /actuator/prometheus
-    static_configs:
-      - targets: ["host.docker.internal:8081"]
-        labels:
-          application: eod
-          runtime: local
-
   - job_name: "eod-app-docker"
     metrics_path: /actuator/prometheus
     static_configs:
@@ -26,10 +18,22 @@ scrape_configs:
         labels:
           application: eod
           runtime: docker
+          env: prod
+
+  - job_name: "eod-app-dev"
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["host.docker.internal:8082"]
+        labels:
+          application: eod
+          runtime: docker
+          env: dev
 
   - job_name: "prometheus"
     static_configs:
       - targets: ["prometheus:9090"]
+        labels:
+          env: prod
 
   - job_name: "node-exporter"
     static_configs:
@@ -37,6 +41,7 @@ scrape_configs:
         labels:
           application: eod
           component: node
+          env: shared
 
   - job_name: "cadvisor"
     static_configs:
@@ -44,6 +49,7 @@ scrape_configs:
         labels:
           application: eod
           component: containers
+          env: shared
 
   - job_name: "mysql"
     static_configs:
@@ -51,6 +57,15 @@ scrape_configs:
         labels:
           application: eod
           component: mysql
+          env: prod
+
+  - job_name: "mysql-dev"
+    static_configs:
+      - targets: ["mysqld-exporter-dev:9104"]
+        labels:
+          application: eod
+          component: mysql
+          env: dev
 
   - job_name: "loki"
     static_configs:
@@ -58,6 +73,7 @@ scrape_configs:
         labels:
           application: eod
           component: loki
+          env: prod
 
   - job_name: "alloy"
     static_configs:
@@ -65,6 +81,7 @@ scrape_configs:
         labels:
           application: eod
           component: alloy
+          env: prod
 
   - job_name: "grafana"
     static_configs:
@@ -72,6 +89,7 @@ scrape_configs:
         labels:
           application: eod
           component: grafana
+          env: prod
 
   - job_name: "blackbox-http"
     metrics_path: /probe
@@ -83,6 +101,7 @@ scrape_configs:
         labels:
           application: eod
           availability_target: app-internal
+          env: prod
     relabel_configs:
       - source_labels: [__address__]
         target_label: __param_target

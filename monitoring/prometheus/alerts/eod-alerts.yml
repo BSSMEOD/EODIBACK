@@ -11,12 +11,22 @@ groups:
           summary: EOD application target is down
           description: Prometheus has not been able to scrape the dockerized EOD application for 2 minutes.
 
+      - alert: EodDevAppDown
+        expr: up{job="eod-app-dev"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: eod-dev
+        annotations:
+          summary: EOD dev application metrics target is down
+          description: Prometheus has not been able to scrape the dev EOD application for 5 minutes.
+
       - alert: EodHighHttp5xxRatio
         expr: |
           (
-            sum(rate(http_server_requests_seconds_count{application="eod",status=~"5..",uri!="UNKNOWN"}[5m]))
+            sum(rate(http_server_requests_seconds_count{application="eod",env="prod",status=~"5..",uri!="UNKNOWN"}[5m]))
             /
-            clamp_min(sum(rate(http_server_requests_seconds_count{application="eod",uri!="UNKNOWN"}[5m])), 1)
+            clamp_min(sum(rate(http_server_requests_seconds_count{application="eod",env="prod",uri!="UNKNOWN"}[5m])), 1)
           ) > 0.05
         for: 10m
         labels:
@@ -30,7 +40,7 @@ groups:
         expr: |
           histogram_quantile(
             0.95,
-            sum by (le) (rate(http_server_requests_seconds_bucket{application="eod",uri!="UNKNOWN"}[5m]))
+            sum by (le) (rate(http_server_requests_seconds_bucket{application="eod",env="prod",uri!="UNKNOWN"}[5m]))
           ) > 1
         for: 10m
         labels:
@@ -43,9 +53,9 @@ groups:
       - alert: EodHighJvmHeapUsage
         expr: |
           (
-            sum(jvm_memory_used_bytes{application="eod",area="heap"})
+            sum(jvm_memory_used_bytes{application="eod",env="prod",area="heap"})
             /
-            clamp_min(sum(jvm_memory_max_bytes{application="eod",area="heap"}), 1)
+            clamp_min(sum(jvm_memory_max_bytes{application="eod",env="prod",area="heap"}), 1)
           ) > 0.90
         for: 15m
         labels:
@@ -56,7 +66,7 @@ groups:
           description: JVM heap usage has exceeded 90% for 15 minutes.
 
       - alert: EodHikariPendingConnections
-        expr: sum(hikaricp_connections_pending{application="eod"}) > 0
+        expr: sum(hikaricp_connections_pending{application="eod",env="prod"}) > 0
         for: 5m
         labels:
           severity: warning
@@ -68,9 +78,9 @@ groups:
       - alert: EodHighGcPauseAverage
         expr: |
           (
-            sum(rate(jvm_gc_pause_seconds_sum{application="eod"}[5m]))
+            sum(rate(jvm_gc_pause_seconds_sum{application="eod",env="prod"}[5m]))
             /
-            clamp_min(sum(rate(jvm_gc_pause_seconds_count{application="eod"}[5m])), 1)
+            clamp_min(sum(rate(jvm_gc_pause_seconds_count{application="eod",env="prod"}[5m])), 1)
           ) > 0.2
         for: 10m
         labels:
@@ -81,7 +91,7 @@ groups:
           description: Average JVM GC pause has stayed above 200ms for 10 minutes.
 
       - alert: EodSchedulerFailure
-        expr: increase(eod_scheduler_runs_total{result=~"failure|partial_failure"}[1h]) > 0
+        expr: increase(eod_scheduler_runs_total{env="prod",result=~"failure|partial_failure"}[1h]) > 0
         for: 0m
         labels:
           severity: warning
@@ -187,6 +197,16 @@ groups:
         annotations:
           summary: EOD MySQL is down
           description: MySQL exporter cannot connect to MySQL for 2 minutes.
+
+      - alert: EodDevMysqlDown
+        expr: mysql_up{job="mysql-dev"} == 0
+        for: 5m
+        labels:
+          severity: warning
+          service: eod-dev
+        annotations:
+          summary: EOD dev MySQL is down
+          description: Dev MySQL exporter cannot connect to MySQL for 5 minutes.
 
       - alert: EodMysqlHighConnectionUsage
         expr: |
