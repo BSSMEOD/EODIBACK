@@ -143,6 +143,7 @@ jobs:
           DISCORD_BOT_TOKEN=${{ secrets.PROD_DISCORD_BOT_TOKEN }}
           DISCORD_GUILD_ID=${{ secrets.PROD_DISCORD_GUILD_ID }}
           DISCORD_VERIFIED_ROLE_ID=${{ secrets.PROD_DISCORD_VERIFIED_ROLE_ID }}
+          DISCORD_STAFF_NOTIFY_IDS=${{ secrets.PROD_DISCORD_STAFF_NOTIFY_IDS }}
           DEV_MYSQL_USER=${{ secrets.DB_USERNAME }}
           DEV_MYSQL_PASSWORD=${{ secrets.DB_PASSWORD }}
           EOF
