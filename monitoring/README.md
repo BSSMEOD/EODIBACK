@@ -89,6 +89,8 @@ Dashboard files:
 - `monitoring/grafana/dashboards/eod-infrastructure.json`: server, container, MySQL, and availability metrics
 - `monitoring/grafana/dashboards/eod-jvm.json`: JVM memory, GC, threads, and classes
 - `monitoring/grafana/dashboards/eod-domain-metrics.json`: EOD business/domain metrics
+- `monitoring/grafana/dashboards/eod-dev-monitoring.json`: dev-only app, MySQL, JVM, and container metrics
+- `monitoring/grafana/dashboards/eod-logs.json`: prod/dev application and MySQL logs from Loki
 
 Application, JVM, and domain dashboards include an `env` variable so prod and dev metrics can be viewed separately from the same Grafana instance.
 
@@ -125,6 +127,8 @@ Direct LogQL check:
 {service_name="eod-backend", server="eod-prod-01"}
 {service_name="eod-backend", env="dev"}
 ```
+
+Grafana Logs Drilldown is available from `Drilldown > Logs` in Grafana 12. The `EOD Logs` dashboard also includes a direct link to `/a/grafana-lokiexplore-app` and fixed prod/dev Loki panels so logs remain visible even when the Drilldown navigation is not obvious.
 
 Operational checks:
 
