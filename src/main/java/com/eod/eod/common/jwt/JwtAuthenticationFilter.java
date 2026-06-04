@@ -125,6 +125,9 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         return path.startsWith("/oauth2/")
                 || path.startsWith("/login/")
                 || path.startsWith("/auth/oauth/")
-                || path.equals("/auth/refresh"); // refresh는 Refresh Token으로 자체 처리, logout은 JWT 인증 필요
+                || path.equals("/auth/refresh")
+                || path.equals("/auth/mobile/exchange")
+                || path.equals("/auth/mobile/refresh")
+                || path.equals("/auth/dev-login"); // refresh/exchange/dev-login은 자체 처리, logout/me는 JWT 인증 필요
     }
 }
