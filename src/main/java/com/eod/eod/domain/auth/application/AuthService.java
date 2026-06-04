@@ -42,7 +42,7 @@ public class AuthService {
         tokenService.deleteRefreshToken(storedToken);
         tokenService.saveOrUpdateRefreshToken(user, newRefreshToken);
 
-        return new RefreshTokenResult(newAccessToken, newRefreshToken);
+        return new RefreshTokenResult(newAccessToken, newRefreshToken, user);
     }
 
     // 로그아웃 시 사용자의 Refresh Token 전체 삭제
@@ -68,10 +68,12 @@ public class AuthService {
     public static class RefreshTokenResult {
         private final String accessToken;
         private final String refreshToken;
+        private final User user;
 
-        public RefreshTokenResult(String accessToken, String refreshToken) {
+        public RefreshTokenResult(String accessToken, String refreshToken, User user) {
             this.accessToken = accessToken;
             this.refreshToken = refreshToken;
+            this.user = user;
         }
 
         public String getAccessToken() {
@@ -80,6 +82,10 @@ public class AuthService {
 
         public String getRefreshToken() {
             return refreshToken;
+        }
+
+        public User getUser() {
+            return user;
         }
     }
 
