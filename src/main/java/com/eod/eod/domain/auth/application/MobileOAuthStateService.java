@@ -48,7 +48,7 @@ public class MobileOAuthStateService {
                 });
     }
 
-    private void validateRedirectUri(String redirectUri) {
+    public void validateRedirectUri(String redirectUri) {
         if (redirectUri == null || redirectUri.isBlank()) {
             throw new IllegalArgumentException("모바일 redirectUri가 필요합니다.");
         }

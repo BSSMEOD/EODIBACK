@@ -66,6 +66,12 @@ public class BsmOAuthCallbackController {
         String mobileRedirectUri = null;
         try {
             mobileRedirectUri = mobileOAuthStateService.consumeRedirectUri(state).orElse(null);
+            if (mobileRedirectUri == null) {
+                mobileRedirectUri = cookieUtil.getCookie(request, MobileAuthController.MOBILE_REDIRECT_COOKIE)
+                        .map(Cookie::getValue)
+                        .orElse(null);
+            }
+            cookieUtil.deleteCookie(response, MobileAuthController.MOBILE_REDIRECT_COOKIE, CookieUtil.SameSitePolicy.LAX);
             String discordIdFromState = discordOAuthStateService.consumeDiscordId(state).orElse(null);
             String discordIdFromCookie = cookieUtil.getCookie(request, DISCORD_ID_COOKIE_NAME)
                     .map(Cookie::getValue)

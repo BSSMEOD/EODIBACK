@@ -1,5 +1,6 @@
 package com.eod.eod.domain.auth.presentation;
 
+import com.eod.eod.common.util.CookieUtil;
 import com.eod.eod.domain.auth.application.AuthService;
 import com.eod.eod.domain.auth.application.BsmOAuthService;
 import com.eod.eod.domain.auth.application.MobileAuthTokenService;
@@ -11,6 +12,7 @@ import com.eod.eod.domain.auth.presentation.dto.response.AuthUserResponse;
 import com.eod.eod.domain.auth.presentation.dto.response.BsmAuthorizeUrlResponse;
 import com.eod.eod.domain.auth.presentation.dto.response.MobileTokenResponse;
 import com.eod.eod.domain.user.model.User;
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -23,6 +25,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.io.IOException;
 import java.security.SecureRandom;
 import java.util.Base64;
 
@@ -35,7 +38,21 @@ public class MobileAuthController {
     private final MobileOAuthStateService mobileOAuthStateService;
     private final MobileAuthTokenService mobileAuthTokenService;
     private final AuthService authService;
+    private final CookieUtil cookieUtil;
     private final SecureRandom secureRandom = new SecureRandom();
+
+    static final String MOBILE_REDIRECT_COOKIE = "bsm_mobile_redirect";
+
+    @GetMapping("/mobile/bsm/start")
+    public void mobileBsmStart(
+            @RequestParam("redirectUri") String redirectUri,
+            HttpServletResponse response
+    ) throws IOException {
+        mobileOAuthStateService.validateRedirectUri(redirectUri);
+        cookieUtil.addTokenCookie(response, MOBILE_REDIRECT_COOKIE, redirectUri,
+                5 * 60 * 1000L, CookieUtil.SameSitePolicy.LAX);
+        response.sendRedirect(bsmOAuthService.buildAuthorizeUrl(generateState()));
+    }
 
     @GetMapping("/mobile/bsm/authorize")
     public ResponseEntity<BsmAuthorizeUrlResponse> authorizeMobileBsm(
