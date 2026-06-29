@@ -3,6 +3,8 @@ package com.eod.eod.domain.auth.presentation;
 import com.eod.eod.common.util.CookieUtil;
 import com.eod.eod.domain.auth.application.BsmLoginService;
 import com.eod.eod.domain.auth.application.DiscordOAuthStateService;
+import com.eod.eod.domain.auth.application.MobileAuthTokenService;
+import com.eod.eod.domain.auth.application.MobileOAuthStateService;
 import com.eod.eod.domain.auth.application.TokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -37,6 +39,8 @@ public class BsmOAuthCallbackController {
 
     private final BsmLoginService bsmLoginService;
     private final DiscordOAuthStateService discordOAuthStateService;
+    private final MobileOAuthStateService mobileOAuthStateService;
+    private final MobileAuthTokenService mobileAuthTokenService;
     private final TokenService tokenService;
     private final CookieUtil cookieUtil;
     private final Environment environment;
@@ -59,7 +63,15 @@ public class BsmOAuthCallbackController {
             HttpServletRequest request,
             HttpServletResponse response
     ) throws IOException {
+        String mobileRedirectUri = null;
         try {
+            mobileRedirectUri = mobileOAuthStateService.consumeRedirectUri(state).orElse(null);
+            if (mobileRedirectUri == null) {
+                mobileRedirectUri = cookieUtil.getCookie(request, MobileAuthController.MOBILE_REDIRECT_COOKIE)
+                        .map(Cookie::getValue)
+                        .orElse(null);
+            }
+            cookieUtil.deleteCookie(response, MobileAuthController.MOBILE_REDIRECT_COOKIE, CookieUtil.SameSitePolicy.LAX);
             String discordIdFromState = discordOAuthStateService.consumeDiscordId(state).orElse(null);
             String discordIdFromCookie = cookieUtil.getCookie(request, DISCORD_ID_COOKIE_NAME)
                     .map(Cookie::getValue)
@@ -85,6 +97,16 @@ public class BsmOAuthCallbackController {
             }
 
             BsmLoginService.LoginResult loginResult = bsmLoginService.login(code);
+
+            if (mobileRedirectUri != null) {
+                String oneTimeToken = mobileAuthTokenService.create(
+                        loginResult.user(),
+                        loginResult.accessToken(),
+                        loginResult.refreshToken()
+                );
+                response.sendRedirect(buildMobileRedirectUrl(mobileRedirectUri, "oneTimeToken", oneTimeToken));
+                return;
+            }
 
             String discordLinkError = null;
             if (discordId != null) {
@@ -132,8 +154,17 @@ public class BsmOAuthCallbackController {
             log.error("BSM OAuth callback failed", e);
             cookieUtil.deleteCookie(response, STATE_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
             cookieUtil.deleteCookie(response, DISCORD_ID_COOKIE_NAME, CookieUtil.SameSitePolicy.LAX);
+            if (mobileRedirectUri != null) {
+                response.sendRedirect(buildMobileRedirectUrl(mobileRedirectUri, "error", "bsm_oauth_failed"));
+                return;
+            }
             failRedirect(response, "bsm_oauth_failed", null);
         }
+    }
+
+    private String buildMobileRedirectUrl(String redirectUri, String key, String value) {
+        String separator = redirectUri.contains("?") ? "&" : "?";
+        return redirectUri + separator + key + "=" + URLEncoder.encode(value, StandardCharsets.UTF_8);
     }
 
     private void failRedirect(HttpServletResponse response, String reason, String discordId) throws IOException {
