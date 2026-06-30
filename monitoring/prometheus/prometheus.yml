@@ -14,7 +14,9 @@ scrape_configs:
   - job_name: "eod-app-docker"
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: ["app:8081"]
+      # 서비스명 "app"은 dev/prod 양 네트워크에 모두 존재 → 중앙 prometheus가
+      # 두 네트워크에 동시 연결돼 있어 모호하게 resolve됨. 고유 컨테이너명으로 고정.
+      - targets: ["eod-app:8081"]
         labels:
           application: eod
           runtime: docker
@@ -97,7 +99,7 @@ scrape_configs:
       module: [http_2xx]
     static_configs:
       - targets:
-          - "http://app:8080/healthz"
+          - "http://eod-app:8080/healthz"
         labels:
           application: eod
           availability_target: app-internal
