@@ -129,22 +129,22 @@ jobs:
           FILE_UPLOAD_BASE_URL=${{ secrets.FILE_UPLOAD_BASE_URL }}
           GRAFANA_ADMIN_USER=${{ secrets.PROD_GRAFANA_ADMIN_USER }}
           GRAFANA_ADMIN_PASSWORD=${{ secrets.PROD_GRAFANA_ADMIN_PASSWORD }}
-          DISCORD_WEBHOOK_URL=${{ secrets.PROD_DISCORD_WEBHOOK_URL }}
-          DISCORD_BOT_TOKEN=${{ secrets.PROD_DISCORD_BOT_TOKEN }}
-          DISCORD_GUILD_ID=${{ secrets.PROD_DISCORD_GUILD_ID }}
-          DISCORD_VERIFIED_ROLE_ID=${{ secrets.PROD_DISCORD_VERIFIED_ROLE_ID }}
-          DISCORD_STAFF_NOTIFY_IDS=${{ secrets.PROD_DISCORD_STAFF_NOTIFY_IDS }}
+          DISCORD_WEBHOOK_URL=${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_BOT_TOKEN=${{ secrets.DISCORD_BOT_TOKEN }}
+          DISCORD_GUILD_ID=${{ secrets.DISCORD_GUILD_ID }}
+          DISCORD_VERIFIED_ROLE_ID=${{ secrets.DISCORD_VERIFIED_ROLE_ID }}
+          DISCORD_STAFF_NOTIFY_IDS=${{ secrets.DISCORD_STAFF_NOTIFY_IDS }}
           DEV_MYSQL_USER=${{ secrets.DB_USERNAME }}
           DEV_MYSQL_PASSWORD=${{ secrets.DB_PASSWORD }}
           EOF
 
           # Alertmanager Discord webhook 설정 파일 생성
-          if [ -z "${{ secrets.PROD_DISCORD_WEBHOOK_URL }}" ]; then
-            echo "❌ PROD_DISCORD_WEBHOOK_URL secret이 설정되지 않았습니다."
+          if [ -z "${{ secrets.DISCORD_WEBHOOK_URL }}" ]; then
+            echo "❌ DISCORD_WEBHOOK_URL secret이 설정되지 않았습니다."
             exit 1
           fi
           mkdir -p monitoring/alertmanager/generated
-          ALERTMANAGER_DISCORD_WEBHOOK_URL='${{ secrets.PROD_DISCORD_WEBHOOK_URL }}' python3 - <<'PY'
+          ALERTMANAGER_DISCORD_WEBHOOK_URL='${{ secrets.DISCORD_WEBHOOK_URL }}' python3 - <<'PY'
           import os
           from pathlib import Path
 
